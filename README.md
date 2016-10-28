@@ -13,9 +13,14 @@ The major development goals are:
 2. Create documentation for basic users 
 
 Additional plans include: 
-
-* Consolidate prompts at the beginning rather than a series of interactions
-* Set timestamp once when script initiated, use throughout
-* Consider whether rotation belongs in the Toolkit
-* Options for generating WebRTI (tiles, html)
 * More helpful error messages (check dependencies, instructions for fixing errors)
+
+Features added in the October 28, 2016 update:
+
+* create jp2 files for IIIF repository
+* option to create selectively static raking files directly to jp2 without jpeg compression 
+* create WebRTI files
+* consolidate prompts at beginning
+* option to defer HSHfitter to batch command file
+* human readable time stamps when renaming rather than overwriting files
+* timestamp set once for entire sequence
