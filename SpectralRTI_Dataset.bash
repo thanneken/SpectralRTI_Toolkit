@@ -2,7 +2,6 @@
 if [[ -n "$( pwd | grep -o -P " " )" ]]; 
 then echo "Present working directory ($(pwd)) contains spaces. Please choose a different directory." 
 fi
-
 mkdir -p SpectralRTI/Macros/
 mkdir -p SpectralRTI/Plugins/
 mkdir -p SpectralRTI/Projects/Figurine/AccurateColor/
@@ -10,6 +9,7 @@ mkdir -p SpectralRTI/Projects/Figurine/HemisphereCaptures/
 mkdir -p SpectralRTI/Projects/Figurine/NarrowbandCaptures/
 wget -nc -O SpectralRTI/Macros/SpectralRTI_Toolkit.ijm https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/SpectralRTI_Toolkit.ijm
 wget -nc -O SpectralRTI/Plugins/PCA_.class https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/PCA_.class
+wget -nc -O SpectralRTI/Plugins/ijp-toolkit_bin_2.1.0.zip  https://sourceforge.net/projects/ij-plugins/files/ij-plugins_toolkit/v.2.1.0/ijp-toolkit_bin_2.1.0.zip
 wget -nc -O SpectralRTI/Projects/Figurine/AccurateColor/Figurine-Color.tif http://palimpsest.stmarytx.edu/integratingdataarchive/Sold/Accc/20140220-Sold-00-Accc-03-50m.tif
 wget -nc -O SpectralRTI/Projects/Figurine/HemisphereCaptures/Figurine-Position-01.tif http://palimpsest.stmarytx.edu/integratingdataarchive/Sold/Capt/20130723-Sold-Fla-01-Capt-01-50m-011.tif
 wget -nc -O SpectralRTI/Projects/Figurine/HemisphereCaptures/Figurine-Position-02.tif http://palimpsest.stmarytx.edu/integratingdataarchive/Sold/Capt/20130723-Sold-Fla-02-Capt-01-50m-011.tif
