@@ -1,28 +1,29 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1
-Date: October 28, 2016
+Version: 0.1.20161116
+Date: November 16, 2016
 Author: Todd R. Hanneken, thanneken@stmarytx.edu, thanneke@uchicago.edu
 Description: A toolkit for processing Spectral RTI images
 About: 
 See http://palimpsest.stmarytx.edu/integrating
 */
-var brightnessAdjustOption = ""; //declare global variables from beginning
-var normX; // probably a more elegant way to do this but important that variables are accessible outside of function
-var normY;
-var normWidth;
-var normHeight;
-var normalizationFixedValue;
-var pcaX;
-var pcaY;
-var pcaWidth;
-var pcaHeight;
-var lpSource = "";
-var projectDirectory = "";
-var projectName = "";
-var jpegQuality;
-var startTime = timestamp();
-var listOfRakingDirections;
+var brightnessAdjustOption = ""; 
+var brightnessAdjustApply = "";
+	var normX; 
+	var normY;
+	var normWidth;
+	var normHeight;
+	var normalizationFixedValue;
+	var pcaX;
+	var pcaY;
+	var pcaWidth;
+	var pcaHeight;
+	var lpSource = "";
+	var projectDirectory = "";
+	var projectName = "";
+	var jpegQuality;
+	var startTime = timestamp();
+	var listOfRakingDirections;
 function createJp2(inFile) {
 	preferredCompress = List.get("preferredCompress");
 	preferredJp2Args = List.get("preferredJp2Args");
@@ -95,7 +96,9 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 		File.append("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".txt");
 		File.append("hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti",preferredFitter); 
 		File.append("webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti -q "+jpegQuality,preferredFitter);
-		File.append("<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"-"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"-"+colorProcess+"RTI-"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+"-wrti.html");
+		if (webRtiDesired) {
+			File.append("<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"-"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"-"+colorProcess+"RTI-"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+"-wrti.html");
+		}
 	} else if (endsWith(preferredFitter,"PTMfitter.exe")) { // use PTM fitter
 			exit("Macro code to execute PTMfitter not yet complete. Try HSHfitter."); // @@@
 	} else {
@@ -141,12 +144,16 @@ function createLpFile(colorProcess) { //create lp file with filenames from newly
 }
 function promptBrightnessAdjust() {
 	open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[round(listOfHemisphereCaptures.length/2)]);
+	rename("Preview");
 	setBatchMode("show");
 	brightnessAdjustOptions = newArray("No","Yes, by normalizing each image to a selected area","Yes, by multiplying all images by a fixed value");
+	brightnessAdjustApplies = newArray("Raking images only (recommended)","RTI images also");
 	Dialog.create("Adjust brightness of hemisphere captures?");
 	Dialog.addRadioButtonGroup("Adjust brightness of hemisphere captures?", brightnessAdjustOptions, brightnessAdjustOptions.length, 1, brightnessAdjustOptions[0]);
+	Dialog.addRadioButtonGroup("Apply adjustment to: ",brightnessAdjustApplies,brightnessAdjustApplies.length,1,brightnessAdjustApplies[0]);
 	Dialog.show();
 	brightnessAdjustOption = Dialog.getRadioButton();
+	brightnessAdjustApply = Dialog.getRadioButton();
 	if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
 		waitForUser("Select area", "Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)");
 		getSelectionBounds(normX, normY, normWidth, normHeight);
@@ -158,6 +165,7 @@ function promptBrightnessAdjust() {
 		Dialog.show();
 		normalizationFixedValue = Dialog.getNumber();
 	}
+	selectWindow("Preview");
 	run("Close");
 }
 function noClobber(safeName) {
@@ -207,14 +215,41 @@ function readLogFile() {
 */
 macro "Spectral RTI [n1]" {
 	setBatchMode(true);
+	//want these variables to be accessible across functions and to reset each time the macro is run
+	brightnessAdjustOption = ""; 
+	brightnessAdjustApply = "";
+	var accurateColorSource = "";
+	//consult with user about values stored in prefs file
+	prefsConsult = newArray();
+	Dialog.create("Consult Preferences");
+	Dialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
 	if (File.exists("SpectralRTI_Toolkit-prefs.txt")) {
 		prefsFile = File.openAsString("SpectralRTI_Toolkit-prefs.txt");
 		prefs = split(prefsFile,"\n");
 		for (i=0;i<prefs.length;i++) {
-			//pairs = split(prefs[i],"=");
-			//List.set(pairs[0],pairs[1]); // didn't work with equal signs in values, still can't have them in keys
-			List.set(substring(prefs[i],0,indexOf(prefs[i],"=")),substring(prefs[i],indexOf(prefs[i],"=")+1));
+			var key = substring(prefs[i],0,indexOf(prefs[i],"="));
+			key = replace(key,"preferredCompress","JP2 Compressor");
+			key = replace(key,"preferredJp2Args","JP2 Arguments");
+			key = replace(key,"preferredFitter","HSH Fitter");
+			key = replace(key,"jpegQuality","JPEG Quality");
+			key = replace(key,"hshOrder","HSH Order");
+			key = replace(key,"hshThreads","HSH Threads");
+			var value = substring(prefs[i],indexOf(prefs[i],"=")+1);
+			Dialog.addString(key, value, 80);
+			prefsConsult = Array.concat(prefsConsult,key);
 		}
+	}
+	Dialog.show();
+	for (i=0; i<prefsConsult.length;i++) {
+		var key = prefsConsult[i];
+		key = replace(key,"JP2 Compressor","preferredCompress");
+		key = replace(key,"JP2 Arguments","preferredJp2Args");
+		key = replace(key,"HSH Fitter","preferredFitter");
+		key = replace(key,"JPEG Quality","jpegQuality");
+		key = replace(key,"HSH Order","hshOrder");
+		key = replace(key,"HSH Threads","hshThreads");
+		var value = Dialog.getString();
+		List.set(key,value);
 	}
 	jpegQuality = call("ij.plugin.JpegWriter.getQuality");
 	if (List.get("jpegQuality") > 0) jpegQuality = List.get("jpegQuality");
@@ -252,33 +287,60 @@ macro "Spectral RTI [n1]" {
 	Dialog.addMessage("Select the tasks you would like to complete");
 	Dialog.addCheckbox("Light Position Data",lpDesired);
 	Dialog.addCheckbox("Accurate ColorRTI",acRtiDesired);
+	Dialog.addCheckbox("Accurate Color Static Raking",acRtiDesired);
 	Dialog.addCheckbox("Extended Spectrum RTI",xsRtiDesired);
+	Dialog.addCheckbox("Extended Spectrum Static Raking",xsRtiDesired);
 	Dialog.addCheckbox("Pseudocolor RTI",psRtiDesired);
-	Dialog.addCheckbox("Static Raking",false);
-	Dialog.addCheckbox("WebRTI",false);
+	Dialog.addCheckbox("Pseudocolor Static Raking",psRtiDesired);
+	Dialog.addCheckbox("Custom RTI",false);
+	Dialog.addCheckbox("Custom Static Raking",false);
+	Dialog.addCheckbox("WebRTI",true);
 	Dialog.show();
 	lpDesired = Dialog.getCheckbox();
 	acRtiDesired = Dialog.getCheckbox();
+	acRakingDesired = Dialog.getCheckbox();
 	xsRtiDesired = Dialog.getCheckbox();
+	xsRakingDesired = Dialog.getCheckbox();
 	psRtiDesired = Dialog.getCheckbox();
-	rakingDesired = Dialog.getCheckbox();
+	psRakingDesired = Dialog.getCheckbox();
+	csRtiDesired = Dialog.getCheckbox();
+	csRakingDesired = Dialog.getCheckbox();
 	webRtiDesired = Dialog.getCheckbox();
 	//identify angles for uncompressed static raking
-	if (rakingDesired){
+	if (acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired){
+		if (brightnessAdjustOption == "") promptBrightnessAdjust();
+	}
+	if (acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
 		if (!File.exists(projectDirectory+"StaticRaking"+File.separator)) {
 			File.makeDirectory(projectDirectory+"StaticRaking"+File.separator);
 			print("A directory has been created for lossless static raking images at "+projectDirectory+"StaticRaking"+File.separator);
 		}
-		Dialog.create("Select light positions for lossless static raking images");
-		for(i=0;i<listOfHemisphereCaptures.length;i++) {
-			Dialog.addCheckbox(listOfHemisphereCaptures[i],false);
+		listOfTransmissiveSources = getFileList(projectDirectory+"Transmissive"+File.separator);
+		if (listOfTransmissiveSources.length == 1) 	{ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem 
+			transmissiveSource = listOfTransmissiveSources[0];
+		} else if (listOfTransmissiveSources.length > 1) {
+			Dialog.create("Select Transmissive Source");
+			Dialog.addMessage("Select Transmissive Source");
+			Dialog.addRadioButtonGroup("File: ", listOfTransmissiveSources, listOfTransmissiveSources.length, 1, listOfTransmissiveSources[0]);
+			Dialog.show();
+			transmissiveSource = Dialog.getRadioButton();
+		} else if (listOfTransmissiveSources.length == 0) {
+			transmissiveSource = "";
 		}
+		defaults = newArray(listOfHemisphereCaptures.length);
+		Dialog.create("Select light positions");
+		Dialog.addMessage("Select light positions for lossless static raking images");
+		Dialog.addCheckboxGroup(1+floor(listOfHemisphereCaptures.length/2), 2, listOfHemisphereCaptures, defaults); 
+		//- Adds a rowsxcolumns grid of checkboxes to the dialog, using the specified labels and default states (example). 
+		//for(i=0;i<listOfHemisphereCaptures.length;i++) {
+		//	Dialog.addCheckbox(listOfHemisphereCaptures[i],true);
+		//}
 		Dialog.show();
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
 			listOfRakingDirections = Array.concat(listOfRakingDirections,Dialog.getCheckbox());
 		}
 	}
-	if (xsRtiDesired) { // only interaction here, processing later
+	if (xsRtiDesired || xsRakingDesired) { // only interaction here, processing later
 		//create a dialog suggesting and confirming which narrowband captures to use for R,G,and B
 		rgbnOptions = newArray("R","G","B","none");
 		redNarrowbands = newArray(0);
@@ -305,13 +367,15 @@ macro "Spectral RTI [n1]" {
 		}
 		if (pcaHeight <100) {
 			open(projectDirectory+"NarrowbandCaptures"+File.separator+listOfNarrowbandCaptures[round(listOfNarrowbandCaptures.length/2)]);
+			rename("Preview");
 			setBatchMode("show");
 			waitForUser("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
 			getSelectionBounds(pcaX, pcaY, pcaWidth, pcaHeight);
+			selectWindow("Preview");
 			run("Close");
 		}
 	}
-	if (psRtiDesired) {// only interaction here, processing later
+	if (psRtiDesired || psRakingDesired) {// only interaction here, processing later
 			//identify 2 source images for pca pseudocolor
 			listOfPseudocolorSources = getFileList(projectDirectory+"PCA"+File.separator);
 			if (listOfPseudocolorSources.length > 1) defaultPca = "Open pregenerated images" ;
@@ -324,11 +388,16 @@ macro "Spectral RTI [n1]" {
 			pcaMethod = Dialog.getRadioButton();
 			if (pcaHeight <100) {
 				open(projectDirectory+"NarrowbandCaptures"+File.separator+listOfNarrowbandCaptures[round(listOfNarrowbandCaptures.length/2)]);
+				rename("Preview");
 				setBatchMode("show");
 				waitForUser("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
 				getSelectionBounds(pcaX, pcaY, pcaWidth, pcaHeight);
+				selectWindow("Preview");
 				run("Close");
 			}
+	}
+	if (csRtiDesired || csRakingDesired) { //interaction phase
+		csSource = File.openDialog("Choose a Source for Custom Process");
 	}
 	//create base lp file
 	if (lpDesired) {
@@ -336,6 +405,7 @@ macro "Spectral RTI [n1]" {
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
 			if (endsWith(listOfHemisphereCaptures[i],"tif")) {
 				open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
+				rename("Preview");
 				if (!ballArea) {
 					setBatchMode("show");
 					waitForUser("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
@@ -347,6 +417,7 @@ macro "Spectral RTI [n1]" {
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator);
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports");
 				saveAs("jpeg",projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+File.nameWithoutExtension+".jpg");
+				selectWindow("Preview");
 				run("Close");
 			}
 		}
@@ -359,8 +430,6 @@ macro "Spectral RTI [n1]" {
 			File.makeDirectory(projectDirectory+"AccurateColorRTI"+File.separator);
 			print("A directory has been created for Accurate Color RTI at "+projectDirectory+"AccurateColorRTI"+File.separator);
 		}
-		//normalization based on fixed value or prompted area
-		if (brightnessAdjustOption == "") promptBrightnessAdjust();
 		//integration
 		listOfAccurateColorSources = getFileList(projectDirectory+"AccurateColor"+File.separator);
 		if (listOfAccurateColorSources.length == 1) 	{
@@ -382,13 +451,6 @@ macro "Spectral RTI [n1]" {
 			run("Close");
 			rename("RGBtiff");
 		}
-		//create accurate color static diffuse
-		if (rakingDesired){
-			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-AccurateColor-00"+".tiff");
-			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-AccurateColor-00"+".tiff");
-			createJp2(projectName+"-AccurateColor-00");
-			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-AccurateColor-00"+".tiff");
-		}
 		run("RGB to YCbCr stack");
 		run("Stack to Images");
 		selectWindow("Y");
@@ -402,26 +464,22 @@ macro "Spectral RTI [n1]" {
 				rename("Luminance");
 				// it would be better to crop early in the process, especially before reducing to 8-bit and jpeg compression
 				// normalize
-				if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
-					makeRectangle(normX, normY, normWidth, normHeight);
-					run("Enhance Contrast...", "saturated=0.4");
-					run("Select None");
-				} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
-					run("Multiply...", "value="+normalizationFixedValue+"");
+				if (brightnessAdjustApply == "RTI images also") {
+					if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
+						makeRectangle(normX, normY, normWidth, normHeight);
+						run("Enhance Contrast...", "saturated=0.4");
+						run("Select None");
+					} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
+						run("Multiply...", "value="+normalizationFixedValue+"");
+					}
 				}
 				run("8-bit");
 				run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
 				run("YCbCr stack to RGB");
-				if (listOfRakingDirections[i+1]) {
-					positionNumber = toString(i+1);
-					noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-AccurateColor-"+positionNumber+".tiff");
-					save(projectDirectory+"StaticRaking"+File.separator+projectName+"-AccurateColor-"+positionNumber+".tiff");
-					createJp2(projectName+"-AccurateColor-"+positionNumber);
-					File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-AccurateColor-"+positionNumber+".tiff");
-				}
 				//Save as jpeg
 				noClobber(projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor-"+File.nameWithoutExtension+".jpg");
 				saveAs("jpeg", projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor-"+File.nameWithoutExtension+".jpg");
+				selectWindow(File.nameWithoutExtension+".jpg");
 				run("Close");
 				selectWindow("YCC");
 				run("Close");
@@ -436,14 +494,95 @@ macro "Spectral RTI [n1]" {
 		createLpFile("AccurateColor");
 		runFitter("AccurateColor");
 	}
-	//create Extended Spectrum RTI
-	if (xsRtiDesired) {
-		//create series of images with luminance from hemisphere captures and chrominance from extended spectrum color process
-		if (!File.exists(projectDirectory+"ExtendedSpectrumRTI"+File.separator)) {
-			File.makeDirectory(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
-			print("A directory has been created for Extended Spectrum RTI at "+projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+	if (acRakingDesired) {
+		if (accurateColorSource != "") {
+			listOfAccurateColorSources = getFileList(projectDirectory+"AccurateColor"+File.separator);
+			if (listOfAccurateColorSources.length == 1) 	{
+				accurateColorSource = listOfAccurateColorSources[0];
+			} else if (listOfAccurateColorSources.length == 0) {
+				exit("Need at least one color image file in "+projectDirectory+"AccurateColorRTI"+File.separator);
+			} else {
+				Dialog.create("Select Color Source");
+				Dialog.addMessage("Select Color Source");
+				Dialog.addRadioButtonGroup("File: ", listOfAccurateColorSources, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0]);
+				Dialog.show();
+				accurateColorSource = Dialog.getRadioButton();
+			}
 		}
-		//Dialog moved from here
+		open(projectDirectory+"AccurateColor"+File.separator+ accurateColorSource);
+		rename("RGBtiff");
+		if (bitDepth() == 8) {
+			run("RGB Color");
+			selectWindow("RGBtiff");
+			run("Close");
+			rename("RGBtiff");
+		}
+		//create accurate color static diffuse
+		noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-00"+".tiff");
+		save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-00"+".tiff");
+		createJp2(projectName+"-Ac-00");
+		File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-00"+".tiff");
+		run("RGB to YCbCr stack");
+		run("Stack to Images");
+		selectWindow("Y");
+		run("Close");
+		selectWindow("RGBtiff");
+		run("Close");
+		//Luminance from transmissive
+		if (transmissiveSource != "") {
+			open(projectDirectory+"Transmissive"+File.separator+transmissiveSource);
+			rename("TransmissiveLuminance");
+			run("8-bit");
+			run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
+			run("YCbCr stack to RGB");
+			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-Transmissive.tiff");
+			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-Transmissive.tiff");
+			createJp2(projectName+"-Ac-Transmissive");
+			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-Transmissive.tiff");
+			selectWindow("YCC - RGB"); 
+			run("Close");
+			selectWindow("YCC");
+			run("Close");
+			selectWindow("TransmissiveLuminance");
+			run("Close");
+		}
+		//Luminance from hemisphere captures
+		for(i=0;i<listOfHemisphereCaptures.length;i++) {
+			if (endsWith(listOfHemisphereCaptures[i],"tif")) { //@@@ better to trim list at the beginning so that array.length can be used in lp file
+				if (listOfRakingDirections[i+1]) {
+					open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
+					rename("Luminance");
+					if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
+						makeRectangle(normX, normY, normWidth, normHeight);
+						run("Enhance Contrast...", "saturated=0.4");
+						run("Select None");
+					} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
+						run("Multiply...", "value="+normalizationFixedValue+"");
+					}
+					run("8-bit");
+					run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+					run("YCbCr stack to RGB");
+					positionNumber = toString(IJ.pad(i+1, 2));
+					noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-"+positionNumber+".tiff");
+					save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-"+positionNumber+".tiff");
+					createJp2(projectName+"-Ac-"+positionNumber);
+					File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ac-"+positionNumber+".tiff");
+					selectWindow("YCC - RGB");
+					run("Close");
+					selectWindow("YCC");
+					run("Close");
+					selectWindow("Luminance");
+					run("Close");
+				}
+			}
+		}
+		selectWindow("Cb");
+		run("Close");
+		selectWindow("Cr");
+		run("Close");
+	}
+	//create Extended Spectrum RTI
+	if (xsRtiDesired || xsRakingDesired) {
 		//Red
 		redStringList = redNarrowbands[0];  //might be an array to string function somewhere to do this more elegantly
 		for (i=1;i<redNarrowbands.length;i++) {
@@ -516,11 +655,11 @@ macro "Spectral RTI [n1]" {
 		run("Close");
 		selectWindow("Stack (RGB)");
 		//create extended spectrum static diffuse 
-		if (rakingDesired) {
-			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-ExtendedSpectrum-00"+".tiff");
-			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-ExtendedSpectrum-00"+".tiff");
-			createJp2(projectName+"-ExtendedSpectrum-00");
-			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-ExtendedSpectrum-00"+".tiff");
+		if (xsRakingDesired) {
+			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-00"+".tiff");
+			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-00"+".tiff");
+			createJp2(projectName+"-Xs-00");
+			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-00"+".tiff");
 		}
 		run("RGB to YCbCr stack");
 		run("Stack to Images");
@@ -528,56 +667,94 @@ macro "Spectral RTI [n1]" {
 		run("Close");
 		selectWindow("Stack (RGB)");
 		run("Close");
-		//normalization based on fixed value or prompted area
-		if (brightnessAdjustOption == "") promptBrightnessAdjust();
-		//luminance from hemisphere captures
-		for(i=0;i<listOfHemisphereCaptures.length;i++) {
-			open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
-			rename("Luminance");
-			// normalize
-			if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
-				makeRectangle(normX, normY, normWidth, normHeight);
-				run("Enhance Contrast...", "saturated=0.4");
-				run("Select None");
-			} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
-				run("Multiply...", "value="+normalizationFixedValue+"");
-			}
+		if (transmissiveSource != "") {
+			open(projectDirectory+"Transmissive"+File.separator+transmissiveSource);
+			rename("TransmissiveLuminance");
 			run("8-bit");
-			run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+			run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
 			run("YCbCr stack to RGB");
-			//create extended spectrum static raking
-			if (listOfRakingDirections[i+1]) {
-				positionNumber = toString(i+1);
-				noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-ExtendedSpectrum-"+positionNumber+".tiff");
-				save(projectDirectory+"StaticRaking"+File.separator+projectName+"-ExtendedSpectrum-"+positionNumber+".tiff");
-				createJp2(projectName+"-ExtendedSpectrum-"+positionNumber);
-				File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-ExtendedSpectrum-"+positionNumber+".tiff");
-			}
-			//Save as jpeg
-			noClobber(projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum-"+File.nameWithoutExtension+".jpg");
-			saveAs("jpeg", projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum-"+File.nameWithoutExtension+".jpg");
+			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-Transmissive.tiff");
+			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-Transmissive.tiff");
+			createJp2(projectName+"-Xs-Transmissive");
+			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-Transmissive.tiff");
+			selectWindow("YCC - RGB");
 			run("Close");
 			selectWindow("YCC");
 			run("Close");
-			selectWindow("Luminance");
+			selectWindow("TransmissiveLuminance");
 			run("Close");
+		}
+		if (xsRtiDesired) {
+			if (!File.exists(projectDirectory+"ExtendedSpectrumRTI"+File.separator)) {
+				File.makeDirectory(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+				print("A directory has been created for Extended Spectrum RTI at "+projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+			}
+		}
+		for(i=0;i<listOfHemisphereCaptures.length;i++) {
+			if (xsRtiDesired) {
+				open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
+				rename("Luminance");
+				if (brightnessAdjustApply == "RTI images also") {
+					if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
+						makeRectangle(normX, normY, normWidth, normHeight);
+						run("Enhance Contrast...", "saturated=0.4");
+						run("Select None");
+					} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
+						run("Multiply...", "value="+normalizationFixedValue+"");
+					}
+				}
+				run("8-bit");
+				run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+				run("YCbCr stack to RGB");
+				noClobber(projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum-"+File.nameWithoutExtension+".jpg");
+				saveAs("jpeg", projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum-"+File.nameWithoutExtension+".jpg");
+				selectWindow(File.nameWithoutExtension+".jpg");
+				run("Close");
+				selectWindow("YCC");
+				run("Close");
+				selectWindow("Luminance"); //possible to avoid a close and reopen in some circumstances but conditions are complicated
+				run("Close");
+			}
+			if (xsRakingDesired) {
+				if (listOfRakingDirections[i+1]) {
+					open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
+					rename("Luminance");
+					if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
+						makeRectangle(normX, normY, normWidth, normHeight);
+						run("Enhance Contrast...", "saturated=0.4");
+						run("Select None");
+					} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
+						run("Multiply...", "value="+normalizationFixedValue+"");
+					}
+					run("8-bit");
+					run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+					run("YCbCr stack to RGB");
+					positionNumber = toString(IJ.pad(i+1, 2));
+					noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-"+positionNumber+".tiff");
+					save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-"+positionNumber+".tiff");
+					createJp2(projectName+"-Xs-"+positionNumber);
+					File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Xs-"+positionNumber+".tiff");
+					selectWindow("YCC - RGB");
+					run("Close");
+					selectWindow("YCC");
+					run("Close");
+					selectWindow("Luminance");
+					run("Close");
+				}
+			}
 		}
 		selectWindow("Cb");
 		run("Close");
 		selectWindow("Cr");
 		run("Close");
 		run("Collect Garbage");
-		createLpFile("ExtendedSpectrum");
-		runFitter("ExtendedSpectrum");
+		if (xsRtiDesired) {
+			createLpFile("ExtendedSpectrum");
+			runFitter("ExtendedSpectrum");
+		}
 	}
 	//create PseudocolorRTI
-	if (psRtiDesired) {
-		//create directory if not already exists
-		if (!File.exists(projectDirectory+"PseudocolorRTI"+File.separator)) {
-			File.makeDirectory(projectDirectory+"PseudocolorRTI"+File.separator);
-			print("A directory has been created for Pseudocolor RTI at "+projectDirectory+"PseudocolorRTI"+File.separator);
-		}
-		//dialog moved from here
+	if (psRtiDesired || psRakingDesired) {
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod == "Generate and select using defaults") {
 			run("Image Sequence...", "open="+projectDirectory+"NarrowbandCaptures"+File.separator+" sort");
@@ -626,9 +803,8 @@ macro "Spectral RTI [n1]" {
 			run("8-bit");
 		}
 		//integrate pca pseudocolor with rti luminance
-		if (brightnessAdjustOption == "") promptBrightnessAdjust();
 		//create static diffuse (not trivial... use median of all)
-		if (rakingDesired){
+		if (psRakingDesired){
 			run("Image Sequence...", "open="+projectDirectory+"HemisphereCaptures"+File.separator);
 			run("Z Project...", "projection=Median");
 			rename("Luminance");
@@ -645,54 +821,227 @@ macro "Spectral RTI [n1]" {
 			run("8-bit");
 			run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of NarrowbandCaptures kept stack] image3=[-- None --]");
 			run("YCbCr stack to RGB");
-			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-PcaPseudocolor-00.tiff");
-			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-PcaPseudocolor-00.tiff");
-			createJp2(projectName+"-PcaPseudocolor-00");
-			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-PcaPseudocolor-00.tiff");
+			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-00.tiff");
+			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-00.tiff");
+			createJp2(projectName+"-Ps-00");
+			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-00.tiff");
+			selectWindow("YCC - RGB");
 			run("Close");
 			selectWindow("YCC");
 			run("Close");
 			selectWindow("Luminance");
 			run("Close");
+			if (transmissiveSource != "") {
+				open(projectDirectory+"Transmissive"+File.separator+transmissiveSource);
+				rename("TransmissiveLuminance");
+				run("8-bit");
+				run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=[PCA of NarrowbandCaptures kept stack] image3=[-- None --]");
+				run("YCbCr stack to RGB");
+				noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-Transmissive.tiff");
+				save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-Transmissive.tiff");
+				createJp2(projectName+"-Ps-Transmissive");
+				File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-Transmissive.tiff");
+				selectWindow("YCC - RGB");
+				run("Close");
+				selectWindow("YCC");
+				run("Close");
+				selectWindow("TransmissiveLuminance");
+				run("Close");
+			}
+		}
+		if (psRtiDesired) {
+			if (!File.exists(projectDirectory+"PseudocolorRTI"+File.separator)) {
+			File.makeDirectory(projectDirectory+"PseudocolorRTI"+File.separator);
+			print("A directory has been created for Pseudocolor RTI at "+projectDirectory+"PseudocolorRTI"+File.separator);
+			}
 		}
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
-			open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
-			rename("Luminance");
-			// normalize
-			if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
-				makeRectangle(normX, normY, normWidth, normHeight);
-				run("Enhance Contrast...", "saturated=0.4");
-				run("Select None");
-			} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
-				run("Multiply...", "value="+normalizationFixedValue+"");
+			if ((psRtiDesired)||(listOfRakingDirections[i+1])) {
+				open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
+				rename("Luminance");
+				run("Duplicate...", "title=EnhancedLuminance");
+				selectWindow("EnhancedLuminance");
+				if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
+					makeRectangle(normX, normY, normWidth, normHeight);
+					run("Enhance Contrast...", "saturated=0.4");
+					run("Select None");
+				} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
+					run("Multiply...", "value="+normalizationFixedValue+"");
+				}
+				run("8-bit");
+				selectWindow("Luminance");
+				run("8-bit");
+				if ((psRakingDesired)&&(listOfRakingDirections[i+1])){
+					run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of NarrowbandCaptures kept stack] image3=[-- None --]");
+					run("YCbCr stack to RGB");
+					selectWindow("YCC");
+					run("Close");
+					positionNumber = toString(IJ.pad(i+1, 2));
+					noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-"+positionNumber+".tiff");
+					save(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-"+positionNumber+".tiff");
+					selectWindow("YCC - RGB");
+					run("Close");
+					createJp2(projectName+"-Ps-"+positionNumber);
+					File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-Ps-"+positionNumber+".tiff");
+				}
+				if ((psRtiDesired)&&(brightnessAdjustApply == "RTI images also")){
+					run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of NarrowbandCaptures kept stack] image3=[-- None --]");
+					run("YCbCr stack to RGB");
+					selectWindow("YCC");
+					run("Close");
+					noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor-"+File.nameWithoutExtension+".jpg");
+					saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor-"+File.nameWithoutExtension+".jpg");
+					selectWindow(File.nameWithoutExtension+".jpg");
+					run("Close");
+				} else if (psRtiDesired) {
+					run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of NarrowbandCaptures kept stack] image3=[-- None --]");
+					run("YCbCr stack to RGB");
+					selectWindow("YCC");
+					run("Close");
+					noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor-"+File.nameWithoutExtension+".jpg");
+					saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor-"+File.nameWithoutExtension+".jpg");
+					selectWindow(File.nameWithoutExtension+".jpg");
+					run("Close");
+				}
+				selectWindow("EnhancedLuminance");
+				run("Close");
+				selectWindow("Luminance");
+				run("Close");
 			}
-			run("8-bit");
-			run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of NarrowbandCaptures kept stack] image3=[-- None --]");
-			run("YCbCr stack to RGB");
-			//create static raking
-			if (listOfRakingDirections[i+1]) {
-				positionNumber = toString(i+1);
-				noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-PcaPseudocolor-"+positionNumber+".tiff");
-				save(projectDirectory+"StaticRaking"+File.separator+projectName+"-PcaPseudocolor-"+positionNumber+".tiff");
-				createJp2(projectName+"-PcaPseudocolor-"+positionNumber);
-				File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-PcaPseudocolor-"+positionNumber+".tiff");
-			}
-			//Save as jpeg
-			noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor-"+File.nameWithoutExtension+".jpg");
-			saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor-"+File.nameWithoutExtension+".jpg");
-			selectWindow(File.nameWithoutExtension+".jpg");
-			run("Close");
-			selectWindow("YCC");
-			run("Close");
-			selectWindow("Luminance");
-			run("Close");
 		}
 		selectWindow("PCA of NarrowbandCaptures kept stack");
 		run("Close");
 		run("Collect Garbage");
-		createLpFile("Pseudocolor");
-		runFitter("Pseudocolor");
-setBatchMode("exit and display");
+		if (psRtiDesired) {
+			createLpFile("Pseudocolor");
+			runFitter("Pseudocolor");
+		}
 	}
+	if (csRtiDesired || csRakingDesired) { //processing phase
+		csSource = replace(csSource,"\\",File.separator);
+		csParents = split(csSource,File.separator);
+		csProcessName = csParents[csParents.length-2];
+		if (!File.exists(projectDirectory+csProcessName+"RTI"+File.separator)) {
+			File.makeDirectory(projectDirectory+csProcessName+"RTI"+File.separator);
+			print("A directory has been created for "+csProcessName+" RTI at "+projectDirectory+csProcessName+"RTI"+File.separator);
+		}
+		open(csSource);
+		rename("csSource");
+		if ((nSlices == 1)&&(bitDepth()<24)) {
+			run("8-bit"); 
+			rename("Cb");
+			run("Duplicate...", "title=Cr");
+		} else if (nSlices == 2) {
+			run("8-bit"); 
+			run("Stack to Images");
+			selectWindow("slice:1");
+			rename("Cb");
+			selectWindow("slice:2");
+			rename("Cr");
+		} else if ((nSlices > 2)||(bitDepth()==24)) {
+			if (nSlices > 3) {
+				run("Slice Keeper", "first=1 last=3 increment=1");
+				print("Only the first three slices in the stack can be used at this time.");
+			}
+			if (bitDepth() == 8) {
+				run("RGB Color");
+			}
+			//create a 00 static diffuse 
+			if (csRakingDesired) {
+				noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-00"+".tiff");
+				save(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-00"+".tiff");
+				createJp2(projectName+"-"+csProcessName+"-00");
+				File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-00"+".tiff");
+			}
+			run("RGB to YCbCr stack");
+			run("8-bit"); 
+			run("Stack to Images");
+			selectWindow("Y");
+			run("Close");
+		}
+		selectWindow("csSource");
+		run("Close");
+		if (transmissiveSource != "") {
+			open(projectDirectory+"Transmissive"+File.separator+transmissiveSource);
+			rename("TransmissiveLuminance");
+			run("8-bit");
+			run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
+			run("YCbCr stack to RGB");
+			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-Transmissive.tiff");
+			save(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-Transmissive.tiff");
+			createJp2(projectName+"-"+csProcessName+"-Transmissive");
+			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-Transmissive.tiff");
+			selectWindow("YCC - RGB");
+			run("Close");
+			selectWindow("YCC");
+			run("Close");
+			selectWindow("TransmissiveLuminance");
+			run("Close");
+		}
+		for(i=0;i<listOfHemisphereCaptures.length;i++) {
+			if (endsWith(listOfHemisphereCaptures[i],"tif")) { 
+				if ((csRtiDesired)||(listOfRakingDirections[i+1])) {
+					open(projectDirectory+"HemisphereCaptures"+File.separator+listOfHemisphereCaptures[i]);
+					rename("Luminance");
+					run("Duplicate...", "title=EnhancedLuminance");
+					if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
+						makeRectangle(normX, normY, normWidth, normHeight);
+						run("Enhance Contrast...", "saturated=0.4");
+						run("Select None");
+					} else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
+						run("Multiply...", "value="+normalizationFixedValue+"");
+					}
+					selectWindow("Luminance");
+					run("8-bit");
+					selectWindow("EnhancedLuminance");
+					run("8-bit");
+					if ((csRakingDesired)&&(listOfRakingDirections[i+1])){
+						run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
+						run("YCbCr stack to RGB");
+						selectWindow("YCC");
+						run("Close");
+						positionNumber = toString(IJ.pad(i+1, 2));
+						noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-"+positionNumber+".tiff");
+						save(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-"+positionNumber+".tiff");
+						selectWindow("YCC - RGB");
+						run("Close");
+						createJp2(projectName+"-"+csProcessName+"-"+positionNumber);
+						File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"-"+csProcessName+"-"+positionNumber+".tiff");
+					}
+					if ((csRtiDesired)&&(brightnessAdjustApply == "RTI images also")){
+						run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
+						run("YCbCr stack to RGB");
+						selectWindow("YCC");
+						run("Close");
+						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"-"+File.nameWithoutExtension+".jpg");
+						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"-"+File.nameWithoutExtension+".jpg");
+						selectWindow(File.nameWithoutExtension+".jpg");
+						run("Close");
+					} else if (csRtiDesired) {
+						run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+						run("YCbCr stack to RGB");
+						selectWindow("YCC");
+						run("Close");
+						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"-"+File.nameWithoutExtension+".jpg");
+						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"-"+File.nameWithoutExtension+".jpg");
+						selectWindow(File.nameWithoutExtension+".jpg");
+						run("Close");
+					}
+					selectWindow("EnhancedLuminance");
+					run("Close");
+					selectWindow("Luminance");
+					run("Close");
+				}
+			}
+		}
+		selectWindow("Cb");
+		run("Close");
+		selectWindow("Cr");
+		run("Close");
+		createLpFile(csProcessName);
+		runFitter(csProcessName);
+	}
+	print("Processing complete at "+timestamp());
+	setBatchMode("exit and display");
 }
 //create a version using LAB and avoiding 8-bit longer
