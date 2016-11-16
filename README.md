@@ -24,3 +24,11 @@ Features added in the October 28, 2016 update:
 * option to defer HSHfitter to batch command file
 * human readable time stamps when renaming rather than overwriting files
 * timestamp set once for entire sequence
+
+Features added in the November 16, 2016 update:
+
+* Better support for raking light options distinct from RTI
+* Option to use transmissive light with each color process
+* Option to use custom image (or stack) for chrominance
+* Consult users about options stored in preferences file 
+* Clears some variables between runs to facilitate continous use without restarting ImageJ
