@@ -35,6 +35,6 @@ Features added in the November 16, 2016 update:
 
 Features added in the December 19, 2016 update: 
 
-* Enhanced support for transmissive and floresence captures
+* Enhanced support for transmissive and florescence captures
 * Revised expected directory structure
 * Adds companion macro to curate files exported by Photoshoot
