@@ -32,3 +32,9 @@ Features added in the November 16, 2016 update:
 * Option to use custom image (or stack) for chrominance
 * Consult users about options stored in preferences file 
 * Clears some variables between runs to facilitate continous use without restarting ImageJ
+
+Features added in the December 19, 2016 update: 
+
+* Enhanced support for transmissive and floresence captures
+* Revised expected directory structure
+* Adds companion macro to curate files exported by Photoshoot
