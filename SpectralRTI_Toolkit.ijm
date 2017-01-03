@@ -1,12 +1,14 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20161219
-Date: December 19, 2016
+Version: 0.1.20170102
+Date: January 2, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu, thanneke@uchicago.edu
 Description: A toolkit for processing Spectral RTI images
 About: 
 See http://palimpsest.stmarytx.edu/integrating
 */
+var jpegQuality = 100; //maximize quality for non-distribution phases
+var jpegQualityWebRTI = 85; //lower for final distribution
 var brightnessAdjustOption = ""; 
 var brightnessAdjustApply = "";
 	var normX; 
@@ -21,7 +23,6 @@ var brightnessAdjustApply = "";
 	var lpSource = "";
 	var projectDirectory = "";
 	var projectName = "";
-	var jpegQuality;
 	var startTime = timestamp();
 	var listOfRakingDirections;
 function createJp2(inFile) {
@@ -73,7 +74,7 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 				webRtiMaker = File.openDialog("Locate webGLRTIMaker.exe");
 				File.append("webRtiMaker="+webRtiMaker,"SpectralRTI_Toolkit-prefs.txt");
 			}
-			webRtiMakerOutput = exec(webRtiMaker+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti -q "+jpegQuality);
+			webRtiMakerOutput = exec(webRtiMaker+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti -q "+jpegQualityWebRTI);
 			print(webRtiMakerOutput);
 			File.append("<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"-"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"-"+colorProcess+"RTI-"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+"-wrti.html");
 		}
@@ -95,7 +96,7 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 		File.append("Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".txt");
 		File.append("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".txt");
 		File.append("hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti",preferredFitter); 
-		File.append("webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti -q "+jpegQuality,preferredFitter);
+		File.append("webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+".rti -q "+jpegQualityWebRTI,preferredFitter);
 		if (webRtiDesired) {
 			File.append("<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"-"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"-"+colorProcess+"RTI-"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI-"+startTime+"-wrti.html");
 		}
@@ -137,7 +138,8 @@ function createLpFile(colorProcess) { //create lp file with filenames from newly
 	File.append(lpLines[0],projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI.lp");
 	for (i=1;i<lpLines.length;i++) {
 		newLpLine = replace(lpLines[i],"\\","/");
-		newLpLine = replace(newLpLine,"LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"-");
+		newLpLine = replace(newLpLine,"LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"-"); 
+		newLpLine = replace(newLpLine,"canonical",projectDirectory+File.separator+colorProcess+"RTI"+File.separator+colorProcess+"-"+projectName+"-RTI");
 		newLpLine = replace(newLpLine,"/",File.separator);
 		File.append(newLpLine,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"-"+colorProcess+"RTI.lp");
 	}
@@ -1196,10 +1198,10 @@ macro "Curate [n2]" { // this macro is not part of the plugin
 	    fileContent = File.openAsString(pathToFile);
 	    lines = split(fileContent, "\n");
 	    for(lineNb=0; lineNb<lines.length; lineNb++){ //look at each line
-	        if(indexOf(lines[lineNb], "rotation")>0){
+	        if(indexOf(lines[lineNb], "Rotate")>0){
 	            currentLine = lines[lineNb];
-	            startIndex = indexOf(currentLine, "rotation"); //find starting position
-	            startIndex = startIndex + 9; //take into account the "rotation" characters
+	            startIndex = indexOf(currentLine, "Rotate"); //find starting position
+	            startIndex = startIndex + 7; //take into account the "Rotate " characters
 	            restOfLine = substring(currentLine, startIndex);
 	            stopIndex = indexOf(restOfLine, "<\/");
 	            rotation = substring(currentLine, startIndex, startIndex+stopIndex);
