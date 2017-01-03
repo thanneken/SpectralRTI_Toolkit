@@ -38,3 +38,9 @@ Features added in the December 19, 2016 update:
 * Enhanced support for transmissive and florescence captures
 * Revised expected directory structure
 * Adds companion macro to curate files exported by Photoshoot
+
+Minor changes January 2, 2017:
+
+* Jpeg quality maximized until final distribution
+* Fix to curation macro for rotation from exif metadata xml
+* Option to createLpFile from canonical version
