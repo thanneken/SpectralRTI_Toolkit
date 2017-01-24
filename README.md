@@ -44,3 +44,7 @@ Minor changes January 2, 2017:
 * Jpeg quality maximized until final distribution
 * Fix to curation macro for rotation from exif metadata xml
 * Option to createLpFile from canonical version
+
+Minor changes January 24, 2017:
+
+* Optimizations for workflow in Milan
