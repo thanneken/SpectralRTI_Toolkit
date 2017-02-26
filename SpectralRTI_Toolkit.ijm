@@ -1,31 +1,31 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170124
-Date: January 12, 2017
+Version: 0.1.20170226
+Date: February 26, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu, thanneke@uchicago.edu
 Description: A toolkit for processing Spectral RTI images
-About: 
+About:
 See http://palimpsest.stmarytx.edu/integrating
 */
 var jpegQuality = 100; //maximize quality for non-distribution phases
 var jpegQualityWebRTI = 100; //lower for final distribution
 var ramWebRTI = 8192;
-var brightnessAdjustOption = ""; 
+var brightnessAdjustOption = "";
 var brightnessAdjustApply = "";
-	var normX; 
+	var normX;
 	var normY;
 	var normWidth;
 	var normHeight;
 	var normalizationFixedValue;
-	var pcaX;
-	var pcaY;
-	var pcaWidth;
-	var pcaHeight;
+	var pcaX = 0;
+	var pcaY = 0;
+	var pcaWidth = 0;
+	var pcaHeight = 0;
 	var lpSource = "";
 	var projectDirectory = "";
 	var projectName = "";
-	var startTime = timestamp();
 	var listOfRakingDirections;
+	var accurateColorSource = "";
 function createJp2(inFile) {
 	preferredCompress = List.get("preferredCompress");
 	preferredJp2Args = List.get("preferredJp2Args");
@@ -43,8 +43,8 @@ function createJp2(inFile) {
 	print("Executing command "+preferredCompress+" -i "+projectDirectory+"StaticRaking"+File.separator+inFile+".tiff -o " +projectDirectory+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args+"\n");
 	exec(preferredCompress+" -i "+projectDirectory+"StaticRaking"+File.separator+inFile+".tiff -o " +projectDirectory+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args+"\n");
 }
-function runFitter(colorProcess) { //identify preferred fitter and exec with arguments 
-	preferredFitter = List.get("preferredFitter"); 
+function runFitter(colorProcess) { //identify preferred fitter and exec with arguments
+	preferredFitter = List.get("preferredFitter");
 	if (preferredFitter == "") {
 		preferredFitter = File.openDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
 		File.append("preferredFitter="+preferredFitter,"SpectralRTI_Toolkit-prefs.txt");
@@ -54,7 +54,7 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 		if (hshOrder < 2 ) hshOrder = 3;
 		hshThreads = List.get("hshThreads");
 		if (hshThreads < 1 ) hshThreads = 16;
-		print("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\nThis could take a while..."); 
+		print("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\nThis could take a while...");
 		File.append("Brightness Adjust Option: "+brightnessAdjustOption,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
 		if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
 			File.append("Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
@@ -70,7 +70,7 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 		print(fitterOutput);
 		File.append(fitterOutput,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
 		if (webRtiDesired) {
-			webRtiMaker = List.get("webRtiMaker"); 
+			webRtiMaker = List.get("webRtiMaker");
 			if (webRtiMaker == "") {
 				webRtiMaker = File.openDialog("Locate webGLRTIMaker.exe");
 				File.append("webRtiMaker="+webRtiMaker,"SpectralRTI_Toolkit-prefs.txt");
@@ -84,7 +84,7 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 		if (hshOrder < 2 ) hshOrder = 3;
 		hshThreads = List.get("hshThreads");
 		if (hshThreads < 1 ) hshThreads = 16;
-		print("Adding command to batch command file "+preferredFitter+": hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\n"); 
+		print("Adding command to batch command file "+preferredFitter+": hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\n");
 		File.append("Brightness Adjust Option: "+brightnessAdjustOption,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
 		if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
 			File.append("Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
@@ -96,7 +96,7 @@ function runFitter(colorProcess) { //identify preferred fitter and exec with arg
 		}
 		File.append("Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
 		File.append("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
-		File.append("hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti",preferredFitter); 
+		File.append("hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti",preferredFitter);
 		File.append("webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI,preferredFitter);
 		if (webRtiDesired) {
 			File.append("<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>",projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html");
@@ -139,7 +139,7 @@ function createLpFile(colorProcess) { //create lp file with filenames from newly
 	File.append(lpLines[0],projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
 	for (i=1;i<lpLines.length;i++) {
 		newLpLine = replace(lpLines[i],"\\","/");
-		newLpLine = replace(newLpLine,"LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"_"); 
+		newLpLine = replace(newLpLine,"LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"_");
 		newLpLine = replace(newLpLine,"canonical",projectDirectory+colorProcess+"RTI"+File.separator+colorProcess+"_"+projectName+"_RTI");
 		newLpLine = replace(newLpLine,"/",File.separator);
 		File.append(newLpLine,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
@@ -150,10 +150,10 @@ function promptBrightnessAdjust() {
 	rename("Preview");
 	setBatchMode("show");
 	brightnessAdjustOptions = newArray("No","Yes, by normalizing each image to a selected area","Yes, by multiplying all images by a fixed value");
-	brightnessAdjustApplies = newArray("Raking images only (recommended)","RTI images also");
+	brightnessAdjustApplies = newArray("Static raking images only (recommended)","RTI images also");
 	Dialog.create("Adjust brightness of hemisphere captures?");
-	Dialog.addRadioButtonGroup("Adjust brightness of hemisphere captures?", brightnessAdjustOptions, brightnessAdjustOptions.length, 1, brightnessAdjustOptions[0]);
-	Dialog.addRadioButtonGroup("Apply adjustment to: ",brightnessAdjustApplies,brightnessAdjustApplies.length,1,brightnessAdjustApplies[0]);
+	Dialog.addRadioButtonGroup("Adjust brightness of hemisphere captures? ", brightnessAdjustOptions, brightnessAdjustOptions.length, 1, brightnessAdjustOptions[1]);
+	Dialog.addRadioButtonGroup("Apply adjustment to which output images? ",brightnessAdjustApplies,brightnessAdjustApplies.length,1,brightnessAdjustApplies[0]);
 	Dialog.show();
 	brightnessAdjustOption = Dialog.getRadioButton();
 	brightnessAdjustApply = Dialog.getRadioButton();
@@ -219,9 +219,14 @@ function readLogFile() {
 macro "Spectral RTI [n1]" {
 	setBatchMode(true);
 	//want these variables to be accessible across functions and to reset each time the macro is run
-	brightnessAdjustOption = ""; 
+	startTime = timestamp();
+	brightnessAdjustOption = "";
 	brightnessAdjustApply = "";
-	var accurateColorSource = "";
+	pcaX = 0;
+	pcaY = 0;
+	pcaWidth = 0;
+	pcaHeight = 0;
+	accurateColorSource = "";
 	//consult with user about values stored in prefs file
 	prefsConsult = newArray();
 	Dialog.create("Consult Preferences");
@@ -319,7 +324,7 @@ macro "Spectral RTI [n1]" {
 			print("A directory has been created for lossless static raking images at "+projectDirectory+"StaticRaking"+File.separator);
 		}
 		listOfTransmissiveSources = getFileList(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
-		if (listOfTransmissiveSources.length == 1) 	{ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem 
+		if (listOfTransmissiveSources.length == 1) 	{ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem
 			transmissiveSource = listOfTransmissiveSources[0];
 		} else if (listOfTransmissiveSources.length > 1) {
 			Dialog.create("Select Transmissive Source");
@@ -333,8 +338,8 @@ macro "Spectral RTI [n1]" {
 		defaults = newArray(listOfHemisphereCaptures.length);
 		Dialog.create("Select light positions");
 		Dialog.addMessage("Select light positions for lossless static raking images");
-		Dialog.addCheckboxGroup(floor(listOfHemisphereCaptures.length/4), 4, listOfHemisphereCaptures, defaults); //8 columns 
-		//- Adds a rowsxcolumns grid of checkboxes to the dialog, using the specified labels and default states (example). 
+		Dialog.addCheckboxGroup(floor(listOfHemisphereCaptures.length/4), 4, listOfHemisphereCaptures, defaults); //8 columns
+		//- Adds a rowsxcolumns grid of checkboxes to the dialog, using the specified labels and default states (example).
 		//for(i=0;i<listOfHemisphereCaptures.length;i++) {
 		//	Dialog.addCheckbox(listOfHemisphereCaptures[i],true);
 		//}
@@ -405,7 +410,7 @@ macro "Spectral RTI [n1]" {
 	}
 	//create base lp file
 	if (lpDesired) {
-		open(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[20]); // twentieth image likely to be well lit 
+		open(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[20]); // twentieth image likely to be well lit
 		rename("Preview");
 		setBatchMode("show");
 		waitForUser("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
@@ -428,7 +433,7 @@ macro "Spectral RTI [n1]" {
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator);
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports");
 				saveAs("jpeg",projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+File.nameWithoutExtension+".jpg");
-				selectWindow(File.nameWithoutExtension+".jpg");
+				selectWindow("LightPosition");
 				run("Close");
 			}
 		}
@@ -457,7 +462,7 @@ macro "Spectral RTI [n1]" {
 				Dialog.addRadioButtonGroup("File: ", listOfAccurateColorSources, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0]);
 				Dialog.show();
 				accurateColorSource = Dialog.getRadioButton();
-			}  
+			}
 		}
 		open(projectDirectory+"AccurateColor"+File.separator+ accurateColorSource);
 		rename("RGBtiff");
@@ -555,7 +560,7 @@ macro "Spectral RTI [n1]" {
 			save(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
 			createJp2(projectName+"_Ac_Tx");
 			File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
-			selectWindow("YCC - RGB"); 
+			selectWindow("YCC - RGB");
 			run("Close");
 			selectWindow("YCC");
 			run("Close");
@@ -602,7 +607,7 @@ macro "Spectral RTI [n1]" {
 		//Red
 		redStringList = redNarrowbands[0];  //might be an array to string function somewhere to do this more elegantly
 		for (i=1;i<redNarrowbands.length;i++) {
-			redStringList = redStringList+"|"+redNarrowbands[i]; 
+			redStringList = redStringList+"|"+redNarrowbands[i];
 		}
 		run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort");
 		rename("RedStack");
@@ -619,12 +624,12 @@ macro "Spectral RTI [n1]" {
 		selectWindow("PCA of RedStack kept stack");
 		rename("R");
 		makeRectangle(pcaX, pcaY, pcaWidth, pcaHeight); // questionable
-		run("Enhance Contrast...", "saturated=0.4 normalize"); 
+		run("Enhance Contrast...", "saturated=0.4 normalize");
 		run("8-bit");
 		//Green
 		greenStringList = greenNarrowbands[0];  //might be an array to string function somewhere to do this more elegantly
 		for (i=1;i<greenNarrowbands.length;i++) {
-			greenStringList = greenStringList+"|"+greenNarrowbands[i]; 
+			greenStringList = greenStringList+"|"+greenNarrowbands[i];
 		}
 		run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+greenStringList+") sort");
 		rename("GreenStack");
@@ -641,12 +646,12 @@ macro "Spectral RTI [n1]" {
 		selectWindow("PCA of GreenStack kept stack");
 		rename("G");
 		makeRectangle(pcaX, pcaY, pcaWidth, pcaHeight); // questionable ... @@@maybe use contrast area... another function called if necessary (two more following)
-		run("Enhance Contrast...", "saturated=0.4 normalize"); 
+		run("Enhance Contrast...", "saturated=0.4 normalize");
 		run("8-bit");
 		//Blue
 		blueStringList = blueNarrowbands[0];  //might be an array to string function somewhere to do this more elegantly
 		for (i=1;i<blueNarrowbands.length;i++) {
-			blueStringList = blueStringList+"|"+blueNarrowbands[i]; 
+			blueStringList = blueStringList+"|"+blueNarrowbands[i];
 		}
 		run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+blueStringList+") sort");
 		rename("BlueStack");
@@ -663,14 +668,14 @@ macro "Spectral RTI [n1]" {
 		selectWindow("PCA of BlueStack kept stack");
 		rename("B");
 		makeRectangle(pcaX, pcaY, pcaWidth, pcaHeight); // questionable
-		run("Enhance Contrast...", "saturated=0.4 normalize"); 
+		run("Enhance Contrast...", "saturated=0.4 normalize");
 		run("8-bit");
 		run("Concatenate...", "  title=[Stack] image1=R image2=G image3=B image4=[-- None --]");
 		run("Stack to RGB");
 		selectWindow("Stack");
 		run("Close");
 		selectWindow("Stack (RGB)");
-		//create extended spectrum static diffuse 
+		//create extended spectrum static diffuse
 		if (xsRakingDesired) {
 			noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
 			save(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
@@ -818,7 +823,7 @@ macro "Spectral RTI [n1]" {
 			rename("PCA of Captures-Narrowband-NoGamma kept stack");
 			//run("Enhance Contrast...", "saturated=0.3 normalize update process_all");
 			run("8-bit");
-		//option to use previously generated principal component images 
+		//option to use previously generated principal component images
 		} else if (pcaMethod =="Open pregenerated images") {
 			setBatchMode(false);
 			waitForUser("Select area", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
@@ -954,11 +959,11 @@ macro "Spectral RTI [n1]" {
 		open(csSource);
 		rename("csSource");
 		if ((nSlices == 1)&&(bitDepth()<24)) {
-			run("8-bit"); 
+			run("8-bit");
 			rename("Cb");
 			run("Duplicate...", "title=Cr");
 		} else if (nSlices == 2) {
-			run("8-bit"); 
+			run("8-bit");
 			run("Stack to Images");
 			//selectWindow("slice:1");
 			selectImage(1);
@@ -974,7 +979,7 @@ macro "Spectral RTI [n1]" {
 			if (bitDepth() == 8) {
 				run("RGB Color");
 			}
-			//create a 00 static diffuse 
+			//create a 00 static diffuse
 			if (csRakingDesired) {
 				noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
 				save(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
@@ -982,7 +987,7 @@ macro "Spectral RTI [n1]" {
 				File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
 			}
 			run("RGB to YCbCr stack");
-			run("8-bit"); 
+			run("8-bit");
 			run("Stack to Images");
 			selectWindow("Y");
 			run("Close");
@@ -1007,7 +1012,7 @@ macro "Spectral RTI [n1]" {
 			run("Close");
 		}
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
-			if (endsWith(listOfHemisphereCaptures[i],"tif")) { 
+			if (endsWith(listOfHemisphereCaptures[i],"tif")) {
 				if ((csRtiDesired)||(listOfRakingDirections[i+1])) {
 					open(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[i]);
 					rename("Luminance");
@@ -1069,17 +1074,18 @@ macro "Spectral RTI [n1]" {
 		createLpFile(csProcessName);
 		runFitter(csProcessName);
 	}
-	showMessage("Processing Complete", "Processing complete at "+timestamp());
+	beep();
 	setBatchMode("exit and display");
+	showMessage("Processing Complete", "Processing complete at "+timestamp());
 }
 //create a version using LAB and avoiding 8-bit longer
 
-macro "Curate [n2]" { // this macro is not part of the plugin 
+macro "Curate [n2]" { // this macro is not part of the plugin
 	setBatchMode(true);
 	basePath=File.separator+"mnt"+File.separator+"JubPalProj"+File.separator+"AmbrosianaArchive"+File.separator+"Ambrosiana_C73inf"+File.separator; //where to put curated files
 	//ask which folder to process
 	dir = getDirectory("Choose a Directory to Curate");
-	listFiles(dir); 
+	listFiles(dir);
 	function listFiles(dir) {
 		rotation = -1;
 		list = getFileList(dir);
@@ -1107,7 +1113,11 @@ macro "Curate [n2]" { // this macro is not part of the plugin
 					startIndex = indexOf(orientation, "Rotate"); //find starting position
 					startIndex = startIndex + 7; //take into account the "Rotate " characters
 					restOfLine = substring(orientation, startIndex);
-					stopIndex = indexOf(restOfLine, " CW");
+					if (indexOf(restOfLine," CW")>0) {
+						stopIndex = indexOf(restOfLine, " CW");
+					} else {
+						stopIndex = lengthOf(restOfLine);
+					}
 					rotation = substring(orientation, startIndex, startIndex+stopIndex);
 				} else { // if no orientation in metadata then ask user
 					Dialog.create("Rotation");
@@ -1135,7 +1145,7 @@ macro "Curate [n2]" { // this macro is not part of the plugin
 					if (rotation==0){ // move without opening, rotating, and saving
 						exec("mv "+dir+list[i]+" "+basePath+objectName+File.separator+"Captures-Narrowband-NoGamma"+File.separator+cleanFilename);
 						print("moved "+dir+list[i]+" to "+objectName+File.separator+"Captures-Narrowband-NoGamma"+File.separator+cleanFilename);
-					} else { 
+					} else {
 						save(basePath+objectName+File.separator+"Captures-Narrowband-NoGamma"+File.separator+cleanFilename);
 						print("rotated and moved "+dir+list[i]+" to "+objectName+File.separator+"Captures-Narrowband-NoGamma"+File.separator+cleanFilename);
 					}
@@ -1157,7 +1167,7 @@ macro "Curate [n2]" { // this macro is not part of the plugin
 					if (rotation==0){ // move without opening, rotating, and saving
 						exec("mv "+dir+list[i]+" "+basePath+objectName+File.separator+"Captures-Transmissive-NoGamma"+File.separator+cleanFilename);
 						print("moved "+dir+list[i]+" to "+objectName+File.separator+"Captures-Transmissive-NoGamma"+File.separator+cleanFilename);
-					} else { 
+					} else {
 						save(basePath+objectName+File.separator+"Captures-Transmissive-NoGamma"+File.separator+cleanFilename);
 						print("rotated and moved "+dir+list[i]+" to "+objectName+File.separator+"Captures-Transmissive-NoGamma"+File.separator+cleanFilename);
 					}
@@ -1168,7 +1178,7 @@ macro "Curate [n2]" { // this macro is not part of the plugin
 					if (rotation==0){ // move without opening, rotating, and saving
 						exec("mv "+dir+list[i]+" "+basePath+objectName+File.separator+"Captures-Fluorescence-NoGamma"+File.separator+cleanFilename);
 						print("moved "+dir+list[i]+" to "+objectName+File.separator+"Captures-Fluorescence-NoGamma"+File.separator+cleanFilename);
-					} else { 
+					} else {
 						save(basePath+objectName+File.separator+"Captures-Fluorescence-NoGamma"+File.separator+cleanFilename);
 						print("rotated and moved "+dir+list[i]+" to "+objectName+File.separator+"Captures-Fluorescence-NoGamma"+File.separator+cleanFilename);
 					}
@@ -1227,4 +1237,5 @@ macro "Curate [n2]" { // this macro is not part of the plugin
 	}//end function list contents of directory
 	showMessage("Processing Complete", "Processing complete");
 	setBatchMode("exit and display");
+	beep();
 }
