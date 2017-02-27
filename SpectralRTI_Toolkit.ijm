@@ -1,7 +1,7 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170226
-Date: February 26, 2017
+Version: 0.1.20170227
+Date: February 27, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu, thanneke@uchicago.edu
 Description: A toolkit for processing Spectral RTI images
 About:
@@ -12,6 +12,7 @@ var jpegQualityWebRTI = 100; //lower for final distribution
 var ramWebRTI = 8192;
 var brightnessAdjustOption = "";
 var brightnessAdjustApply = "";
+var transmissiveSource= ""; //(thanks Kathryn!)
 	var normX;
 	var normY;
 	var normWidth;
@@ -362,7 +363,7 @@ macro "Spectral RTI [n1]" {
 			else defaultRange = "G";
 			Dialog.setInsets(0,0,0);
 			Dialog.addRadioButtonGroup(listOfNarrowbandCaptures[i], rgbnOptions, 1, 4, defaultRange);
-		}
+		} // @@@ problem here if runs off screen... no an option to use two columns
 		Dialog.show();
 		for (i=0; i<listOfNarrowbandCaptures.length; i++) {
 			rangeChoice = Dialog.getRadioButton();
