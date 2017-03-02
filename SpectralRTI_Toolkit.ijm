@@ -1,7 +1,7 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170227
-Date: February 27, 2017
+Version: 0.1.20170228
+Date: February 28, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu, thanneke@uchicago.edu
 Description: A toolkit for processing Spectral RTI images
 About:
@@ -25,7 +25,7 @@ var transmissiveSource= ""; //(thanks Kathryn!)
 	var lpSource = "";
 	var projectDirectory = "";
 	var projectName = "";
-	var listOfRakingDirections;
+	var listOfRakingDirections = newArray(0); //(thanks Kathryn!)
 	var accurateColorSource = "";
 function createJp2(inFile) {
 	preferredCompress = List.get("preferredCompress");
@@ -501,6 +501,7 @@ macro "Spectral RTI [n1]" {
 				//Save as jpeg
 				noClobber(projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+File.nameWithoutExtension+".jpg");
 				saveAs("jpeg", projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+File.nameWithoutExtension+".jpg");
+				setBatchMode("show"); //debugging
 				selectWindow(File.nameWithoutExtension+".jpg");
 				run("Close");
 				selectWindow("YCC");
@@ -730,6 +731,7 @@ macro "Spectral RTI [n1]" {
 				run("YCbCr stack to RGB");
 				noClobber(projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+File.nameWithoutExtension+".jpg");
 				saveAs("jpeg", projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+File.nameWithoutExtension+".jpg");
+				setBatchMode("show"); //debugging
 				selectWindow(File.nameWithoutExtension+".jpg");
 				run("Close");
 				selectWindow("YCC");
@@ -888,7 +890,7 @@ macro "Spectral RTI [n1]" {
 			}
 		}
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
-			if ((psRtiDesired)||(listOfRakingDirections[i+1])) {
+			if ((psRtiDesired)||(listOfRakingDirections[i+1])) { //creating a problem if no raking images are ordered
 				open(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[i]);
 				rename("Luminance");
 				run("Duplicate...", "title=EnhancedLuminance");
@@ -923,6 +925,7 @@ macro "Spectral RTI [n1]" {
 					run("Close");
 					noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
 					saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
+					setBatchMode("show"); //debugging
 					selectWindow(File.nameWithoutExtension+".jpg");
 					run("Close");
 				} else if (psRtiDesired) {
@@ -932,6 +935,7 @@ macro "Spectral RTI [n1]" {
 					run("Close");
 					noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
 					saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
+					setBatchMode("show"); //debugging
 					selectWindow(File.nameWithoutExtension+".jpg");
 					run("Close");
 				}
@@ -1049,6 +1053,7 @@ macro "Spectral RTI [n1]" {
 						run("Close");
 						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
 						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
+						setBatchMode("show"); //debugging
 						selectWindow(File.nameWithoutExtension+".jpg");
 						run("Close");
 					} else if (csRtiDesired) {
@@ -1058,6 +1063,7 @@ macro "Spectral RTI [n1]" {
 						run("Close");
 						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
 						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
+						setBatchMode("show"); //debugging
 						selectWindow(File.nameWithoutExtension+".jpg");
 						run("Close");
 					}
