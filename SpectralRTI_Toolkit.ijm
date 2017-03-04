@@ -1,8 +1,8 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170228
-Date: February 28, 2017
-Author: Todd R. Hanneken, thanneken@stmarytx.edu, thanneke@uchicago.edu
+Version: 0.1.20170304
+Date: March 4, 2017
+Author: Todd R. Hanneken, thanneken@stmarytx.edu
 Description: A toolkit for processing Spectral RTI images
 About:
 See http://palimpsest.stmarytx.edu/integrating
@@ -25,7 +25,7 @@ var transmissiveSource= ""; //(thanks Kathryn!)
 	var lpSource = "";
 	var projectDirectory = "";
 	var projectName = "";
-	var listOfRakingDirections = newArray(0); //(thanks Kathryn!)
+	var listOfRakingDirections;
 	var accurateColorSource = "";
 function createJp2(inFile) {
 	preferredCompress = List.get("preferredCompress");
@@ -117,8 +117,7 @@ function createLpFile(colorProcess) { //create lp file with filenames from newly
 		}
 		list = getFileList(projectDirectory+"LightPositionData"+File.separator+"assembly-files"+File.separator);
 		for (i=0; i<list.length; i++) {
-			if (endsWith(list[i],"OriginalSet.lp")) {
-				//ignore this one
+			if (endsWith(list[i],"OriginalSet.lp")) { //ignore this one
 			} else if (endsWith(list[i], "lp")) {
 				listOfLpFiles = Array.concat(listOfLpFiles,projectDirectory+"LightPositionData"+File.separator+"assembly-files"+File.separator+list[i]);
 			}
@@ -181,18 +180,6 @@ function noClobber(safeName) {
 		success = File.rename(safeName,newFileName);
 	}
 }
-/*
-function listFiles(dir) {
-	list = getFileList(dir);
-	for (i=0; i<list.length; i++) {
-		if (endsWith(list[i], "/")) listFiles(dir+list[i]);
-		else {
-			fullPathName = dir+list[i];
-			recursiveListOfFiles = Array.concat(recursiveListOfFiles, fullPathName);
-		}
-	}
-}
-*/
 function timestamp() {
 	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
 	year = toString(year);
@@ -206,17 +193,6 @@ function timestamp() {
 		else minute = toString(minute);
 	return year+month+dayOfMonth+"_"+hour+minute;
 }
-/*
-function readLogFile() {
-	logfile = File.openAsString("SpectralRTI_Toolkit.log");
-	lines=split(logfile,"\n");
-	//for (i=0;i<lengthOf(lines);i++) {
-	for (i=0;i<lines.length;i++) {
-		values=split(lines[i]);
-		//if (values[1]=="ProjectDirectory") ProjectDirectory=values[2];
-	}
-}
-*/
 macro "Spectral RTI [n1]" {
 	setBatchMode(true);
 	//want these variables to be accessible across functions and to reset each time the macro is run
@@ -263,11 +239,9 @@ macro "Spectral RTI [n1]" {
 	jpegQuality = call("ij.plugin.JpegWriter.getQuality");
 	if (List.get("jpegQuality") > 0) jpegQuality = List.get("jpegQuality");
 	run("Input/Output...","jpeg="+jpegQuality);
-//	File.append(timestamp()+",ToolkitStatus,Started","SpectralRTI_Toolkit.log");
 	projectDirectory = getDirectory("Choose a Directory");
 	projectDirectory = replace(projectDirectory,"\\",File.separator);
 	projectName = File.getName(projectDirectory);
-//	File.append(timestamp()+",ProjectDirectory,"+projectDirectory,"SpectralRTI_Toolkit.log");
 	if (!File.exists(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator)) {
 		File.makeDirectory(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
 		print("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
@@ -339,15 +313,13 @@ macro "Spectral RTI [n1]" {
 		defaults = newArray(listOfHemisphereCaptures.length);
 		Dialog.create("Select light positions");
 		Dialog.addMessage("Select light positions for lossless static raking images");
-		Dialog.addCheckboxGroup(floor(listOfHemisphereCaptures.length/4), 4, listOfHemisphereCaptures, defaults); //8 columns
-		//- Adds a rowsxcolumns grid of checkboxes to the dialog, using the specified labels and default states (example).
-		//for(i=0;i<listOfHemisphereCaptures.length;i++) {
-		//	Dialog.addCheckbox(listOfHemisphereCaptures[i],true);
-		//}
+		Dialog.addCheckboxGroup(1+floor(listOfHemisphereCaptures.length/4), 4, listOfHemisphereCaptures, defaults); //8 columns
 		Dialog.show();
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
 			listOfRakingDirections = Array.concat(listOfRakingDirections,Dialog.getCheckbox());
 		}
+	} else {
+		listOfRakingDirections = newArray(listOfHemisphereCaptures.length+1);
 	}
 	if (xsRtiDesired || xsRakingDesired) { // only interaction here, processing later
 		//create a dialog suggesting and confirming which narrowband captures to use for R,G,and B
@@ -423,12 +395,6 @@ macro "Spectral RTI [n1]" {
 			if (endsWith(listOfHemisphereCaptures[i],"tif")) {
 				open(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[i]);
 				rename("LightPosition");
-//				if (!ballArea) {
-//					setBatchMode("show");
-//					waitForUser("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
-//					getSelectionBounds(x, y, width, height);
-//					ballArea = true;
-//				}
 				makeRectangle(x,y,width,height);
 				run("Crop");
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator);
@@ -501,7 +467,7 @@ macro "Spectral RTI [n1]" {
 				//Save as jpeg
 				noClobber(projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+File.nameWithoutExtension+".jpg");
 				saveAs("jpeg", projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+File.nameWithoutExtension+".jpg");
-				setBatchMode("show"); //debugging
+				//setBatchMode("show"); //debugging
 				selectWindow(File.nameWithoutExtension+".jpg");
 				run("Close");
 				selectWindow("YCC");
@@ -731,7 +697,7 @@ macro "Spectral RTI [n1]" {
 				run("YCbCr stack to RGB");
 				noClobber(projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+File.nameWithoutExtension+".jpg");
 				saveAs("jpeg", projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+File.nameWithoutExtension+".jpg");
-				setBatchMode("show"); //debugging
+				//setBatchMode("show"); //debugging
 				selectWindow(File.nameWithoutExtension+".jpg");
 				run("Close");
 				selectWindow("YCC");
@@ -820,11 +786,9 @@ macro "Spectral RTI [n1]" {
 			selectWindow("PCA of Captures-Narrowband-NoGamma");
 			makeRectangle(pcaX, pcaY, pcaWidth, pcaHeight);
 			setBatchMode("show");
-			//while (nSlices() > 2 ) {} //@@@ produces an error if press okay while still more than two
 			waitForUser("Select area", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
 			setBatchMode("hide");
 			rename("PCA of Captures-Narrowband-NoGamma kept stack");
-			//run("Enhance Contrast...", "saturated=0.3 normalize update process_all");
 			run("8-bit");
 		//option to use previously generated principal component images
 		} else if (pcaMethod =="Open pregenerated images") {
@@ -890,7 +854,7 @@ macro "Spectral RTI [n1]" {
 			}
 		}
 		for(i=0;i<listOfHemisphereCaptures.length;i++) {
-			if ((psRtiDesired)||(listOfRakingDirections[i+1])) { //creating a problem if no raking images are ordered
+			if ((psRtiDesired)||(listOfRakingDirections[i+1])) {
 				open(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[i]);
 				rename("Luminance");
 				run("Duplicate...", "title=EnhancedLuminance");
@@ -905,7 +869,7 @@ macro "Spectral RTI [n1]" {
 				run("8-bit");
 				selectWindow("Luminance");
 				run("8-bit");
-				if ((psRakingDesired)&&(listOfRakingDirections[i+1])){
+				if (listOfRakingDirections[i+1]) {
 					run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
 					run("YCbCr stack to RGB");
 					selectWindow("YCC");
@@ -925,7 +889,7 @@ macro "Spectral RTI [n1]" {
 					run("Close");
 					noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
 					saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
-					setBatchMode("show"); //debugging
+					//setBatchMode("show"); //debugging
 					selectWindow(File.nameWithoutExtension+".jpg");
 					run("Close");
 				} else if (psRtiDesired) {
@@ -935,7 +899,7 @@ macro "Spectral RTI [n1]" {
 					run("Close");
 					noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
 					saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
-					setBatchMode("show"); //debugging
+					//setBatchMode("show"); //debugging
 					selectWindow(File.nameWithoutExtension+".jpg");
 					run("Close");
 				}
@@ -970,10 +934,8 @@ macro "Spectral RTI [n1]" {
 		} else if (nSlices == 2) {
 			run("8-bit");
 			run("Stack to Images");
-			//selectWindow("slice:1");
 			selectImage(1);
 			rename("Cb");
-			//selectWindow("slice:2");
 			selectImage(2);
 			rename("Cr");
 		} else if ((nSlices > 2)||(bitDepth()==24)) {
@@ -997,8 +959,8 @@ macro "Spectral RTI [n1]" {
 			selectWindow("Y");
 			run("Close");
 		}
-		//selectWindow("csSource");
-		//run("Close");
+		selectWindow("csSource");
+		run("Close");
 		if (transmissiveSource != "") {
 			open(projectDirectory+"Captures-Transmissive-Gamma"+File.separator+transmissiveSource);
 			rename("TransmissiveLuminance");
@@ -1033,7 +995,7 @@ macro "Spectral RTI [n1]" {
 					run("8-bit");
 					selectWindow("EnhancedLuminance");
 					run("8-bit");
-					if ((csRakingDesired)&&(listOfRakingDirections[i+1])){
+					if (listOfRakingDirections[i+1]){
 						run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
 						run("YCbCr stack to RGB");
 						selectWindow("YCC");
@@ -1053,7 +1015,7 @@ macro "Spectral RTI [n1]" {
 						run("Close");
 						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
 						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
-						setBatchMode("show"); //debugging
+						//setBatchMode("show"); //debugging
 						selectWindow(File.nameWithoutExtension+".jpg");
 						run("Close");
 					} else if (csRtiDesired) {
@@ -1063,7 +1025,7 @@ macro "Spectral RTI [n1]" {
 						run("Close");
 						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
 						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
-						setBatchMode("show"); //debugging
+						//setBatchMode("show"); //debugging
 						selectWindow(File.nameWithoutExtension+".jpg");
 						run("Close");
 					}
