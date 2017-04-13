@@ -1,7 +1,7 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170304
-Date: March 4, 2017
+Version: 0.1.20170412
+Date: April 12, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu
 Description: A toolkit for processing Spectral RTI images
 About:
@@ -138,9 +138,11 @@ function createLpFile(colorProcess) { //create lp file with filenames from newly
 	noClobber(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
 	File.append(lpLines[0],projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
 	for (i=1;i<lpLines.length;i++) {
-		newLpLine = replace(lpLines[i],"\\","/");
+		newLpLine = lpLines[i];
+		newLpLine = replace(newLpLine,"\\","/"); //simplest to avoid a backslash on the right side of a regular expression replace in the next few lines
+		funnyProjectDirectory = replace(projectDirectory,"\\","/");
 		newLpLine = replace(newLpLine,"LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"_");
-		newLpLine = replace(newLpLine,"canonical",projectDirectory+colorProcess+"RTI"+File.separator+colorProcess+"_"+projectName+"_RTI");
+		newLpLine = replace(newLpLine,"canonical",funnyProjectDirectory+colorProcess+"RTI/"+colorProcess+"_"+projectName+"_RTI");
 		newLpLine = replace(newLpLine,"/",File.separator);
 		File.append(newLpLine,projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
 	}
@@ -929,7 +931,7 @@ macro "Spectral RTI [n1]" {
 		rename("csSource");
 		if ((nSlices == 1)&&(bitDepth()<24)) {
 			run("8-bit");
-			rename("Cb");
+			run("Duplicate...", "title=Cb");
 			run("Duplicate...", "title=Cr");
 		} else if (nSlices == 2) {
 			run("8-bit");
