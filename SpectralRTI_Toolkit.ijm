@@ -1,7 +1,7 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170412
-Date: April 12, 2017
+Version: 0.1.20170424
+Date: April 24, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu
 Description: A toolkit for processing Spectral RTI images
 About:
@@ -36,7 +36,8 @@ function createJp2(inFile) {
 	}
 	if (preferredJp2Args == "") {
 		Dialog.create("Approve arguments for Jpeg 2000 compression");
-		Dialog.addString("Arguments:","-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible\=no Clevels\=5 Stiles\=\{1024,1024\} Cblk\=\{64,64\} -jp2_space sRGB Cuse_sop\=yes Cuse_eph\=yes Corder\=RPCL ORGgen_plt\=yes ORGtparts\=R Cmodes\=BYPASS -double_buffering 10 -num_threads 4 -no_weights",80);
+		Dialog.addString("Arguments:","-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible\=no Clevels\=5 Stiles\=\{1024,1024\} Cblk\=\{64,64\} Cuse_sop\=yes Cuse_eph\=yes Corder\=RPCL ORGgen_plt\=yes ORGtparts\=R Cmodes\=BYPASS -double_buffering 10 -num_threads 4 -no_weights",80);
+		// removed "-jp2_space sRGB" because causes failure on single channel images and creates identical images for 3-channel
 		preferredJp2Args = Dialog.getString();
 		File.append("preferredJp2Args="+preferredJp2Args,"SpectralRTI_Toolkit-prefs.txt");
 	}
@@ -930,6 +931,12 @@ macro "Spectral RTI [n1]" {
 		open(csSource);
 		rename("csSource");
 		if ((nSlices == 1)&&(bitDepth()<24)) {
+			if (csRakingDesired) {
+				noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
+				save(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
+				createJp2(projectName+"_"+csProcessName+"_00");
+				File.delete(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
+			}
 			run("8-bit");
 			run("Duplicate...", "title=Cb");
 			run("Duplicate...", "title=Cr");
