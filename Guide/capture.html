@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Capture Procedures for SpectralRTI</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<h1 class="title">Capture Procedures for SpectralRTI</h1>
+<h2>Contents</h2>
+<ol>
+	<li>What is SpectralRTI and do I need it? <a href="intro.html" class="small">(LINK)</a></li>
+	<li>Capture hardware <a href="hardware.html" class="small">(LINK)</a>
+		<ol style="list-style-type:lower-alpha;}">
+			<li>Spectral imaging hardware <a href="hardware.html#spectralhardware" class="small">(LINK)</a></li>
+			<li>Fixed dome for RTI capture <a href="hardware.html#dome" class="small">(LINK)</a></li>
+			<li>Swinging arc for RTI capture <a href="hardware.html#arc" class="small">(LINK)</a></li>
+			<li>Hand-held flash for RTI capture <a href="hardware.html#flash" class="small">(LINK)</a></li>
+		</ol>
+	</li>
+	<li><b>Capture procedures</b>
+		<ol style="list-style-type:lower-alpha;}">
+			<li>Light position capture and calibration <a href="capture.html#lpcalibration" class="small">(LINK)</a></li>
+			<li>Hemisphere captures for RTI <a href="capture.html#hemisphere" class="small">(LINK)</a></li>
+			<li>Preprocessing typically done at capture <a href="capture.html#preprocessing" class="small">(LINK)</a></li>
+		</ol>
+	</li>
+	<li>Processing with the SpectralRTI_Toolkit <a href="processing.html" class="small">(LINK)</a>
+		<ol style="list-style-type:lower-alpha;}">
+			<li>Software installation <a href="processing.html#installation" class="small">(LINK)</a></li>
+			<li>Managing input data <a href="processing.html#input" class="small">(LINK)</a></li>
+			<li>Running for the first time <a href="processing.html#firstrun" class="small">(LINK)</a></li>
+			<li>Select tasks <a href="processing.html#selecttasks" class="small">(LINK)</a></li>
+			<li>Adjust brightness <a href="processing.html#brightness" class="small">(LINK)</a></li>
+			<li>Static raking option <a href="processing.html#staticraking" class="small">(LINK)</a></li>
+			<li>Options for Extended Spectrum <a href="processing.html#extendedspectrum" class="small">(LINK)</a></li>
+			<li>Identify region of interest (for Extended Spectrum and Pseudocolor) <a href="processing.html#roi" class="small">(LINK)</a></li>
+			<li>Options for PCA Pseudocolor <a href="processing.html#pcapseudocolor" class="small">(LINK)</a></li> 
+			<li>Options for custom processes <a href="processing.html#custom" class="small">(LINK)</a></li>
+			<li>Light position data <a href="processing.html#lpdata" class="small">(LINK)</a></li>
+			<li>Additional prompts <a href="processing.html#locatefitter" class="small">(LINK)</a></li>
+			<li>Tips for frequent use <a href="processing.html#frequentuse" class="small">(LINK)</a></li>
+		</ol>
+	</li>
+	<li>Make the images accessible to users <a href="access.html" class="small">(LINK)</a>
+		<ol style="list-style-type:lower-alpha;}">
+			<li>RTI files <a href="access.html#rtifiles" class="small">(LINK)</a></li>
+			<li>WebRTI <a href="access.html#webrti" class="small">(LINK)</a></li>
+			<li>Tiled and layered Jpeg2000 files for IIIF <a href="access.html#iiif" class="small">(LINK)</a></li>
+		</ol>
+	</li>
+	<li>Help make SpectralRTI better <a href="volunteer.html" class="small">(LINK)</a></li>
+	<li>Glossary <a href="glossary.html" class="small">(LINK)</a></li>
+</ol>
+<h2 id="#lpcalibration">Light position capture and calibration</h2>
+<p>A reflective sphere is used to calculate the light position for each of the hemisphere captures. 
+The spheres can also be useful for recording and calculating the position of the lights for spectral imaging, and for identifying and locating stray light entering the image frame.</p> 
+<p>Early RTI capture used snooker balls, but black marbles more than suffice around 600 ppi. Black marbles are available online at <a href="http://a.co/9hNRB10">Amazon.com</a>.</p>
+<p>Standard RTI procedure calls for using two reflective spheres in the frame. 
+This could function as a backup if one is more plagued by shadows than the other. 
+The principal reason for using two spheres is so that--in the future--the angle of the light striking any pixel can be triangulated from two known areas. 
+In the meantime, the best way to minimize aberation due to variation in angle of light hitting different parts of the image frame is for the hemisphere illuminators to be as far from the object as possible (without introducing other problems). 
+It is generally accepted that an illuminator radius of four times the object diameter is safe. 
+For this reason, it is also best to place the primary reflective sphere as close to the center as possible. 
+For calibration shots it can be roughly the exact center. 
+For the hand-held flash method it should be as close to the center without the shadow of the sphere degrading visibility of the object. 
+Furthermore, the sphere should be as coplanar with the image plane as possible. </p>  
+
+<h2 id="hemisphere">Hemisphere captures for RTI</h2>
+<p>It is important that the hemisphere captures have the same registration as the spectral captures. 
+That is, the camera and object must remain immobile throughout the spectral and rti captures.</p> 
+<p>The exposure settings should remain constant throughout the hemisphere capture sequence. 
+The light positions closer to the camera will be brighter than the low angles, but image detail should not be washed out due to overexposure.</p>
+
+<h2 id="preprocessing">Preprocessing typically done at capture</h2>
+<h3>Flattening</h3>
+<p>Flattening in this context means means correcting for irregularities in the illumination. 
+It is an important part of spectral imaging because it prevents the processing algorithms from being distracted or deceived into mistaking light or dark spots due to uneven illumination for light or dark spots due to different material reflectance properties. 
+The illumination irregularities in spectral imaging are quite subtle, resulting mostly from bright spots in the LED illumination not being completely diffused by the diffuser panels.</p> 
+<p>However, in the case of hemisphere captures there are two very significant kinds of illumination irregularities. 
+The first is that even with the light at a significant radius (but not astronomical, like the sun) there is a natural effect that the side nearer the light is brighter than the far side.
+Flattening can compensate for this effect, but the question is should it. 
+The eye naturally compensates for this luminosity gradient, and even expects it. 
+Eliminating the luminosity gradient could diminish the realistic sensation of moving a light around the object. 
+However, this effect gives less accurate information about the reflectance properties of the surface. 
+It would be much more difficult to perform stitching if the measured reflectance properties were heavily influenced by whether the pixel is on one side of the frame or the other. </p>
+<p>The second significant kind of illumination irregularities particular to hemisphere captures is shadows from the copy stand. 
+If a shadow comes from part of the object not present in the sequence to calibrate flats the shadow will appear even in the flattened image. 
+However, if the shadow was present in the sequence to calibrate flats that shadow can be removed in the flattened images. 
+The only traces of the shadow are thin lines of brightness or darkness along the edges of the shadow (which are minimal if the light positions are stable and the image plane identical) and sometimes a slight difference in brightness based on how much indirect light is scattered by the object. 
+Thus, flattening gathers more information about the artifact, but it can be erie in that the eye is accustomed to rejecting information loss due to shadow but not accustomed to ghostly artifacts. 
+The information gathered in the shadow indicates reflectance properties in indirect light, rather than direct light which is the assumption of RTI processing. 
+That data will not help the hemispherical harmonic and should be dismissed as an outlier regardless of whether it is an outlier because it is completely dark or an outlier because it shows only indirect light reflectance properties.</p>
+<p>Thus there are advantages and disadvantages to flattening hemisphere captures, but overall flattening is advantageous. 
+It is in the nature of RTI that it is a visualization tool that approximates appearance as mediated by the best fit to a hemispherical harmonic. 
+Eventually, the eye will grow accustomed to ignoring artifacts in RTI images as in other areas of perception. </p>
+
+<h3>Accurate Color</h3>
+<p>A spectral imaging capture software such as MegaVision PhotoShoot or PhaseOne CaptureOne has the ability to generate color images using all the visible bands. 
+Furthermore, these color images are created without the use of distorting filters, such as a Bayer filter. 
+However, the Accurate Color images created by PhotoShoot use a color space that is not correctly interpreted by ImageJ. 
+For this reason it is important to convert the color space to sRGB before processing with the SpectralRTI_Toolkit. 
+For example, the relevant command using ImageMajick is <code>convert infile_PSC.tif -colorspace sRGB outfile_sRGB.tif</code>.</p>
+
+<h3>Gamma correction for hemisphere captures</h3>
+<p>Gamma correction is appropriate when the final consumer of brightness is the human eye, that is for the hemisphere captures but not the narrowband captures. 
+The silicon sensor in the camera captures the amount of light reaching the sensor on a linear scale. 
+However, human perception is non-linear, biased toward distinguishing darker tones.
+A raw linear image viewed without gamma correction will appear dark and lacking detail in the dark regions.
+Gamma correction increases the intensity of darker pixels to match human perception.  
+The gamma correction built into PhotoShoot is more nuanced than the simple gamma correction available in ImageJ. 
+However it is done, the ImageJ plugin described on the next page will assume that the hemisphere captures are already fit for human consumption (with gamma correction). </p>
+</body>
+</html>
