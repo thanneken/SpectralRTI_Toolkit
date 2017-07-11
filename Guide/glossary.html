@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Glossary</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<h1 class="title">Glossary</h1>
+<dl>
+<dt id="extendedspectrum">Extended Spectrum</dt>
+<dd>A processing technique for multispectral captures that squeezes the contrasts detectable in the full range of the spectral capture into the range of the spectrum visible to humans. Thus a pixel that reflects UV would appear blue and IR would appear red.</dd>
+<dd>It works by using Principal Component Analysis to find the greatest contrast (first principal component) in the shortest wavelength captures and rendering that as blue, and similarly for the middle (green) and longest (red) wavelengths.</dd>
+<dt id="pcapseudocolor">PCA Pseudocolor</dt>
+<dd>A processing technique for multispectral captures that finds the greatest contrasts detectable in the full range of spectral capture and renders those contrasts in visible to humans with no semblance of natural appearance.</dd>
+<dd>It works by using Principal Component Analysis to find up to three contrasts (principal components) and rendering those as the Red, Green, and Blue channels of an RGB image (or similarly two components as the Cb and Cr channels of a YCbCr image).</dd>
+</dl>
+</body>
+</html>
