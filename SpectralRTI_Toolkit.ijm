@@ -1,11 +1,12 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170424
-Date: April 24, 2017
+Version: 0.1.20170710
+Date: July 10, 2017
 Author: Todd R. Hanneken, thanneken@stmarytx.edu
 Description: A toolkit for processing Spectral RTI images
 About:
 See http://palimpsest.stmarytx.edu/integrating
+7/10/2017 update: to run on ImageJ as well as Fiji replace s/run("Collect Garbage");/call("java.lang.System.gc");/
 */
 var jpegQuality = 100; //maximize quality for non-distribution phases
 var jpegQualityWebRTI = 100; //lower for final distribution
@@ -740,7 +741,7 @@ macro "Spectral RTI [n1]" {
 		run("Close");
 		selectWindow("Cr");
 		run("Close");
-		run("Collect Garbage");
+		call("java.lang.System.gc");
 		if (xsRtiDesired) {
 			createLpFile("ExtendedSpectrum");
 			runFitter("ExtendedSpectrum");
@@ -914,7 +915,7 @@ macro "Spectral RTI [n1]" {
 		}
 		selectWindow("PCA of Captures-Narrowband-NoGamma kept stack");
 		run("Close");
-		run("Collect Garbage");
+		call("java.lang.System.gc");
 		if (psRtiDesired) {
 			createLpFile("Pseudocolor");
 			runFitter("Pseudocolor");
