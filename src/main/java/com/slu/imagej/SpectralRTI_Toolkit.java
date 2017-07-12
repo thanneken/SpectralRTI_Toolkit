@@ -423,8 +423,8 @@ public class SpectralRTI_Toolkit implements Command {
                         //setBatchMode("show");
                         dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
                         dWait.show();
-                        Roi roi = new Roi(pcaX, pcaY, pcaWidth, pcaHeight);
-                        Rectangle bounds = roi.getBounds(); //getFloatBounds() is also a thing.  Does this do what getSelectionBouds does?
+                        //Roi roi = new Roi(pcaX, pcaY, pcaWidth, pcaHeight);
+                        //Rectangle bounds = roi.getBounds(); //getFloatBounds() is also a thing.  Does this do what getSelectionBouds does?
                         image.close();
                        // getSelectionBounds(pcaX, pcaY, pcaWidth, pcaHeight);
                 }
@@ -441,15 +441,15 @@ public class SpectralRTI_Toolkit implements Command {
                 //setBatchMode("show");
                 dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
                 dWait.show();
-                Roi roi = new Roi(x, y, width, height); //Yikes.  Where in the heck to x, y, width and height come from here?
+                //Roi roi = new Roi(x, y, width, height); //Yikes.  Where in the heck to x, y, width and height come from here?
                 //image.setRoi(roi); //? do i need this?  I think only for makeRectangle
-                Rectangle bounds = roi.getBounds(); //getFloatBounds() is also a thing.  Does this do what getSelectionBouds does?
+                //Rectangle bounds = roi.getBounds(); //getFloatBounds() is also a thing.  Does this do what getSelectionBouds does?
                 image.close();
                 for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tif")) {
                         image = IJ.openImage(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[i]);
                         image.show();
-                        IJ.makeRectangle(x,y,width,height);
+                        //IJ.makeRectangle(x,y,width,height);
                         IJ.run("Crop");
                         File jpegExportsFile = new File(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator);
                         if (!light_position_file.exists()) Files.createDirectory(light_position_file.toPath());
@@ -992,8 +992,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 IJ.run("YCbCr stack to RGB");
                                 IJ.selectWindow("YCC");
                                 IJ.run("Close");
-                                noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
-                                saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
+                                //noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
+                                //saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
                                 //setBatchMode("show"); //debugging
                                 //File.nameWithoutExtension
                                 IJ.selectWindow(image.getShortTitle()+".jpg");
@@ -1003,8 +1003,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 IJ.run("YCbCr stack to RGB");
                                 IJ.selectWindow("YCC");
                                 IJ.run("Close");
-                                noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
-                                IJ.saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
+                                //noClobber(projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
+                                //IJ.saveAs("jpeg", projectDirectory+"PseudocolorRTI"+File.separator+"Pseudocolor_"+File.nameWithoutExtension+".jpg");
                                 //setBatchMode("show"); //debugging
                                 //File.nameWithoutExtension
                                 IJ.selectWindow(image.getShortTitle()+".jpg");
@@ -1137,21 +1137,21 @@ public class SpectralRTI_Toolkit implements Command {
 						IJ.run("YCbCr stack to RGB");
 						IJ.selectWindow("YCC");
 						IJ.run("Close");
-						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
-						saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
+						//noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
+						//saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
 						//setBatchMode("show"); //debugging
                                                 //File.nameWithoutExtension //Yikes am I getting the right thing here? 
-						IJ.selectWindow(File.nameWithoutExtension)+".jpg");
+						//IJ.selectWindow(File.nameWithoutExtension)+".jpg");
 						IJ.run("Close");
 					} else if (csRtiDesired) {
 						IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
 						IJ.run("YCbCr stack to RGB");
 						IJ.selectWindow("YCC");
 						IJ.run("Close");
-						noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
-						IJ.saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
+						//noClobber(projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
+						//IJ.saveAs("jpeg", projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+File.nameWithoutExtension+".jpg");
 						//setBatchMode("show"); //debugging
-						IJ.selectWindow(File.nameWithoutExtension+".jpg");
+						//IJ.selectWindow(File.nameWithoutExtension+".jpg");
 						IJ.run("Close");
 					}
 					IJ.selectWindow("EnhancedLuminance");
