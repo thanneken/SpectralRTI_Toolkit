@@ -1,0 +1,12 @@
+@CHARSET "UTF-8";
+body{font-family:sans-serif;}
+.title{text-align:center;}
+.small{font-size:smaller;}
+.volunteer{color:blue;}
+a:link{ color:rgb(0,102,153);text-decoration:none;}
+a:visited{color:rgb(0,153,102);text-decoration:none;}
+a:active{color:rgb(0,102,102);}
+a:hover{text-decoration:underline;}
+h3{font-style:italic;}
+.prompt{margin:20px 50px 20px 50px;padding:10px;border:1px solid green;border-radius:4px;background-color:lightgrey;}
+.note{margin-left:100px;color:red;font-style:italic;}
