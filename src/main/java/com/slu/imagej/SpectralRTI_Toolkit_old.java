@@ -48,6 +48,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+/**
+ * A template for processing each pixel of either
+ * GRAY8, GRAY16, GRAY32 or COLOR_RGB images.
+ *
+ * @author Johannes Schindelin
+ */
 @Plugin(type = Command.class, headless=true, menuPath = "Plugins>Open Image")  
 public class SpectralRTI_Toolkit implements Command {
         
@@ -304,7 +310,7 @@ public class SpectralRTI_Toolkit implements Command {
             
             //identify angles for uncompressed static raking
             if (acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired){
-                    if (brightnessAdjustOption.equals("")) promptBrightnessAdjust();
+                    if (brightnessAdjustOption == "") promptBrightnessAdjust();
             }
             if (acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
                     if (!static_ranking_file.exists()) {
@@ -1280,7 +1286,7 @@ public class SpectralRTI_Toolkit implements Command {
             brightnessAdjustOption = gd.getRadioButtonGroups().get(0).toString();
             brightnessAdjustApply = gd.getRadioButtonGroups().get(1).toString();
             
-            if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
+            if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
                 //gd.setVisible(false);
                 dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
                 dWait.show();
@@ -1292,7 +1298,7 @@ public class SpectralRTI_Toolkit implements Command {
                 //Returns the smallest rectangle that can completely contain the current selection. x and y are the pixel coordinates of the upper left corner of the rectangle
                 //getSelectionBounds(normX, normY, normWidth, normHeight);
             } 
-            else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+            else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
 //                    GenericDialog gdWait2 = new GenericDialog("Choose multiplier");
 //                    gd.addMessage("Use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered next.");
 //                    gd.setModal(false);
@@ -1319,7 +1325,7 @@ public class SpectralRTI_Toolkit implements Command {
             String fitterOutput = "";
             String webRtiMakerOutput = "";
             String webRtiMaker = "";
-            if (preferredFitter.equals("")) {
+            if (preferredFitter == "") {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 preferredFitter = dialog.getFileName();
                 String appendString = "preferredFitter="+preferredFitter;
@@ -1333,11 +1339,11 @@ public class SpectralRTI_Toolkit implements Command {
                 String appendString = "Brightness Adjust Option: "+brightnessAdjustOption;
                 //logService.log().info("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\nThis could take a while...");
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
-                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
+                if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
                     appendString = "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight;
                     Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
                 } 
-                else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
                         appendString = "Normalization fixed value: "+normalizationFixedValue;
                         Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
                 }
@@ -1367,7 +1373,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
                 if (webRtiDesired) {
                         webRtiMaker = theList.get("webRtiMaker");
-                        if (webRtiMaker.equals("")) {
+                        if (webRtiMaker == "") {
                             OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
                             webRtiMaker = dialog2.getPath();
                             Files.write(Paths.get("SpectralRTI_Toolkit-prefs.txt"), webRtiMaker.getBytes(), StandardOpenOption.APPEND);
@@ -1399,10 +1405,10 @@ public class SpectralRTI_Toolkit implements Command {
 
                 String appendString = "Brightness Adjust Option: "+brightnessAdjustOption;
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
-                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
+                if (brightnessAdjustOption == "Yes, by normalizing each image to a selected area") {
                     appendString = "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight;
                     Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
-                } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                } else if (brightnessAdjustOption == "Yes, by multiplying all images by a fixed value") {
                     appendString = "Normalization fixed value: "+normalizationFixedValue;
                     Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
                 }
