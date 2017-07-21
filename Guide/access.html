@@ -2,17 +2,23 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Provide Access to SpectralRTI Images</title>
+<title>Provide Access to Spectral RTI Images</title>
 <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-<h1 class="title">Provide Access to SpectralRTI Images</h1>
+<h1 class="title">Provide Access to Spectral RTI Images</h1>
 
 <p>The SpectralRTI_Toolkit has options to create three types of output (in addition to intermediate files that facilitate changing some settings without redoing the entire process). Each type of output has its own advantages and disadvantages.</p>
 
 <h2>Contents</h2>
 <ol>
-	<li>What is SpectralRTI and do I need it? <a href="intro.html" class="small">(LINK)</a></li>
+	<li>What is Spectral RTI and do I need it? <a href="intro.html" class="small">(LINK)</a>
+		<ol style="list-style-type:lower-alpha;}">
+			<li>Cost/benefit of adding RTI <a href="intro.html#addrti" class="small">(LINK)</a></li>
+			<li>Cost/benefit of adding spectral <a href="intro.html#addspectral" class="small">(LINK)</a></li>
+			<li>How does the integration work? <a href="intro.html#how" class="small">(LINK)</a></li>
+		</ol>
+	</li>
 	<li>Capture hardware <a href="hardware.html" class="small">(LINK)</a>
 		<ol style="list-style-type:lower-alpha;}">
 			<li>Spectral imaging hardware <a href="hardware.html#spectralhardware" class="small">(LINK)</a></li>
@@ -38,7 +44,7 @@
 			<li>Static raking option <a href="processing.html#staticraking" class="small">(LINK)</a></li>
 			<li>Options for Extended Spectrum <a href="processing.html#extendedspectrum" class="small">(LINK)</a></li>
 			<li>Identify region of interest (for Extended Spectrum and Pseudocolor) <a href="processing.html#roi" class="small">(LINK)</a></li>
-			<li>Options for PCA Pseudocolor <a href="processing.html#pcapseudocolor" class="small">(LINK)</a></li> 
+			<li>Options for PCA Pseudocolor <a href="processing.html#pcapseudocolor" class="small">(LINK)</a></li>
 			<li>Options for custom processes <a href="processing.html#custom" class="small">(LINK)</a></li>
 			<li>Light position data <a href="processing.html#lpdata" class="small">(LINK)</a></li>
 			<li>Additional prompts <a href="processing.html#locatefitter" class="small">(LINK)</a></li>
@@ -52,7 +58,7 @@
 			<li>Tiled and layered Jpeg2000 files for IIIF <a href="access.html#iiif" class="small">(LINK)</a></li>
 		</ol>
 	</li>
-	<li>Help make SpectralRTI better <a href="volunteer.html" class="small">(LINK)</a></li>
+	<li>Help make Spectral RTI better <a href="volunteer.html" class="small">(LINK)</a></li>
 	<li>Glossary <a href="glossary.html" class="small">(LINK)</a></li>
 </ol>
 
@@ -61,42 +67,42 @@
 <p>Advantages</p>
 <ul>
 	<li>Once the viewer is installed and the RTI file downloaded and opened in the viewer, the interface is responsive.</li>
-	<li>Some of the visualization enhancements available in the dedicated viewers have not yet been implemented in WebRTI.</li>  
+	<li>Some of the visualization enhancements available in the dedicated viewers have not yet been implemented in WebRTI.</li>
 </ul>
 <p>Disadvantages</p>
 <ul>
-	<li>Operating system compatiblity. RTIViewer requires MacOS or Windows. InscriptiFact requires Java on Windows, MacOs, or Linux. Neither supports iOS or Android.</li>
-	<li>The requirement to download and install software is an impediment to casual viewers.</li> 
-	<li>The RTI file has to download to the local machine and load into memory in its entirety before any of the image can be seen. The size of an RTI file can easily reach into the gibabyte range.</li>
+	<li>Operating system compatibility. RTIViewer requires MacOS or Windows. InscriptiFact requires Java on Windows, MacOS, or Linux. Neither supports iOS or Android.</li>
+	<li>The requirement to download and install software is an impediment to casual viewers.</li>
+	<li>The RTI file has to download to the local machine and load into memory in its entirety before any of the image can be seen. The size of an RTI file can easily reach into the gigabyte range.</li>
 </ul>
 
 <h2 id="webrti">WebRTI</h2>
-<p>If WebRTI is selected from "Select Tasks" the folders ending in RTI contain an html file and sub-folder containing many small images files. For example: <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816_wrti.html</code> and <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816</code>. These files can be copied to a webserver, along with the javascript and stylesheets for WebRTI (<a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>), and viewed in any web browser.</p>
+<p>If WebRTI is selected from "Select Tasks" the folders ending in RTI contain an html file and sub-folder containing many small images files. For example: <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816_wrti.html</code> and <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816</code>. These files can be copied to a webserver, along with the JavaScript and stylesheets for WebRTI (<a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>), and viewed in any web browser.</p>
 <p>Advantages</p>
 <ul>
 	<li>User experience. This is the simplest experience of interactive lighting for users. It works in any web browser on any operating system (including Android and iOS). It does not require any plugins or downloads.</li>
 	<li>Speed. The image appears almost immediately. The user's web browser downloads only the tiles that it needs, starting with a low-resolution overview and loading detail for a certain area as the user zooms and pans.</li>
-	<li>Moderate administrative overhead. It requires a webserver (as opposed to RTI files which can be transmitted on a thumb drive), but only a simple static file web server (as opposed to IIIF which requires configuration for dynamic server processing).</li>  
+	<li>Moderate administrative overhead. It requires a webserver (as opposed to RTI files which can be transmitted on a thumb drive), but only a simple static file web server (as opposed to IIIF which requires configuration for dynamic server processing).</li>
 </ul>
 <p>Disadvantages</p>
 <ul>
 	<li>Some of the visualization enhancements available in the dedicated viewers have not yet been implemented.</li>
-	<li>A 50 megapixel image with default settings creates 9262 static image tiles for each color process. This slows down data management functions that occur on a per-file basis. Efforts to create the option of using IIIF for image tiles are underway.</li> 
+	<li>A 50-megapixel image with default settings creates 9262 static image tiles for each color process. This slows down data management functions that occur on a per-file basis. Efforts to create the option of using IIIF for image tiles are underway.</li>
 </ul>
 
 <h2 id="iiif">Tiled and layered Jpeg2000 images for IIIF repositories</h2>
-<p>If Static Raking is selected from "Select Tasks" a folder named "StaticRaking" will be created in the project directory. The folder contains jpeg2000 (jp2) files for diffuse lighting (numbered 00) and for each light position selected. The color processes are abbreviated Ac for Accurate Color, Xs for Extended Spectrum, Ps for PCA Pseudocolor, and custom processes are unabreviated. Once you have a IIIF Image server, it is a simple matter to copy the jp2 files to the appropriate directory.</p>
+<p>If Static Raking is selected from "Select Tasks" a folder named "StaticRaking" will be created in the project directory. The folder contains jpeg2000 (jp2) files for diffuse lighting (numbered 00) and for each light position selected. The color processes are abbreviated Ac for Accurate Color, Xs for Extended Spectrum, Ps for PCA Pseudocolor, and custom processes are unabbreviated. Once you have a IIIF Image server, it is a simple matter to copy the jp2 files to the appropriate directory.</p>
 <p>Advantages</p>
 <ul>
 	<li>The IIIF Image API makes it easy to access images in tiles for pan and zoom viewers.</li>
 	<li>The IIIF Image API means that an image is stored once and accessed according to any region and size required. It is no longer necessary to download an image, crop, resize, and upload a new file to use details elsewhere on the web.</li>
-	<li>The related IIIF Presentation API opens broad possibilties for situating an image in relationship to other images, pages, and collections and accessing the images through IIIF Presentation viewers such as Mirador.</li>  
+	<li>The related IIIF Presentation API opens broad possibilities for situating an image in relationship to other images, pages, and collections and accessing the images through IIIF Presentation viewers such as Mirador.</li>
 </ul>
 <p>Disadvantages</p>
 <ul>
 	<li>The diffuse and static raking images are not RTI. They are not dynamically relightable nor can the texture be enhanced. At most an annotation in a IIIF Presentation can link to a WebRTI image.</li>
 	<li>It is not a trivial matter to configure a IIIF Image repository.</li>
-	<li>It is not a trivial matter to create IIIF Presentation manifests. Some of the existing tools to create and edit manifests (other than a text editor) make the one-image-per-page assumption that does not apply to Spectral RTI.</li>  
+	<li>It is not a trivial matter to create IIIF Presentation manifests. Some of the existing tools to create and edit manifests (other than a text editor) make the one-image-per-page assumption that does not apply to Spectral RTI.</li>
 </ul>
 
 </body>

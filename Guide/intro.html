@@ -2,15 +2,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>What is SpectralRTI?</title>
+<title>What is Spectral RTI?</title>
 <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
 <h1 class="title">Introduction: What is Spectral RTI and Do I Need It?</h1>
-<p>This page is a stub for further development.</p>
+<p>Spectral RTI is the integration of spectral imaging and Reflectance Transformation Imaging (RTI).
+If you are doing spectral imaging already, the question is whether the addition of RTI is worth the time.
+If you are doing RTI already, the question is whether the addition of spectral is worth the money.
+If you are doing both separately, there is no question that the integration will surpass the sum of the parts in quality, time efficiency, and cost effectiveness.</p>
+
 <h2>Contents</h2>
 <ol>
-	<li><b>What is SpectralRTI and do I need it?</b></li>
+	<li><b>What is Spectral RTI and do I need it?</b>
+		<ol style="list-style-type:lower-alpha;}">
+			<li>Cost/benefit of adding RTI <a href="intro.html#addrti" class="small">(LINK)</a></li>
+			<li>Cost/benefit of adding spectral <a href="intro.html#addspectral" class="small">(LINK)</a></li>
+			<li>How does the integration work? <a href="intro.html#how" class="small">(LINK)</a></li>
+		</ol>
+	</li>
 	<li>Capture hardware <a href="hardware.html" class="small">(LINK)</a>
 		<ol style="list-style-type:lower-alpha;}">
 			<li>Spectral imaging hardware <a href="hardware.html#spectralhardware" class="small">(LINK)</a></li>
@@ -36,7 +46,7 @@
 			<li>Static raking option <a href="processing.html#staticraking" class="small">(LINK)</a></li>
 			<li>Options for Extended Spectrum <a href="processing.html#extendedspectrum" class="small">(LINK)</a></li>
 			<li>Identify region of interest (for Extended Spectrum and Pseudocolor) <a href="processing.html#roi" class="small">(LINK)</a></li>
-			<li>Options for PCA Pseudocolor <a href="processing.html#pcapseudocolor" class="small">(LINK)</a></li> 
+			<li>Options for PCA Pseudocolor <a href="processing.html#pcapseudocolor" class="small">(LINK)</a></li>
 			<li>Options for custom processes <a href="processing.html#custom" class="small">(LINK)</a></li>
 			<li>Light position data <a href="processing.html#lpdata" class="small">(LINK)</a></li>
 			<li>Additional prompts <a href="processing.html#locatefitter" class="small">(LINK)</a></li>
@@ -50,9 +60,75 @@
 			<li>Tiled and layered Jpeg2000 files for IIIF <a href="access.html#iiif" class="small">(LINK)</a></li>
 		</ol>
 	</li>
-	<li>Help make SpectralRTI better <a href="volunteer.html" class="small">(LINK)</a></li>
+	<li>Help make Spectral RTI better <a href="volunteer.html" class="small">(LINK)</a></li>
 	<li>Glossary <a href="glossary.html" class="small">(LINK)</a></li>
 </ol>
+
+<h2 id="addrti">What are the benefits and costs of adding RTI to spectral?</h2>
+<p>The benefits of adding RTI fall into the areas of the benefits of capturing texture data and the benefits of adding interactivity to the user experience.
+The importance of texture data is clearest for cultural heritage objects in which texture is the primary conveyor of meaning, such as cuneiform, inscriptions, and coins.
+Additionally, dry-point notation was the Medieval equivalent of using a pencil in a library book.
+By pressing with a sharp point without ink, scribes could make notes to themselves without defacing the manuscript.
+In each of these cases with homogenous materials, a diffuse image might be completely indecipherable.
+Texture can be important to recovery of text from parchment if the ink corroded the surface of the parchment, such that the outline of the letter can be read even if the ink is completely missing.
+Texture can also aid recovery of text by showing the scribal scoring lines (and hence where text should be) and the shrinkage, warp, and cockle that would affect the reading.
+Texture can also hold clues as to the brush strokes or even fingerprint of an artist.
+In general, the capture and rendering of texture gets at the "feel" of an artifact and helps address the criticism that there is no substitute for first-hand experience.</p>
+<p>Thus the second benefit of RTI is interactivity.
+RTI images are dynamically relightable, which means the user can move a virtual light around the object (even to positions not physically captured) to see the movement of highlights and shadows across the texture of the artifact.
+This interactivity can be beneficial for discovery in that human perception benefits from movement and is adept at piecing together meaning from a sequence of images.
+Interactivity is also beneficial for conservators of a collection who would like to exhibit the experience of a cultural heritage artifact that cannot be adequately experienced behind glass (or safely taken out from behind glass).
+Interactive images can be exhibited in a museum kiosk next to the original, or on the website promoting the exhibition to potential visitors.
+For example, RTI images have greatly enhanced the exhibition of the coin collection at Palazzo Blu in Pisa, <a href="http://vcg.isti.cnr.it/PalazzoBlu">vcg.isti.cnr.it/PalazzoBlu</a>.
+Similarly, a teacher can appreciate the value of offering students an experience of an artifact.</p>
+<p>The cost of adding RTI comes as a balance of time and equipment.
+The minimal cost in equipment is a hand-held flash with radio (not infrared) trigger.
+Even with the addition of an extra rechargeable battery pack and laser distance finder, the equipment budget could be contained in three digits (USD).
+The hand-held flash method requires manually positioning the flash at about 40-50 points around a virtual hemisphere.
+Even with practice, this could add five minutes to the capture time.
+The hand-held flash method also requires light position calculations for each object sequence, adding another five minutes.
+A dome or arc could automate the sequence to take negligible effort.
+The primary time constraint is the time required to transfer the data, which for 56 images at 50 megapixels each is close to three minutes.
+An automated arc or dome for RTI capture could be expected to cost five to eight thousand dollars. </p>
+
+<h2 id="addspectral">What are the benefits and costs of adding spectral to RTI?</h2>
+<p>A note on terminology: terms are used loosely and inconsistently when it comes to spectral imaging.
+If one adopts the definitions used here, then the "spectral" of Spectral RTI is multi-spectral imaging.
+The term "spectral imaging" can encompass any form of imaging in which attention is paid to wavelengths on the electromagnetic spectrum within or near the range of light visible to humans, beyond simple color photography.
+Thus, infrared imaging could be considered spectral imaging because it steps outside the convention of photography representing the range and resolution of the three human color receptors.
+It would not, however, be considered multi-spectral if it is rendered as a monochrome image not meaningfully combined with other wavelengths, such as the visible.
+The term "multi-spectral" is here used to refer to a number of discretely resolved wavelengths greater than three (the natural wavelength resolution of human perception).
+The methods of multi-spectral imaging as of 2017 (narrowband LED illumination with a panchromatic sensor and apochromatic lens) effectively limit the number of discrete wavelengths of reflected light captured to about 20.
+The narrowband illuminators are not so narrow that many more wavelengths could be helpfully distinguished.
+A different capture approach entirely (line at a time capture with a diffraction grating) allows finer resolution of reflected wavelength, well into the hundreds of bands.
+Thus, an imaging system current to 2017 can be called "multi-spectral" if it resolves a number of wavelengths measured in two digits, and "hyper-spectral" if it resolves wavelengths measured in three or four digits.
+However, it is not necessary to agree on terminology.
+The current ability to combine spectral and RTI has been proven with the capture system that resolves double-digit numbers of reflected bands (in addition to transmitted and fluoresced bands).</p>
+<p>The most sensational benefit, which has driven spectral imaging from its earliest form in 1844 through the dawn of digital multi-spectral imaging with the Archimedes Palimpsest Project, has been the rediscovery of unreadable text.
+Thus, strokes of erased or damaged writing in manuscripts that cannot be discerned with the natural color range and resolution of the human eye can be distinguished with multi-spectral imaging.
+The ability of spectral imaging to distinguish visually-similar materials of different spectral signatures also has benefits in the area of discovering forgery or tracking the work of conservators who "touched up" paintings.
+The less sensational, but not least important, benefit of spectral imaging is the ability to capture color far more accurately than conventional color photography.
+Cameras designed to capture three colors in an instant only roughly match the three color sensors of the human eye, and do so at the expense of distorting filters.
+Megapixel for megapixel, the spatial resolution of the panchromatic sensors used in spectral imaging vastly outperform cameras designed for fast color photography.
+Color matching across cameras, screens, and printers relies on subjective human color matching, which can be difficult to trace across time or collections.
+When accurate color information is processed, conservators can compare images taken across time and know that differences in appearance indicate difference in the material of the object, not the photography.</p>
+<p>Spectral imaging can be automated to be done very quickly.
+Again, the primary limitation is the time required to push data from the camera, roughly three seconds for each of up to 20 reflected wavelengths, plus transmitted and fluoresced wavelengths.
+The major costs come in the form of equipment.
+A complete multi-spectral imaging rig including panchromatic sensor (camera), apochromatic lens, narrowband illuminators, thin-panel transmitted light source, and fluorescence filters could easily reach $100,000.
+Even rental costs would be measured in the thousands of dollars.
+Options for lowering the cost of entry to spectral imaging include making slight (removing the built-in IR block filter) or major (removing the Bayer filter) modifications to a Canon or Nikon digital camera.
+In some ways the cost challenge of a panchromatic sensor is not the complexity to build but the lack of a market.
+One intriguing development as of 2017 is the use of multi-sensor cameras in phones to increase quality while maintaining the small form factor.
+Some, not all, dual-camera designs use a monochrome sensor for sharpness and a second sensor for color.
+In the near future, the cost of entry into decent-quality multi-spectral imaging for someone who already owns such a phone may be very low indeed.</p>
+
+<h2 id="how">How does the integration of Spectral RTI work?</h2>
+<p class="note">To be added, in the meantime see the Integrating Spectral RTI phase of the Jubilees Palimpsest Project <a href="http://jubilees.stmarytx.edu/integrating" class="small">(LINK)</a>, especially the technical white paper <a class="small" href="http://jubilees.stmarytx.edu/integrating/WhitePaper-20140630.pdf">(PDF)</a>.</p>
+<!-- assumes spectral capture is diffuse, with no distinctive glares or shadows ... true up to fairly deep texture -->
+<!-- side perk of creating a perfectly diffuse monochrome image -->
+<!-- assumes texture detail is detectible in visible spectrum... questionable in case of brdf Bidirectional reflectance distribution function, BRDF is wavelength dependent -->
+
 
 </body>
 </html>
