@@ -403,7 +403,7 @@ macro "Spectral RTI [n1]" {
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator);
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports");
 				saveAs("jpeg",projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+File.nameWithoutExtension+".jpg");
-				selectWindow("LightPosition");
+				selectWindow(File.nameWithoutExtension+".jpg");
 				run("Close");
 			}
 		}
