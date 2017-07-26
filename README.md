@@ -16,7 +16,7 @@ Additional plans include:
 * More helpful error messages (check dependencies, instructions for fixing errors)
 
 ##Current Iteration
-This fork of the project is the creation of the ImageJ2 Macro by the Walter J. Ong S.J. Center for Digitial Humanities at Saint Louis University.  
+*   This fork of the project is the creation of the ImageJ2 Macro by the Walter J. Ong S.J. Center for Digitial Humanities at Saint Louis University.  
 *  The first pass is a strict conversion of the macro to Java, which can be packaged as a .jar file and used as an ImageJ plugin.  More helpful error messages and error handling are being implemented during this first pass.
 
 *  The second pass will look at the Java conversion and find points for speed optimization.
