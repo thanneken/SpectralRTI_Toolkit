@@ -15,36 +15,14 @@ The major development goals are:
 Additional plans include: 
 * More helpful error messages (check dependencies, instructions for fixing errors)
 
-Features added in the October 28, 2016 update:
+##Current Iteration
+This fork of the project is the creation of the ImageJ2 Macro by the Walter J. Ong S.J. Center for Digitial Humanities at Saint Louis University.  
+*  The first pass is a strict conversion of the macro to Java, which can be packaged as a .jar file and used as an ImageJ plugin.  More helpful error messages and error handling are being implemented during this first pass.
 
-* create jp2 files for IIIF repository
-* option to create selectively static raking files directly to jp2 without jpeg compression 
-* create WebRTI files
-* consolidate prompts at beginning
-* option to defer HSHfitter to batch command file
-* human readable time stamps when renaming rather than overwriting files
-* timestamp set once for entire sequence
+*  The second pass will look at the Java conversion and find points for speed optimization.
 
-Features added in the November 16, 2016 update:
+*  The third pass will look at the Java conversion and find points for memory and disk space optimization.
 
-* Better support for raking light options distinct from RTI
-* Option to use transmissive light with each color process
-* Option to use custom image (or stack) for chrominance
-* Consult users about options stored in preferences file 
-* Clears some variables between runs to facilitate continous use without restarting ImageJ
+*  Throughout the coding process, code documentation will be created following the JavaDoc standard.
 
-Features added in the December 19, 2016 update: 
 
-* Enhanced support for transmissive and florescence captures
-* Revised expected directory structure
-* Adds companion macro to curate files exported by Photoshoot
-
-Minor changes January 2, 2017:
-
-* Jpeg quality maximized until final distribution
-* Fix to curation macro for rotation from exif metadata xml
-* Option to createLpFile from canonical version
-
-Minor changes January 24, 2017:
-
-* Optimizations for workflow in Milan
