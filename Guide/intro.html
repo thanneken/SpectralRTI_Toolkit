@@ -124,11 +124,23 @@ Some, not all, dual-camera designs use a monochrome sensor for sharpness and a s
 In the near future, the cost of entry into decent-quality multi-spectral imaging for someone who already owns such a phone may be very low indeed.</p>
 
 <h2 id="how">How does the integration of Spectral RTI work?</h2>
-<p class="note">To be added, in the meantime see the Integrating Spectral RTI phase of the Jubilees Palimpsest Project <a href="http://jubilees.stmarytx.edu/integrating" class="small">(LINK)</a>, especially the technical white paper <a class="small" href="http://jubilees.stmarytx.edu/integrating/WhitePaper-20140630.pdf">(PDF)</a>.</p>
-<!-- assumes spectral capture is diffuse, with no distinctive glares or shadows ... true up to fairly deep texture -->
-<!-- side perk of creating a perfectly diffuse monochrome image -->
-<!-- assumes texture detail is detectible in visible spectrum... questionable in case of brdf Bidirectional reflectance distribution function, BRDF is wavelength dependent -->
-
-
+<p>The 2013-2014 phase of the Jubilees Palimpsest Project <a href="http://jubilees.stmarytx.edu/integrating" class="small">(LINK)</a> tested two techniques for integrating spectral imaging and reflectance transformation imaging. 
+The simple technique used broadband visible (white) illumination from points around the hemisphere and a set of diffuse narrowband captures. 
+The elaborate technique used a different set of narrowband captures at each light position around the hemisphere. 
+The simple technique proved effective and in some ways superior. 
+In rare cases, it may still be worth considering using narrowband illuminators at all light positions, such as when bidirectional reflectance distribution function (BRDF) is required for interpretation of material properties. 
+For more information and the techniques tested, see the technical white paper <a class="small" href="http://jubilees.stmarytx.edu/integrating/WhitePaper-20140630.pdf">(PDF)</a>.</p>
+<p>The simple technique works because texture (not BRDF) is not wavelength dependent and spectral imaging is not texture dependent. 
+Conventional RTI is concerned with texture and pays no more attention to color than the RGB channels of a DSLR camera. 
+Conventional spectral imaging is concerned with color (differences in reflectance properties across wavelengths) and uses diffuse illumination to prevent influence from texture. 
+RTI captures and renders the changes in highlights and shadows as a function of light position. 
+The highlights and shadows as functions of light position are properties of luminance, and the variation in reflectance with wavelength is a property of chrominance. 
+As of 2017, the simplest method of integration utilizes color spaces which distinguish luminance from chrominance, such as YCbCr. 
+The YCbCr color space uses three channels to record luminance (Y), blue chrominance (Cb), and red chrominance (Cr). 
+This color space can be easily converted to the RGB color space, which uses a channel for the brightness of each of three channels, red, green, and blue. </p>
+<p>The combination requires image registration (meaning each pixel represents the same spot on the object for all captures), which is required of spectral and RTI separately. 
+It would not be easily feasible to integrate spectral captures and RTI captures from different sessions or different cameras. 
+The combination also assumes that the spectral captures have diffuse illumination, which is typical anyway. 
+When it is difficult to capture images without glare or shine due to imperfectly diffuse illumination, a side benefit of Spectral RTI is the ability to create a perfectly diffuse monochrome image (by calculating the median luminance across all light positions).</p>
 </body>
 </html>
