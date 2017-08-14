@@ -83,16 +83,13 @@ public class SpectralRTI_Toolkit implements Command {
         @Parameter
 	private UIService ui;
     
-//        @Parameter
-//	protected ImagePlus image;
-        
+        //ImageJ2 imgLib2 image plus object
         @Parameter
         protected ImgPlus image_2;
         
         @Parameter
         protected Img< FloatType > image_3;
         
-	// image property members
         @Parameter
         private LogService logService;
         
@@ -104,10 +101,7 @@ public class SpectralRTI_Toolkit implements Command {
 	private DatasetIOService datasetIOService;
         
         @Parameter
-        private OpService opService;
-        
-        // @Parameter
-        //private final ImageJ ij2 = new ImageJ();
+        private OpService opService;       
         
         //SRTI vars
         private int jpegQuality = 100; //maximize quality for non-distribution phases
@@ -121,10 +115,10 @@ public class SpectralRTI_Toolkit implements Command {
 	private int normWidth;
 	private int normHeight;
 	private int normalizationFixedValue;
-	private final int pcaX = 0;
-	private final int pcaY = 0;
-	private final int pcaWidth = 0;
-	private final int pcaHeight = 0;
+	private double pcaX = 0;
+        private double pcaY = 0;
+        private double pcaWidth = 0;
+        private double pcaHeight = 0;
 	private String lpSource = "";
 	private String projectDirectory = "";
 	private String projectName = "";
@@ -180,10 +174,7 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("TIMESTAMP: "+startTime);
             String brightnessAdjustOption = "";
             String brightnessAdjustApply = "";
-            int pcaX = 0;
-            int pcaY = 0;
-            int pcaWidth = 0;
-            int pcaHeight = 0;
+            
             File accurateColorSource = null;
             //vars that I had to add
             HashMap <String, String> prefsConsolut = new HashMap<>();
@@ -314,7 +305,6 @@ public class SpectralRTI_Toolkit implements Command {
                 lpDesired = false;
             }
             if (accurate_color_dir.exists() ){
-                //acRtiDesired = false;
                 listOfAccurateColorFiles = accurate_color_dir.listFiles();
                 if (listOfAccurateColorFiles.length<1) acRtiDesired = false;
             }
@@ -491,7 +481,6 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info(blueNarrowbands);
             }
             
-            //Testing erthing after this line.
             if (psRtiDesired || psRakingDesired) {// only interaction here, processing later
                 //identify 2 source images for pca pseudocolor
                 File listOfPseudocolorSources_dir = new File(projectDirectory+"PCA"+File.separator);
@@ -509,14 +498,8 @@ public class SpectralRTI_Toolkit implements Command {
                 pseudoSources.show();
                 pcaMethod = pseudoSources.getNextRadioButton();
                 if (pcaHeight < 100) { //Looks like it was defined as 0 and never set or changed.  
-                    /* IJ1
-                    image = IJ.openImage(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)]);
-                    image.show();
-                    */
                     image_3 = (Img< FloatType >) opener.openImg( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
                     ui.show("Preview",image_3);
-                    //imgp.setTitle("Preview");
-                    //rename("Preview");
                     //setBatchMode("show");
                     dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
                     dWait.show();
@@ -524,8 +507,11 @@ public class SpectralRTI_Toolkit implements Command {
                     //Rectangle bounds = roi.getBounds(); //getFloatBounds() is also a thing.  Does this do what getSelectionBouds does?
                     forROI = (ImageDisplay) ij2.display().createDisplay(image_3);
                     bounds = ij2.overlay().getSelectionBounds(forROI);
+                    pcaX = bounds.x;
+                    pcaY = bounds.y;
+                    pcaHeight = bounds.height;
+                    pcaWidth = bounds.width;
                     ui.dispose();
-                    //image.close();
                    // getSelectionBounds(pcaX, pcaY, pcaWidth, pcaHeight);
                     //Where do the bounds go here?
                 }
@@ -538,18 +524,13 @@ public class SpectralRTI_Toolkit implements Command {
             }
             //create base lp file
             if (lpDesired) {
-                /* IJ1
-                image = IJ.openImage(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator+listOfHemisphereCaptures[20]); // twentieth image likely to be well lit
-                image.show();
-                */
                 image_3 = (Img< FloatType >)opener.openImg(listOfHemisphereCaptures[20].toString());
-                ui.show("Preview",image_3);
-                //rename("Preview");
+                ui.show("Preview",image_3);                
                 //setBatchMode("show");
                 dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
                 dWait.show();
                 forROI = (ImageDisplay) ij2.display().createDisplay(image_3);
-                //bounds = ij2.overlay().getSelectionBounds(forROI); //Yikes do I reset the bounds here or keep the bounds from the rectangle drawn above?
+                bounds = ij2.overlay().getSelectionBounds(forROI); //Yikes do I reset the bounds here or keep the bounds from the rectangle drawn above?
                 RectangleOverlay region = new RectangleOverlay();
                 //region.setOrigin((int)bounds.x, 0); //x
                 //region.setOrigin((int)bounds.y, 1); //y
@@ -835,16 +816,23 @@ public class SpectralRTI_Toolkit implements Command {
 		}
 		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort");
 		//rename("RedStack");
-                //HOW CAN I GRAB THE WINDOWS THIS DISPLAYS AND MAKE THE IMGS IMGPLUS SO I CAN MAKE A DISPLAY FOR ROIs??????
-                //Roi roi = new Roi(pcaX, pcaY, pcaWidth, pcaHeight); //YIKES!
+                //YIKES HOW CAN I GRAB THE WINDOWS THIS DISPLAYS AND MAKE THE IMGS IMGPLUS SO I CAN MAKE A DISPLAY FOR ROIs??????
                 //How can i make the display here without an image?  Is an image defined for this point?  I think in the run statement above. 
                 forROI = (ImageDisplay) ij2.display().createDisplay(image_3);
                 //bounds = ij2.overlay().getSelectionBounds(forROI); //Yikes do I reset the bounds here or keep the bounds from the rectangle drawn above?
                 RectangleOverlay region = new RectangleOverlay();
-                region.setOrigin((int)bounds.x, 0); //x
-                region.setOrigin((int)bounds.y, 1); //y
-                region.setExtent(image_3.dimension(0), 0); //w
-                region.setExtent(image_3.dimension(1), 1); //h
+                region.setOrigin((int)pcaX, 0); //x
+                region.setOrigin((int)pcaY, 1); //y
+                //What happens if these weren't set yet?  Do I need to get the width of height of the image?
+                //It should at least be set to the height or width of the image when grabbed above in the pcaHeight < 100 clause
+                if(pcaWidth == 0){
+                    
+                }
+                if(pcaHeight == 0){
+                    
+                }
+                region.setExtent((int)pcaWidth, 0); //w
+                region.setExtent((int)pcaHeight, 1); //h
                 Overlay newRect = region;
 		IJ.makeRectangle(pcaX, pcaY, pcaWidth, pcaHeight);
 		IJ.run("PCA "); //should the extra space be here? 
@@ -1504,6 +1492,7 @@ public class SpectralRTI_Toolkit implements Command {
                 // can safely request the exit value
                 //int exitValue = resultHandler.waitFor(); //no good
                 resultHandler.waitFor();
+                logService.log().info("I got the native command exit value: "+resultHandler.getExitValue());
             } catch (InterruptedException ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1520,7 +1509,7 @@ public class SpectralRTI_Toolkit implements Command {
 //            {
 //                returnString += line;
 //            }
-            return returnString;
+              return returnString;
         }
         
         //This is not used to clean a path like I thought.  it used to make sure not to overwrite a file that already exists (Todd said so).  Used in place of IJ.saveAs()
