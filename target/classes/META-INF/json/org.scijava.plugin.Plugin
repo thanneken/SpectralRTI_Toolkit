@@ -1,1 +1,1 @@
-{"class":"com.slu.imagej.SpectralRTI_Toolkit","values":{"headless":true,"menuPath":"Plugins>SpectralRTI_Toolkit","type":"org.scijava.command.Command"}}
+{"class":"com.slu.imagej.SpectralRTI_Toolkit","values":{"menuPath":"Plugins>SpectralRTI_Toolkit","type":"org.scijava.command.Command"}}
