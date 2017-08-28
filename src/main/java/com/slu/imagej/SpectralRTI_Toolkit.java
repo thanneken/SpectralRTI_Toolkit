@@ -22,19 +22,19 @@ import ij.ImagePlus; // this is 1.x, we want to use ImgPlus but YIKES
 
 
 //ImageJ2 specific imports
-import net.imagej.ImageJ;
-import net.imagej.ImgPlus; // this is 2.x, YIKES
+//import net.imagej.ImageJ;
+//import net.imagej.ImgPlus; // this is 2.x, YIKES
 //import net.imagej.ops.OpService;
 import java.awt.Rectangle;
 import net.imagej.ImageJ; //Might need to replace all IJ.something()'s with this imageJ.
-import org.scijava.ui.UIService;
+//import org.scijava.ui.UIService;
 import org.scijava.Context;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.log.LogService;
-import org.scijava.display.Display;
-import io.scif.services.DatasetIOService;
+//import org.scijava.display.Display;
+//import io.scif.services.DatasetIOService;
 import net.imglib2.img.Img;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
@@ -44,55 +44,51 @@ import ij.io.Opener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.imagej.display.ImageDisplay;
-import net.imagej.display.OverlayService;
-import net.imagej.ops.OpService;
-import net.imagej.overlay.Overlay;
+//import net.imagej.display.ImageDisplay;
+//import net.imagej.display.OverlayService;
+//import net.imagej.ops.OpService;
+//import net.imagej.overlay.Overlay;
 import net.imagej.overlay.RectangleOverlay;
 import net.imglib2.img.ImagePlusAdapter;
-import net.imglib2.img.ImgFactory;
-import net.imglib2.img.array.ArrayImgFactory;
+//import net.imglib2.img.ImgFactory;
+//import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import static net.imglib2.type.label.BasePairBitType.Base.T;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
+//import static net.imglib2.type.label.BasePairBitType.Base.T;
+//import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.NumericType;
+//import net.imglib2.type.numeric.RealType;
+//import net.imglib2.type.NativeType;
+//import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
-import org.scijava.util.RealRect;
-
+//import org.scijava.util.RealRect;
 
 @Plugin(type = Command.class, menuPath = "Plugins>SpectralRTI_Toolkit")  
 public class SpectralRTI_Toolkit implements Command {
         
         private Context context;
         
-//        @Parameter
-//	private UIService ui;
-    
         //ImageJ2 imgLib2 image plus object
-        @Parameter
+        //@Parameter // this caused 'A image plus is required' on startup and had to open and image to run.
         protected ImagePlus imp;
         
-        @Parameter
+        //@Parameter // this caused 'A image plus is required' on startup and had to open and image to run.
         protected Img< FloatType > image_3;       
         
         @Parameter
@@ -137,8 +133,8 @@ public class SpectralRTI_Toolkit implements Command {
         RectangleOverlay region = new RectangleOverlay();
         
         //imgLib2 stuff for open/close/dimensions
-        final ImgFactory< UnsignedByteType > factory = new ArrayImgFactory< UnsignedByteType >();
-        final UnsignedByteType type = new UnsignedByteType();
+        //final ImgFactory< UnsignedByteType > factory = new ArrayImgFactory< UnsignedByteType >();
+       // final UnsignedByteType type = new UnsignedByteType();
         final ImgOpener opener = new ImgOpener();
         final Opener opener2 = new Opener();
 
@@ -166,10 +162,8 @@ public class SpectralRTI_Toolkit implements Command {
         private void theMacro_tested() throws IOException, Throwable{
             //setBatchMode(true); //Not sure how to handle this specifically.  Controls whether images are visible or hidden during macro execution
             //want these variables to be accessible across functions and to reset each time the macro is run
-            String startTime = timestamp();
+            startTime = timestamp();
             logService.log().info("TIMESTAMP: "+startTime);
-            String brightnessAdjustOption = "";
-            String brightnessAdjustApply = "";
             
             File accurateColorSource = null;
             //vars that I had to add
@@ -1312,10 +1306,10 @@ public class SpectralRTI_Toolkit implements Command {
                 Rectangle bounds2;
                 Rectangle bounds1;
                 logService.log().warn("I am GUNNA GET YOU WORLD");
-                //ImagePlus imp = opener2.openImage("C:\\Users\\bhaberbe\\Desktop\\earth_day.jpg");
-                ImagePlus imp1 = opener2.openImage("E:\\TRH_macroResult\\Projects\\Ambrosiana_A79inf_001v\\DKS01\\Ambrosiana_A79inf_001v_colour_sRGB_enhanced.tif");
+                imp = opener2.openImage("C:\\Users\\Bryan\\Desktop\\Epic_Pics\\mar.JPG");
+                ImagePlus imp1 = opener2.openImage("C:\\Users\\Bryan\\Desktop\\Epic_Pics\\beegs.JPG");
                 image_3 = ImagePlusAdapter.wrap( imp1 ); //requires ImagePlus. not ImgPlus        
-                ImageJFunctions.show(image_3, "Preview_Wrapped_IJF"); 
+                //ImageJFunctions.show(image_3, "Preview_Wrapped_IJF"); 
                 //Draw and gather bounds on active window
                 //dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
                 //dWait.show();
@@ -1330,21 +1324,22 @@ public class SpectralRTI_Toolkit implements Command {
                 //logService.log().info("Bounds 2");
                 //logService.log().info(bounds2);
                                
-                ImageJFunctions.show(image_3, "Preview_Wrapped_IJF2"); 
-                ImageJFunctions.show(image_3, "Preview_Wrapped_IJF3"); 
+                //ImageJFunctions.show(image_3, "Preview_Wrapped_IJF2"); 
+                //ImageJFunctions.show(image_3, "Preview_Wrapped_IJF3"); 
                 
-                logService.log().info("Opened a new image, but want original up front with the same box drawn on the other.");
+                //logService.log().info("Opened a new image, but want original up front with the same box drawn on the other.");
                 //WindowManager.getImage("Preview_Wrapped_IJF2").setRoi(bounds2.x, bounds2.y, bounds2.width, bounds2.height);
                 //WindowManager.getImage("Preview_Wrapped_IJF").setRoi(bounds1.x, bounds1.y, bounds1.width, bounds1.height);               
                 
-                IJ.run("Concatenate...", "  title=[TEST] keep image1=Preview_Wrapped_IJF2 image2=Preview_Wrapped_IJF image3=Preview_Wrapped_IJF3 image4=[-- None --]");
-                WindowManager.getImage("TEST").setActivated();
-                IJ.run("8-bit");
-                IJ.run("PCA "); //This command requires a stack
-                WindowManager.getImage("Preview_Wrapped_IJF2").close();
-                WindowManager.getImage("Preview_Wrapped_IJF").close();
-//                IJ.run("RGB to YCbCr stack");
-                              
+                //IJ.run("Concatenate...", "  title=[TEST] keep image1=Preview_Wrapped_IJF2 image2=Preview_Wrapped_IJF image3=Preview_Wrapped_IJF3 image4=[-- None --]");
+                //WindowManager.getImage("TEST").setActivated();
+                //IJ.run("8-bit");
+                //IJ.run("PCA "); //This command requires a stack
+                //WindowManager.getImage("Preview_Wrapped_IJF2").close();
+                //WindowManager.getImage("Preview_Wrapped_IJF").close();
+                //IJ.run("Enhance Contrast...", "saturated=0.4 normalize");
+                //IJ.run("Slice Keeper", "first=1 last=1 increment=1");// makes BLAH kept stack window
+//                IJ.run("Image Sequence...", "open=C:\\Users\\Bryan\\Desktop\\Epic_Pics\\" + " sort"); //file=(mar.JPG|beegs.JPG).  Opens up a stack, name is the folder name (Epic_Pics)
 //                WindowManager.getImage("TEST").setRoi(bounds1.x, bounds1.y, bounds1.width, bounds1.height);               
 //                IJ.run("YCbCr stack to RGB");
 //                IJ.run("RGB to YCbCr stack");
