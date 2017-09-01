@@ -43,7 +43,7 @@ import ij.gui.WaitForUserDialog;
 import ij.io.OpenDialog;
 import ij.io.DirectoryChooser;
 import ij.io.Opener;
-import ij.ImagePlus; // this is 1.x
+import ij.ImagePlus; // this is IJ 1.x but still needs to be used for the complexity found here.  IJ2 and ImgLib2 and ImgPlus are not fully supported quite yet.
 
 
 //ImageJ2 specific imports
@@ -77,7 +77,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// Apache Commons for native shell command support.  
+// Apache Commons for native shell command support.  Still requires a windows + all other OS version.  Follow the isWindows variable
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -199,6 +199,7 @@ public class SpectralRTI_Toolkit implements Command {
                 prefsReader.close();
                 String[] prefs = prefsFileAsText.split("\n");
                 for (int i=0;i<prefs.length;i++) {
+                    //Swap the labels out for presentation
                     String key = prefs[i].substring(0, prefs[i].indexOf("="));
                     key = key.replace("preferredCompress","JP2 Compressor");
                     key = key.replace("preferredJp2Args","JP2 Arguments");
@@ -206,7 +207,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("jpegQuality","JPEG Quality");
                     key = key.replace("hshOrder","HSH Order");
                     key = key.replace("hshThreads","HSH Threads");
-                    String value1 = prefs[i].substring(prefs[i].indexOf("=")+1);
+                    String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                     prefsDialog.addStringField(key, value1, 80);
                     prefsConsult_list.add(key);
                 }
@@ -216,6 +217,7 @@ public class SpectralRTI_Toolkit implements Command {
             if(prefsConsult_list != null){ //cant initlalize an empty list, but we can check if it is still null before running the loop
                 //If it is null, there are no changes to the prefs from the initialized list
                 for (int j=0; j<prefsConsult_list.size();j++) {
+                    //Swap the labels back for processing
                     String key = prefsConsult_list.get(j);
                     key = key.replace("JP2 Compressor","preferredCompress");
                     key = key.replace("JP2 Arguments","preferredJp2Args");
@@ -223,7 +225,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("JPEG Quality","jpegQuality");
                     key = key.replace("HSH Order","hshOrder");
                     key = key.replace("HSH Threads","hshThreads");
-                    String value2 = prefsDialog.getStringFields().get(0).toString();
+                    String value2 = prefsDialog.getStringFields().get(0).toString(); //Gather new choices
                     theList.put(key,value2);
                     logService.log().info(key +" is "+value2);
                 }
@@ -236,7 +238,6 @@ public class SpectralRTI_Toolkit implements Command {
             if (Integer.parseInt(theList.get("jpegQuality")) > 0) jpegQuality = Integer.parseInt(theList.get("jpegQuality"));
             logService.log().info("JPEG quality2: "+jpegQuality);
             IJ.run("Input/Output...","jpeg="+jpegQuality);
-            //Set this setting under i/o menu: Edit - Options-Input/Output
             file_dialog = new DirectoryChooser("Choose a Project Directory"); 
             projectDirectory = file_dialog.getDirectory();
             logService.log().info("Project directory is ...  "+projectDirectory+" ...");
@@ -274,6 +275,7 @@ public class SpectralRTI_Toolkit implements Command {
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
+            //YIKES! Must uncomment this when you are done debugging this part!
             //while (listOfHemisphereCaptures.length <= 29 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")) {
             //    listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
             //}
@@ -405,7 +407,7 @@ public class SpectralRTI_Toolkit implements Command {
                 rgbnOptions[1] = "G";
                 rgbnOptions[2] = "B";
                 rgbnOptions[3] = "none";
-                String defaultRange = "";
+                String defaultRange = ""; //Yikes i think there was a mix up.
                 String rangeChoice = "";
                 GenericDialog narrowBandDialog = new GenericDialog("Assign Narrowband Captures");
 		narrowBandDialog.addMessage("Assign each narrowband capture to the visible range of R, G, B, or none");
@@ -422,13 +424,13 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int j=0; j<listOfNarrowbandCaptures.length; j++) {
                     rangeChoice = narrowBandDialog.getNextRadioButton();
                     if (rangeChoice.equals("R")) {
-                            redNarrowbands_list.add(listOfNarrowbandCaptures[j]);
+                        redNarrowbands_list.add(listOfNarrowbandCaptures[j]);
                     } 
                     else if (rangeChoice.equals("G")) {
-                            greenNarrowbands_list.add(listOfNarrowbandCaptures[j]);
+                        greenNarrowbands_list.add(listOfNarrowbandCaptures[j]);
                     } 
                     else if (rangeChoice.equals("B")) {
-                            blueNarrowbands_list.add(listOfNarrowbandCaptures[j]);
+                        blueNarrowbands_list.add(listOfNarrowbandCaptures[j]);
                     }
 		}
                 redNarrowbands_list.toArray(redNarrowbands);
@@ -461,7 +463,7 @@ public class SpectralRTI_Toolkit implements Command {
                 String defaultPca = "";
                 if (listOfPseudocolorSources.length > 1) defaultPca = "Open pregenerated images" ;
                 else defaultPca = "Generate and select using defaults";
-                String[] listOfPcaMethods = new String[2];
+                String[] listOfPcaMethods = new String[3];
                 listOfPcaMethods[0]="Generate and select using defaults";
                 listOfPcaMethods[1]="Generate and manually select two";
                 listOfPcaMethods[2]="Open pregenerated images";
@@ -484,7 +486,7 @@ public class SpectralRTI_Toolkit implements Command {
                     WindowManager.getWindow("Preview").dispose();
                 }
             }
-            if (csRtiDesired || csRakingDesired) { //interaction phase
+            if (csRtiDesired || csRakingDesired) { //interaction phase jhg 
                 OpenDialog csSourceDialog = new OpenDialog("Choose a Source for Custom Process");
                 csSource = csSourceDialog.getPath();
                 logService.log().info("Should have source");
@@ -517,10 +519,11 @@ public class SpectralRTI_Toolkit implements Command {
                         if (!jpegExportsFile.exists()) Files.createDirectory(jpegExportsFile.toPath());
                         ij2.io().save(simpleImageName+".jpg", "jpeg");
                         //Do we need to tell the users we created these directories?
-                        IJ.saveAs("jpeg",simpleImageName+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“rawÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ format
+                        IJ.saveAs("jpeg",simpleImageName+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or format
                         WindowManager.getWindow("LightPosition").dispose();
                     }
                 }
+                //Wasn't sure exactly how to accomplish this with GenericDialog
                 IJ.showMessageWithCancel("Use RTI Builder to Create LP File","Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in\n"+projectDirectory+"LightPositionData"+File.separator+"\nPress cancel to discontinue Spectral RTI Toolkit or Ok to continue with other tasks after the lp file has been created.");
             }
             if (acRtiDesired) {
@@ -621,7 +624,6 @@ public class SpectralRTI_Toolkit implements Command {
 		}
                 WindowManager.getWindow("Cb").dispose();
                 WindowManager.getWindow("Cr").dispose();              
-                // YIKES really need to test this.  I don't think we have createLpFile really working.
                 createLpFile("AccurateColor", projectDirectory);
 		runFitter("AccurateColor");
             }
@@ -721,7 +723,7 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int i=1;i<redNarrowbands.length;i++) {
                     redStringList = redStringList+"|"+redNarrowbands[i].toString();
 		}
-		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort"); //Yikes
+		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort"); 
                 //Opens a series of images in a chosen folder as a stack. Images may have different dimensions and can be of any format supported by ImageJ              
                 WindowManager.getActiveWindow().setName("RedStack");
                 //YIKES
@@ -856,7 +858,7 @@ public class SpectralRTI_Toolkit implements Command {
                             imglib2_img = ImagePlusAdapter.wrap( imp );
                             ImageJFunctions.show(imglib2_img,"Luminance");
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                                WindowManager.getImage("Luminance").setRoi(normX,normY,normWidth,normHeight); //Yikes will this work for a stack
+                                WindowManager.getImage("Luminance").setRoi(normX,normY,normWidth,normHeight); 
                                 IJ.run("Enhance Contrast...", "saturated=0.4");
                                 IJ.run("Select None");
                             } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
@@ -1203,9 +1205,12 @@ public class SpectralRTI_Toolkit implements Command {
             }
             // Yikes is there any way to do this ImageJ2 like?
             IJ.beep();
-            //Yikes this needs to be a GenericDialog, not IJ.showMessage
-            IJ.showMessage("Processing Complete", "Processing complete at "+timestamp());
             WindowManager.closeAllWindows();
+            //Yikes this needs to be a GenericDialog, not IJ.showMessage
+            GenericDialog end = new GenericDialog("Processing Complete");
+            end.addMessage("Processing Complete at "+timestamp());
+            end.showDialog();
+            //IJ.showMessage("Processing Complete", "Processing complete at "+timestamp());
             logService.log().warn("END OF TESTED MACRO PIECE");
         }
         	
@@ -1450,7 +1455,7 @@ public class SpectralRTI_Toolkit implements Command {
         * @param colorProcess
         * @exception IOException if file is not found.  
         */
-        public void runFitter(String colorProcess) throws IOException { 
+        public void runFitter(String colorProcess) throws IOException, Throwable { 
             String preferredFitter = theList.get("preferredFitter");
             String fitterOutput = "";
             String webRtiMakerOutput = "";
@@ -1588,13 +1593,11 @@ public class SpectralRTI_Toolkit implements Command {
             } 
             else if (preferredFitter.endsWith("PTMfitter.exe")) { // use PTM fitter
                 IJ.error("Macro code to execute PTMfitter not yet complete. Try HSHfitter.");
-                //Yikes need a throwable
-                //exit ("Macro code to execute PTMfitter not yet complete. Try HSHfitter."); // @@@
+                throw new Throwable("Macro code to execute PTMfitter not yet complete. Try HSHfitter."); //@@@
             } 
             else {
                 IJ.error("Problem identifying type of RTI fitter");
-                // Yikes need a Throwable
-                //exit("Problem identifying type of RTI fitter");
+                throw new Throwable("Problem identifying type of RTI fitter");
             }
             logService.log().info("Should have an append string out of this");
             logService.log().warn(appendString);
