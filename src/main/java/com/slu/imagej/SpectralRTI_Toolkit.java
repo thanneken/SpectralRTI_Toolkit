@@ -1,18 +1,19 @@
 /* TODODOC
+
  * <h1>Spectral RTI Toolkit ImageJ2 Java Plugin</h1>
  * <p>
- * Created by the Walter J Ong S.J. Center for Digital Humanities at Saint Louis University.  
- * Hosted at the Center's GitHub repo 
- * https://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit
+    * Created by the Walter J Ong S.J. Center for Digital Humanities at Saint Louis University.  
+    * Hosted at the Center's GitHub repo 
+    * https://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit
  * </p>
  * <p>
- * This was originally written as an ImageJ Macro by Todd Hanneken.  Hosted in Todd's repo at
- * https://github.com/thanneken/SpectralRTI_Toolkit
+    * This was originally written as an ImageJ Macro by Todd Hanneken.  Hosted in Todd's repo at
+    * https://github.com/thanneken/SpectralRTI_Toolkit
  * </p>
 
- * @author  Bryan Haberberger
- * @version 0.5
- * @since   07/01/2017
+    * @author  Bryan Haberberger
+    * @version 0.5
+    * @since   07/01/2017
 
  */
 
@@ -71,6 +72,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -183,9 +185,28 @@ public class SpectralRTI_Toolkit implements Command {
             File[] listOfHemisphereCaptures = new File[0];
             String csSource = "";
             BufferedReader prefsReader = null;
+            boolean swapBack = false;
             //End vars I had to add
             /*
-             *consult with user about values stored in prefs file
+                *Consult user for the project directory
+                *@exception Kill if no directory provided
+            */
+            file_dialog = new DirectoryChooser("Choose a Project Directory"); 
+            projectDirectory = file_dialog.getDirectory();
+            logService.log().info("Project directory is ...  "+projectDirectory+" ...");
+            if(projectDirectory == null || projectDirectory.equals("")){
+                logService.log().warn("No project directory provided.  Error out");
+                IJ.error("You must provide a project directory to continue.");
+                throw new Throwable("You must provide a project directory."); //DIE if now directory provided
+            }
+            else{
+                projectDirectory = projectDirectory.replace("\\",File.separator);
+            }
+            
+            logService.log().info("Project directory is "+projectDirectory);
+                        
+            /*
+             *consult with user about values stored in prefs file in base fiji folder.  Do not need project directory for this.
             */
             if (spectralPrefsFile.exists()) { //If this exists, overwrite the labels and show a dialog with the settings
                 prefsDialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
@@ -194,10 +215,12 @@ public class SpectralRTI_Toolkit implements Command {
                 prefsFileAsText = "";
                 prefsLines = "";
                 while((line=prefsReader.readLine()) != null){
-                    prefsFileAsText += line;
+                    prefsFileAsText += (line+System.lineSeparator());
+                    logService.log().info("Line is "+line);
                 }
                 prefsReader.close();
-                String[] prefs = prefsFileAsText.split("\n");
+                String[] prefs = prefsFileAsText.split(System.lineSeparator()); //This does not work
+                logService.log().info(Arrays.toString(prefs));
                 for (int i=0;i<prefs.length;i++) {
                     //Swap the labels out for presentation
                     String key = prefs[i].substring(0, prefs[i].indexOf("="));
@@ -208,50 +231,72 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("hshOrder","HSH Order");
                     key = key.replace("hshThreads","HSH Threads");
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
+                    logService.log().info(key + "has value "+value1);
                     prefsDialog.addStringField(key, value1, 80);
-                    prefsConsult_list.add(key);
                 }
                 prefsDialog.showDialog();
+                swapBack = true;
+            }
+            else{
+                GenericDialog noPrefs = new GenericDialog("No preference file found");
+                noPrefs.addMessage("A prefs file will be created for you to store your choices in later sessions.");
+                noPrefs.showDialog();
+                /*
+                    *This will put it in the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
+                    *@see projectDirectory 
+                */
+                Files.createFile(spectralPrefsFile.toPath()); 
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredCompress="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredJp2Args="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredFitter="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("jpegQuality=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             //Gather new values from the dialog, reset the labels and update the new values.
-            if(prefsConsult_list != null){ //cant initlalize an empty list, but we can check if it is still null before running the loop
-                //If it is null, there are no changes to the prefs from the initialized list
-                for (int j=0; j<prefsConsult_list.size();j++) {
+            if(swapBack){ 
+                prefsReader = Files.newBufferedReader(spectralPrefsFile.toPath());
+                line= "";
+                prefsFileAsText = "";
+                prefsLines = "";
+                while((line=prefsReader.readLine()) != null){
+                    prefsFileAsText += (line+System.lineSeparator());
+                }
+                prefsReader.close();
+                String[] prefs = prefsFileAsText.split(System.lineSeparator());
+                for (int j=0; j<prefs.length;j++) {
                     //Swap the labels back for processing
-                    String key = prefsConsult_list.get(j);
+                    String key = prefs[j].substring(0, prefs[j].indexOf("="));
                     key = key.replace("JP2 Compressor","preferredCompress");
                     key = key.replace("JP2 Arguments","preferredJp2Args");
                     key = key.replace("HSH Fitter","preferredFitter");
                     key = key.replace("JPEG Quality","jpegQuality");
                     key = key.replace("HSH Order","hshOrder");
                     key = key.replace("HSH Threads","hshThreads");
-                    String value2 = prefsDialog.getStringFields().get(0).toString(); //Gather new choices
+                    String value2 = prefsDialog.getNextString(); //Gather new information
                     theList.put(key,value2);
                     logService.log().info(key +" is "+value2);
                 }
             }
             else{
-                logService.log().info("There was no prefs remembered.");
+                logService.log().info("A prefs file was just created.");
             }
             jpegQuality = ij.plugin.JpegWriter.getQuality();
-            logService.log().info("JPEG quality: "+jpegQuality);
-            if (Integer.parseInt(theList.get("jpegQuality")) > 0) jpegQuality = Integer.parseInt(theList.get("jpegQuality"));
-            logService.log().info("JPEG quality2: "+jpegQuality);
-            IJ.run("Input/Output...","jpeg="+jpegQuality);
-            file_dialog = new DirectoryChooser("Choose a Project Directory"); 
-            projectDirectory = file_dialog.getDirectory();
-            logService.log().info("Project directory is ...  "+projectDirectory+" ...");
-            if(projectDirectory == null || projectDirectory.equals("")){
-                logService.log().warn("No project directory provided.  Error out");
-                IJ.error("You must provide a project directory to continue.");
-                throw new Throwable("You must provide a project directory.");
+            logService.log().info("JPEG quality from system: "+jpegQuality);
+            logService.log().info("JPEG from theList "+theList.get("jpegQuality"));
+            int jpq = Integer.parseInt(theList.get("jpegQuality"));
+            if (jpq > 0){
+                jpegQuality = jpq;
+                logService.log().info("JPEG quality from prefs: "+jpegQuality);
             }
             else{
-                projectDirectory = projectDirectory.replace("\\",File.separator);
+                /**
+                 * Don't actually write this to the file, force the user to edit it themselves. 
+                 * @see appendString variable
+                 */
             }
+            IJ.run("Input/Output...","jpeg="+jpegQuality);
             
-            logService.log().info("Project directory is "+projectDirectory);
-                        
             listOfHemisphereCaptures = getHemisphereCaptures(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
             File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
             File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
@@ -341,7 +386,6 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("csRakingDesired: "+csRakingDesired);
             logService.log().info("webRtiDesired: "+webRtiDesired);
             /** END DEBUGGING **/
-            // ^^ consider all of this a modular piece, it can be tested separately.  Beyond this, you MUST HAVE listOfHemisphereCaputres.
             if (acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired){
                 if (brightnessAdjustOption.equals("")) promptBrightnessAdjust(listOfHemisphereCaptures);
                 logService.log().info("Back in main macro after brightness adjust prompt");
@@ -401,7 +445,9 @@ public class SpectralRTI_Toolkit implements Command {
             }
                        
             if (xsRtiDesired || xsRakingDesired){ // only interaction here, processing later
-		/**create a dialog suggesting and confirming which narrowband captures to use for R,G,and B*/
+		/**
+                 * @see create a dialog suggesting and confirming which narrowband captures to use for R,G,and B
+                 */
                 String[] rgbnOptions = new String[4];
                 rgbnOptions[0] = "R";
                 rgbnOptions[1] = "G";
@@ -419,7 +465,9 @@ public class SpectralRTI_Toolkit implements Command {
                     String narrowCapture = listOfNarrowbandCaptures[i].toString();
                     narrowBandDialog.addRadioButtonGroup(narrowCapture, rgbnOptions, 1, 4, defaultRange);
 		} 
-                /** problem here if runs off screen... no an option to use two columns.  Bryan confirms, I noticed this as well.*/
+                /**
+                 * @see problem here if runs off screen... no an option to use two columns.  Bryan confirms, I noticed this as well.
+                 */
                 narrowBandDialog.showDialog();
 		for (int j=0; j<listOfNarrowbandCaptures.length; j++) {
                     rangeChoice = narrowBandDialog.getNextRadioButton();
@@ -455,7 +503,9 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info(greenNarrowbands);
                 logService.log().info(blueNarrowbands);
             }
-            /** only interaction here, processing later */
+            /**
+             * @see only interaction here, processing later 
+             */
             if (psRtiDesired || psRakingDesired) {
                 //identify 2 source images for pca pseudocolor
                 File listOfPseudocolorSources_dir = new File(projectDirectory+"PCA"+File.separator);
@@ -492,7 +542,9 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Should have source");
                 logService.log().info(csSource);
             }
-            /**create base lp file*/
+            /**
+             *@see create base lp file
+             */
             if (lpDesired) {
                 imp = opener.openImage(listOfHemisphereCaptures[20].toString());
                 imglib2_img = ImagePlusAdapter.wrap( imp );
@@ -527,7 +579,9 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.showMessageWithCancel("Use RTI Builder to Create LP File","Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in\n"+projectDirectory+"LightPositionData"+File.separator+"\nPress cancel to discontinue Spectral RTI Toolkit or Ok to continue with other tasks after the lp file has been created.");
             }
             if (acRtiDesired) {
-		/**create series of images with luminance from hemisphere captures and chrominance from color image*/
+		/**
+                 *@see create series of images with luminance from hemisphere captures and chrominance from color image
+                 */
                 File accurateRTI = new File(projectDirectory+"AccurateColorRTI"+File.separator);
 		if (!accurateRTI.exists()) {
                     Files.createDirectory(accurateRTI.toPath());
@@ -587,10 +641,14 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run("Stack to Images");
                 WindowManager.getWindow("Y").dispose();
                 WindowManager.getWindow("RGBtiff").dispose();
-		/**Luminance from hemisphere captures*/
+		/**
+                 *Luminance from hemisphere captures
+                 */
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")) { 
-                        /**@@@ better to trim list at the beginning so that array.length can be used in lp file*/
+                        /**
+                         *@see better to trim list at the beginning so that array.length can be used in lp file
+                         */
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
                         ImageJFunctions.show(imglib2_img,"Luminance");
@@ -658,7 +716,9 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.run("RGB Color");
 		}
 
-		/**create accurate color static diffuse*/
+		/**
+                 * @see create accurate color static diffuse
+                */
 		noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
 		IJ.save(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
 		createJp2(projectName+"_Ac_00", projectDirectory);
@@ -935,7 +995,9 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait.show();
                     WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
                     IJ.run("8-bit");
-		/**option to use previously generated principal component images*/
+		/**
+                 * @see option to use previously generated principal component images
+                 */
 		} 
                 else if (pcaMethod.equals("Open pregenerated images")) {
                     dWait = new WaitForUserDialog("Select area", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
@@ -947,9 +1009,9 @@ public class SpectralRTI_Toolkit implements Command {
                     WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
                     IJ.run("8-bit");
 		}
-		/*
-                *integrate pca pseudocolor with rti luminance
-		*create static diffuse (not trivial... use median of all)
+		/**
+                    * @see integrate pca pseudocolor with rti luminance
+                    * @see create static diffuse (not trivial... use median of all)
                 */
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
@@ -1218,7 +1280,7 @@ public class SpectralRTI_Toolkit implements Command {
         @Override
 	public void run() {
             try {
-                runFitter("AccurateColor");
+                theMacro_tested();
             } catch (IOException ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Throwable ex) {
@@ -1263,7 +1325,7 @@ public class SpectralRTI_Toolkit implements Command {
             if (preferredCompress.equals("")){
                 dialog = new OpenDialog("Locate kdu_compress or ojp_compress", fileName); 
                 directory = dialog.getPath();
-                Files.write(Paths.get(directory), compressString.getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(directory), (compressString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             if (preferredJp2Args.equals("")){
                 GenericDialog gd = new GenericDialog("Approve arguments for Jpeg 2000 compression");
@@ -1272,7 +1334,7 @@ public class SpectralRTI_Toolkit implements Command {
                 gd.showDialog();
                 preferredJp2Args = gd.getNextString();
                 preferredString = "preferredJp2Args="+preferredJp2Args;
-                Files.write(Paths.get(file.getPath()), preferredString.getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(file.getPath()), (preferredString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             logService.log().info("Heading off to noClobber from createJP2");
             Boolean noClob = noClobber(projDir+"StaticRaking"+File.separator+inFile+".jp2"); 
@@ -1282,30 +1344,8 @@ public class SpectralRTI_Toolkit implements Command {
            
              //Pay attention to preferredJP2Args, it assumes !isWindows
             if(isWindows){
-                logService.log().warn("Windows native command not yet written");
-//                CommandLine cmdLine = new CommandLine("cmd.exe");
-//                cmdLine.addArgument(preferredCompress);
-//                cmdLine.addArgument("-i");
-//                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".tiff");
-//                cmdLine.addArgument("-o");
-//                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".jp2 ");
-//                cmdLine.addArgument(preferredJp2Args);
-//                DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-//                ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
-//                Executor executor = new DefaultExecutor();
-//                executor.setWatchdog(watchdog);
-//                executor.execute(cmdLine, resultHandler);
-//                try {
-//                    // some time later the result handler callback was invoked so we
-//                    // can safely request the exit value
-//                    resultHandler.waitFor();
-//                    logService.log().info("Executed a cp");
-//                    returnString = ""+resultHandler.getExitValue();
-//                } catch (InterruptedException ex) {
-//                    Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-            }
-            else{
+                logService.log().warn("Windows native command");
+                //preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
                 CommandLine cmdLine = new CommandLine("cmd.exe");
                 cmdLine.addArgument(preferredCompress);
                 cmdLine.addArgument("-i");
@@ -1322,7 +1362,30 @@ public class SpectralRTI_Toolkit implements Command {
                     // some time later the result handler callback was invoked so we
                     // can safely request the exit value
                     resultHandler.waitFor();
-                    logService.log().info("Executed a cp");
+                    logService.log().info("Executed command 5");
+                    returnString = ""+resultHandler.getExitValue();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            else{
+                CommandLine cmdLine = new CommandLine("sh");
+                cmdLine.addArgument(preferredCompress);
+                cmdLine.addArgument("-i");
+                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".tiff");
+                cmdLine.addArgument("-o");
+                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".jp2 ");
+                cmdLine.addArgument(preferredJp2Args);
+                DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+                ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
+                Executor executor = new DefaultExecutor();
+                executor.setWatchdog(watchdog);
+                executor.execute(cmdLine, resultHandler);
+                try {
+                    // some time later the result handler callback was invoked so we
+                    // can safely request the exit value
+                    resultHandler.waitFor();
+                    logService.log().info("Executed command 5");
                     returnString = ""+resultHandler.getExitValue();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
@@ -1332,10 +1395,9 @@ public class SpectralRTI_Toolkit implements Command {
               return returnString;
         }
         
-        /* TODODOC
+        /** TODODOC
         * Used to make sure not to overwrite a file that already exists (Todd said).  
         * If it finds the existence of the old file, it attaches a date to it so when this one goes to save, it will not get FileAreadyExists notices
-        
         */
         public Boolean noClobber(String safeName) throws IOException {
             Boolean success = false;
@@ -1364,7 +1426,7 @@ public class SpectralRTI_Toolkit implements Command {
             return success;
         }
         
-        /*
+        /**
         * Get the current time and format it appropriately (20171224_1200)
         * @noparam This function requires no parameters
         * @return: A formatted time String
@@ -1377,7 +1439,7 @@ public class SpectralRTI_Toolkit implements Command {
             return dateString;
         }
         
-        /*
+        /**
         * Prompt the user about adjusting the brightness of their hemisphere caputre images
         * @param listOfHemishphereCaptures the list of files in the hemishphere folder
         * @exception ImgIOException if image cannot be opened.
@@ -1450,10 +1512,10 @@ public class SpectralRTI_Toolkit implements Command {
             WindowManager.getWindow("Preview").dispose();
         } 
         
-        /* 
+        /** 
          * identify preferred fitter and exec with arguments
-        * @param colorProcess
-        * @exception IOException if file is not found.  
+         * @param colorProcess
+         * @exception IOException if file is not found.  
         */
         public void runFitter(String colorProcess) throws IOException, Throwable { 
             String preferredFitter = theList.get("preferredFitter");
@@ -1465,7 +1527,7 @@ public class SpectralRTI_Toolkit implements Command {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 preferredFitter = dialog.getFileName();
                 appendString = "preferredFitter="+preferredFitter;
-                Files.write(Paths.get("SpectralRTI_Toolkit-prefs.txt"), appendString.getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get("SpectralRTI_Toolkit-prefs.txt"), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
                 int hshOrder = Integer.parseInt(theList.get("hshOrder"));
@@ -1474,27 +1536,26 @@ public class SpectralRTI_Toolkit implements Command {
                 if (hshThreads < 1 ) hshThreads = 16;
                 appendString += "Brightness Adjust Option: "+brightnessAdjustOption;
                 //logService.log().info("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\nThis could take a while...");
-                Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                     appendString += "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight;
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
+                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 } 
                 else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                     appendString += "Normalization fixed value: "+normalizationFixedValue;
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
+                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 }
                 if (pcaX > 0) {
                     appendString += "PCA area bounds: "+pcaX+", "+pcaY+", "+pcaWidth+", "+pcaHeight;
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
+                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 }
                 appendString += "Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)";
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
                 appendString += "Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
                 if(isWindows){
-                    logService.log().warn("Native commands not written for Windows yet.");
-                }
-                else{
+                    //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
+                    logService.log().warn("Windows native commands");
                     CommandLine cmdLine = new CommandLine("cmd.exe");
                     cmdLine.addArgument(preferredFitter);
                     cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp ");
@@ -1511,7 +1572,30 @@ public class SpectralRTI_Toolkit implements Command {
                         // some time later the result handler callback was invoked so we
                         // can safely request the exit value
                         resultHandler.waitFor();
-                        logService.log().info("Executed a cp");
+                        logService.log().info("Executed command 6");
+                        fitterOutput = ""+resultHandler.getExitValue();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                else{
+                    CommandLine cmdLine = new CommandLine("sh");
+                    cmdLine.addArgument(preferredFitter);
+                    cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp ");
+                    cmdLine.addArgument(theList.get("hshOrder"));
+                    cmdLine.addArgument(theList.get("hshThreads"));
+                    cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
+                    DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+                    ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
+                    Executor executor = new DefaultExecutor();
+                    //executor.setExitValue(1);
+                    executor.setWatchdog(watchdog);
+                    executor.execute(cmdLine, resultHandler);
+                    try {
+                        // some time later the result handler callback was invoked so we
+                        // can safely request the exit value
+                        resultHandler.waitFor();
+                        logService.log().info("Executed command 6");
                         fitterOutput = ""+resultHandler.getExitValue();
                     } catch (InterruptedException ex) {
                         Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
@@ -1528,9 +1612,8 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     
                     if(isWindows){
-                        logService.log().warn("Native commands not written for Windows yet.");              
-                    }
-                    else{
+                        //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
+                        logService.log().warn("Windows native commands");   
                         CommandLine cmdLine2 = new CommandLine("cmd.exe");
                         cmdLine2.addArgument(preferredFitter);
                         cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
@@ -1546,7 +1629,29 @@ public class SpectralRTI_Toolkit implements Command {
                             // some time later the result handler callback was invoked so we
                             // can safely request the exit value
                             resultHandler2.waitFor();
-                            logService.log().info("Executed a cp");
+                            logService.log().info("Executed command 7");
+                            webRtiMakerOutput = ""+resultHandler2.getExitValue();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    else{
+                        CommandLine cmdLine2 = new CommandLine("sh");
+                        cmdLine2.addArgument(preferredFitter);
+                        cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
+                        cmdLine2.addArgument(theList.get("hshOrder"));
+                        cmdLine2.addArgument(theList.get("hshThreads"));
+                        cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
+                        DefaultExecuteResultHandler resultHandler2 = new DefaultExecuteResultHandler();
+                        ExecuteWatchdog watchdog2 = new ExecuteWatchdog(60*1000);
+                        Executor executor2 = new DefaultExecutor();
+                        executor2.setWatchdog(watchdog2);
+                        executor2.execute(cmdLine2, resultHandler2);
+                        try {
+                            // some time later the result handler callback was invoked so we
+                            // can safely request the exit value
+                            resultHandler2.waitFor();
+                            logService.log().info("Executed command 7");
                             webRtiMakerOutput = ""+resultHandler2.getExitValue();
                         } catch (InterruptedException ex) {
                             Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
@@ -1603,46 +1708,59 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().warn(appendString);
         }
         
-        /* 
+        /**
          * Create Light Position file with filenames from newly created series and light positions from previously generated lp file.
          * @param colorProcess
          * @param projectDirectory
          * @exception for various file read/wrte problems
          * @return No return!
         */
-        public void createLpFile(String colorProcess, String projDir) throws IOException{
+        public void createLpFile(String colorProcess, String projDir) throws IOException, Throwable{
             List<String> listOfLpFiles_list;
             String[] listOfLpFiles;
             String[] lpLines;
             File[] list;
             File folder;
-            if (lpSource.equals("")) {
+            if (lpSource.equals("")) { //Then we need to find and set it
+                //Check LightPositionData folder
                 listOfLpFiles_list = new ArrayList<String>();
                 folder = new File(projectDirectory+"LightPositionData"+File.separator);
-                list = folder.listFiles();
-                for (File list1 : list) {
-                    if (list1.getName().endsWith("lp")) {
-                        listOfLpFiles_list.add(list1.toString());
+                if(folder.exists()){
+                    list = folder.listFiles();
+                    for (File file1 : list) {
+                        if (file1.getName().endsWith("lp")) {
+                            listOfLpFiles_list.add(file1.toString());
+                        }
                     }
                 }
+                else{
+                    GenericDialog noLpData = new GenericDialog("Light Position data not found.");
+                    noLpData.addMessage("Please provide LP data in a LightPositionData directory in your project directory.  A LightPositionData directory was created for you.");
+                    noLpData.showDialog();
+                    //throw new Throwable("You need to have light position data to continue.");
+                    Files.createDirectory(folder.toPath());
+                }    
+                //Check assembly-files folder inside LightPositionData folder
                 folder = new File(projectDirectory+"LightPositionData"+File.separator+"assembly-files"+File.separator);
-                list = folder.listFiles();
-                for (int i=0; i<list.length; i++) {
-                    if (list[i].getName().endsWith("OriginalSet.lp")) { //ignore this one
+                if(folder.exists()){
+                    list = folder.listFiles();
+                    for (int i=0; i<list.length; i++) {
+                        if (list[i].getName().endsWith("OriginalSet.lp")) { //ignore this one
 
-                    } 
-                    else if (list[i].getName().endsWith("lp")) {
-                        listOfLpFiles_list.add(projectDirectory+"LightPositionData"+File.separator+"assembly-files"+File.separator+list[i].toString());
+                        } 
+                        else if (list[i].getName().endsWith("lp")) {
+                            listOfLpFiles_list.add(projectDirectory+"LightPositionData"+File.separator+"assembly-files"+File.separator+list[i].toString());
+                        }
                     }
                 }
-                //For AddRadioButtonGroup method below, this must be a simple String[], not a list.
+               
                 listOfLpFiles = new String[listOfLpFiles_list.size()];
                 listOfLpFiles_list.toArray(listOfLpFiles);
-                if (listOfLpFiles_list .size() == 1){
-                    lpSource = listOfLpFiles_list .get(0);
+                if (listOfLpFiles_list.size() == 1){
+                    lpSource = listOfLpFiles_list.get(0);
                 } 
                 else if (listOfLpFiles_list.isEmpty()) {
-                    OpenDialog dialog = new OpenDialog("Locate Light Position Directory"); 
+                    OpenDialog dialog = new OpenDialog("Locate Light Position Directory"); //YIKES WE BREAK HERE.  ARE WE LOOKING FOR A FILE??
                     lpSource = dialog.getPath();
                 } 
                 else {
