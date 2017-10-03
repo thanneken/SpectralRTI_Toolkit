@@ -24,6 +24,8 @@
   *     <li> http://imagej.net/ImgLib2_Examples </li>
   *     <li> https://imagej.nih.gov/ij/developer/api/ij/gui/GenericDialog.html </li>
   *     <li> https://docs.oracle.com/javase/tutorial/essential/io/file.html </li>
+  *     <li> http://imagej.1557.x6.nabble.com/Re-Plugin-Command-To-Close-Window-Without-quot-Save-Changes-quot-Dialog-td3683293.html </li>
+  *     <li> http://www.javapractices.com/topic/TopicAction.do?Id=42 </li>
   *     <li> NEW </li>
   *     <li> NEW </li>
   * </ul>
@@ -91,7 +93,6 @@ import org.apache.commons.exec.Executor;
  */
 @Plugin(type = Command.class, menuPath = "Plugins>SpectralRTI_Toolkit")  
 public class SpectralRTI_Toolkit implements Command {
-        //YIKES implement this http://imagej.1557.x6.nabble.com/Re-Plugin-Command-To-Close-Window-Without-quot-Save-Changes-quot-Dialog-td3683293.html
         private Context context;
         
         /** The global ImagePlus object to be used throughout.  Used with the IJ library for ImageJ functionality */
@@ -214,15 +215,8 @@ public class SpectralRTI_Toolkit implements Command {
             */
             if (spectralPrefsFile.exists()) { //If this exists, overwrite the labels and show a dialog with the settings
                 prefsDialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
-//                prefsReader = Files.newBufferedReader(spectralPrefsFile.toPath());
-//                line= "";
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-//                prefsLines = "";
-//                while((line=prefsReader.readLine()) != null){
-//                    prefsFileAsText += (line+System.lineSeparator());
-//                    logService.log().info("Line is "+line);
-//                }
-//                prefsReader.close();
+
                 prefs = prefsFileAsText.split(System.lineSeparator()); //This does not work
                 logService.log().info(Arrays.toString(prefs));
                 for (int i=0;i<prefs.length;i++) {
@@ -261,14 +255,6 @@ public class SpectralRTI_Toolkit implements Command {
             }
             //Gather new values from the dialog, reset the labels and update the new values.
             if(swapBack){ 
-//                prefsReader = Files.newBufferedReader(spectralPrefsFile.toPath());
-//                line= "";
-//                prefsFileAsText = "";
-//                prefsLines = "";
-//                while((line=prefsReader.readLine()) != null){
-//                    prefsFileAsText += (line+System.lineSeparator());
-//                }
-//                prefsReader.close();
                 for (int j=0; j<prefs.length;j++) {
                     //Swap the labels back for processing
                     String key = prefs[j].substring(0, prefs[j].indexOf("="));
@@ -327,13 +313,11 @@ public class SpectralRTI_Toolkit implements Command {
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
-            //YIKES! Must uncomment this when you are done debugging this part!
             while (listOfHemisphereCaptures.length <= 29 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")) {
                 listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
             }
             if(listOfHemisphereCaptures.length < 30){
                 IJ.error("There must be at least 30 images in the hemisphere caputres folder to continue.  Please populate for next time.");
-                //YIKES! Must uncomment this when you are done debugging this part!
                 throw new Throwable("There must be at least 30 images in the hemisphere caputres folder to continue.  Please populate for next time.");
             }
             if ( light_position_dir.exists() ){ 
@@ -460,7 +444,7 @@ public class SpectralRTI_Toolkit implements Command {
                 rgbnOptions[1] = "G";
                 rgbnOptions[2] = "B";
                 rgbnOptions[3] = "none";
-                String defaultRange = ""; //Yikes i think there was a mix up.
+                String defaultRange = ""; 
                 String rangeChoice = "";
                 GenericDialog narrowBandDialog = new GenericDialog("Assign Narrowband Captures");
 		narrowBandDialog.addMessage("Assign each narrowband capture to the visible range of R, G, B, or none");
@@ -575,7 +559,7 @@ public class SpectralRTI_Toolkit implements Command {
                 bounds = WindowManager.getImage("Preview").getRoi().getBounds();
                 WindowManager.getImage("Preview").close();
                 for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (listOfHemisphereCaptures[i].toString().endsWith("tif")) {
+                    if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")) {
                         imp=opener.openImage(listOfHemisphereCaptures[i].toString());
                         imglib2_img = ImagePlusAdapter.wrap( imp );
                         
@@ -619,8 +603,8 @@ public class SpectralRTI_Toolkit implements Command {
                     accurateColorSource = listOfAccurateColorSources[0];
 		} 
                 else if (listOfAccurateColorSources.length == 0) {
-                    IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColorRTI"+File.separator);
-                    throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColorRTI"+File.separator); 
+                    IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
+                    throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator); 
 		} 
                 else {
                     for (int i=0; i<listOfAccurateColorSources.length; i++) {
@@ -652,23 +636,24 @@ public class SpectralRTI_Toolkit implements Command {
                 imglib2_img = ImagePlusAdapter.wrap( imp );
                 ImageJFunctions.show(imglib2_img,"RGBtiff");
 		if (imp.getBitDepth() == 8) {
-                    IJ.run("RGB Color");
-                    WindowManager.getImage("RGBtiff").close(); //Yikes this IS from the macro.  Need to double check this works
-                    WindowManager.getActiveWindow().setName("RGBtiff"); //Yikes this IS from the macro.  Need to double check this works
-//                    run("RGB Color");
-//                    selectWindow("RGBtiff");
-//                    run("Close");
-//                    rename("RGBtiff");
+                    IJ.run(WindowManager.getImage("RGBtiff"),"RGB Color","");
+                    WindowManager.getImage("RGBtiff").close(); 
+                    //imp = WindowManager.getCurrentImage();
+                    //imp.setTitle("RGBtiff");
+                    WindowManager.getActiveWindow().setName("RGBtiff"); 
 		}
 		IJ.run("RGB to YCbCr stack");
 		IJ.run("Stack to Images");
+                
                 WindowManager.getImage("Y").close();
                 WindowManager.getImage("RGBtiff").close();
 		/**
                  *Luminance from hemisphere captures
                  */
+                logService.log().info("Luminance from hem captures! "+listOfHemisphereCaptures.length);
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (listOfHemisphereCaptures[i].toString().endsWith("tiff")) { 
+                    if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")) { 
+                        logService.log().info(i);
                         /**
                          *@see better to trim list at the beginning so that array.length can be used in lp file
                          */
@@ -698,7 +683,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         noClobber(projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleImageName+".jpg");
                         IJ.saveAs("jpeg", projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleImageName+".jpg");
-                        WindowManager.getImage(simpleImageName+".jpg").close();
+                        WindowManager.getImage("AccurateColor_"+simpleImageName+".jpg").close();
                         WindowManager.getImage("YCC").close();
                         WindowManager.getImage("Luminance").changes = false;
                         WindowManager.getImage("Luminance").close();                      
@@ -706,34 +691,10 @@ public class SpectralRTI_Toolkit implements Command {
 		}
                 WindowManager.getImage("Cb").close();
                 WindowManager.getImage("Cr").close();              
-                createLpFile("AccurateColor", projectDirectory); //Yikes break stack originates here.
+                createLpFile("AccurateColor", projectDirectory); 
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
-                //Yikes may be able to get rid of this.
-//		if (!accurateColorSource.exists() || accurateColorSource.toString().equals("")) {
-//                    File accurateColorSources_dir = new File(projectDirectory+"AccurateColor"+File.separator);
-//                    listOfAccurateColorSources = accurateColorSources_dir.listFiles();
-//                    String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
-//                    ArrayList<String>  listOfAccurateColorSources_list = new ArrayList<String>();
-//                    for (File f : listOfAccurateColorSources) {
-//                       listOfAccurateColorSources_list.add(f.toString());
-//                    }
-//                    listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
-//                    if (listOfAccurateColorSources.length == 1) 	{
-//                        accurateColorSource = listOfAccurateColorSources[0];
-//                    } 
-//                    else if (listOfAccurateColorSources.length == 0) {
-//                        IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColorRTI"+File.separator);
-//                    } 
-//                    else {
-//                        GenericDialog gd = new GenericDialog("Select Color Source");
-//                        gd.addMessage("Select Color Source");
-//                        gd.addRadioButtonGroup("File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
-//                        gd.showDialog();
-//                        accurateColorSource = new File(gd.getNextRadioButton());
-//                    }
-//		}
                 imp = opener.openImage( accurateColorSource.toString() ); 
                 imglib2_img = ImagePlusAdapter.wrap( imp );
                 ImageJFunctions.show(imglib2_img, "RGBtiff");
@@ -744,7 +705,6 @@ public class SpectralRTI_Toolkit implements Command {
                  * @see create accurate color static diffuse
                 */
 		noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
-                //Yikes it does not appear this saved
 		IJ.save(WindowManager.getImage("RGBtiff"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
 		createJp2(projectName+"_Ac_00", projectDirectory);
                 toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
@@ -752,7 +712,7 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run("RGB to YCbCr stack");
 		IJ.run("Stack to Images"); //Converts the slices in the current stack to separate image windows.
                 WindowManager.getImage("Y").close();
-                WindowManager.getImage("RGBtiff").setActivated();//Yikes can I close this here	
+                WindowManager.getImage("RGBtiff").setActivated();
 		//Luminance from transmissive
                 logService.log().info("Transmissive source has value "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
@@ -775,7 +735,7 @@ public class SpectralRTI_Toolkit implements Command {
 		//Luminance from hemisphere captures
                 logService.log().warn("Entering a hemishpere captures loop");
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
+                    if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
                         if (listOfRakingDirections.get(i)) {
                             logService.log().info("listOfRakingDirection is "+listOfRakingDirections.get(i));
                             logService.log().info("Hemisphere caputre is "+listOfHemisphereCaptures[i].toString());
@@ -797,9 +757,6 @@ public class SpectralRTI_Toolkit implements Command {
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             logService.log().info("What is the thing we are trying to save here   " + projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
-                            //YIKES I think we fail here, Nothing is saved in StaticTaking folder
-                            //IJ.saveAs("tiff", projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
-                            //IJ.saveAsTiff(WindowManager.getImage("Ycc - RGB"),projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ac_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             //Files.deleteIfExists(toDelete.toPath());     
@@ -897,7 +854,7 @@ public class SpectralRTI_Toolkit implements Command {
 		if (xsRakingDesired){
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
                     IJ.save(WindowManager.getImage("Stack (RGB)"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
-                    createJp2(projectName+"_Xs_00", projectDirectory); //Yikes this does not seem to actually create the JP2
+                    createJp2(projectName+"_Xs_00", projectDirectory); 
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
                     //Files.deleteIfExists(toDelete.toPath());      //Yikes uncomment when done debugging
 		}
@@ -1006,7 +963,8 @@ public class SpectralRTI_Toolkit implements Command {
                     if (fluorescenceNoGamma.exists()) {
                             IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
                             IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
-                    } else {
+                    } 
+                    else {
                         //WindowManager.getImage("Captures-Narrowband-NoGamma").setTitle("Captures-Fluorescence-NoGamma");
                             //rename("Captures-Narrowband-NoGamma");
                     }
@@ -1054,8 +1012,6 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     //setBatchMode(true); 
                     //setBatchMode("hide");
-                    //WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
-                   // IJ.run("PCA of Captures-Narrowband-NoGamma kept stack","8-bit"); //Yikes make sure this runs on the right thing
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
 		}
 		/**
@@ -1256,7 +1212,7 @@ public class SpectralRTI_Toolkit implements Command {
                     WindowManager.getImage("TransmissiveLuminance").close();
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (listOfHemisphereCaptures[i].toString().endsWith("tif")) {
+                    if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
                         if ((csRtiDesired)||(listOfRakingDirections.get(i))) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
@@ -1321,13 +1277,11 @@ public class SpectralRTI_Toolkit implements Command {
 		createLpFile(csProcessName, projectDirectory);
 		runFitter(csProcessName);
             }
-            // Yikes is there any way to do this ImageJ2 like?
             IJ.beep();
             WindowManager.closeAllWindows();
             GenericDialog end = new GenericDialog("Processing Complete");
             end.addMessage("Processing Complete at "+timestamp());
             end.showDialog();
-            //IJ.showMessage("Processing Complete", "Processing complete at "+timestamp());
             logService.log().warn("END OF TESTED MACRO PIECE");
         }
         	
@@ -1343,8 +1297,6 @@ public class SpectralRTI_Toolkit implements Command {
             }
               logService.log().warn("Finished processing the run().");
 	}
-
-        //SRTI functions
         
 
         /**
@@ -1371,6 +1323,8 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().warn(inFile +" , "+projDir);
             String preferredCompress = theList.get("preferredCompress");
             String preferredJp2Args = theList.get("preferredJp2Args");
+            preferredCompress = preferredCompress.replace("/", File.separator);
+            preferredJp2Args = preferredJp2Args.replace("/", File.separator);
             String compressString = "preferredCompress="+preferredCompress+System.lineSeparator();
             String preferredString = "preferredJp2Args="+preferredJp2Args+System.lineSeparator();
             OpenDialog dialog;  //For files
@@ -1380,6 +1334,7 @@ public class SpectralRTI_Toolkit implements Command {
             if (preferredCompress.equals("")){
                 dialog = new OpenDialog("Locate kdu_compress or ojp_compress"); 
                 preferredCompress = dialog.getPath();
+                preferredCompress = preferredCompress.replace("\\", "/");
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
                 compressString = "preferredCompress="+preferredCompress+System.lineSeparator();
                 prefsFileAsText = prefsFileAsText.replaceFirst("preferredCompress=.*\\\n", compressString); //replace the prefs var
@@ -1393,10 +1348,11 @@ public class SpectralRTI_Toolkit implements Command {
                 gd.addStringField("Arguments:",arguments,80);
                 gd.showDialog();
                 preferredJp2Args = gd.getNextString();
+                preferredJp2Args =preferredJp2Args.replace("\\", "/");
                 preferredString = "preferredJp2Args="+preferredJp2Args;
                 theList.put("preferredJp2Args", preferredJp2Args);
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\\n", preferredJp2Args); //replace the prefs var
+                prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\\n", preferredString); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
             logService.log().info("Heading off to noClobber from createJP2");
@@ -1588,6 +1544,7 @@ public class SpectralRTI_Toolkit implements Command {
         */
         public void runFitter(String colorProcess) throws IOException, Throwable { 
             String preferredFitter = theList.get("preferredFitter");
+            preferredFitter = preferredFitter.replace("/", File.separator);
             String fitterOutput = "";
             String webRtiMakerOutput = "";
             String webRtiMaker = "";
@@ -1595,6 +1552,7 @@ public class SpectralRTI_Toolkit implements Command {
             if (preferredFitter.equals("")) {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 preferredFitter = dialog.getPath();
+                preferredFitter =preferredFitter.replace("\\", "/");
                 appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
                 prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.getProperty("line.separator"), appendString); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
@@ -1609,7 +1567,6 @@ public class SpectralRTI_Toolkit implements Command {
                 if(!fitterFile.exists()){
                     Files.createFile(fitterFile.toPath());
                 }
-                //YIKES we break here when file does not exist
                 //logService.log().info("Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\nThis could take a while...");
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
@@ -1681,11 +1638,15 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info(fitterOutput);
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
                 if (webRtiDesired) {
+                    String webString;
                     webRtiMaker = theList.get("webRtiMaker");
+                    webRtiMaker = webRtiMaker.replace("/", File.separator);
                     if (webRtiMaker.equals("")) {
                         OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
                         webRtiMaker = dialog2.getPath();
-                        prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.getProperty("line.separator"),"webRitMaker="+webRtiMaker+System.getProperty("line.separator")); //replace the prefs var
+                        webRtiMaker =webRtiMaker.replace("\\", "/");
+                        webString = "webRtiMaker="+webRtiMaker;
+                        prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.getProperty("line.separator"),webString+System.getProperty("line.separator")); //replace the prefs var
                         Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
                     }
                     
@@ -1875,7 +1836,6 @@ public class SpectralRTI_Toolkit implements Command {
             lpFileReader.close();
             lpLines = lpFileAsText.split("\n");//split(File.openAsString(lpSource),"\n");
             noClobber(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
-            //Yikes breaking here.  B/C does not exist yet.  Need to create the file first!
             File newLpFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
             if(!newLpFile.exists()){
                 Files.createFile(newLpFile.toPath());
@@ -1888,7 +1848,8 @@ public class SpectralRTI_Toolkit implements Command {
                 String funnyProjectDirectory = projectDirectory.replace("\\","/");
                 newLpLine = newLpLine.replace("LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"_");
                 newLpLine = newLpLine.replace("canonical",funnyProjectDirectory+colorProcess+"RTI/"+colorProcess+"_"+projectName+"_RTI");
-                newLpLine = newLpLine.replace("/",File.separator);
+                //newLpLine = newLpLine.replace("/",File.separator);
+                //Yikes not sure this is writing in correct.  Always right in with / and convert on read. Commented out line above.
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"), newLpLine.getBytes(), StandardOpenOption.APPEND);
             }
         }
