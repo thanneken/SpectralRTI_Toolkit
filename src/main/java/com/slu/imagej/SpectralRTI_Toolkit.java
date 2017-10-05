@@ -254,7 +254,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             //Gather new values from the dialog, reset the labels and update the new values.
-            if(swapBack){ 
+            if(swapBack){
                 for (int j=0; j<prefs.length;j++) {
                     //Swap the labels back for processing
                     String key = prefs[j].substring(0, prefs[j].indexOf("="));
@@ -634,19 +634,25 @@ public class SpectralRTI_Toolkit implements Command {
 		//integration
                 imp = opener.openImage( accurateColorSource.toString() );
                 imglib2_img = ImagePlusAdapter.wrap( imp );
-                ImageJFunctions.show(imglib2_img,"RGBtiff");
+                //ImageJFunctions.show(imglib2_img,"RGBtiff");
 		if (imp.getBitDepth() == 8) {
-                    IJ.run(WindowManager.getImage("RGBtiff"),"RGB Color","");
-                    WindowManager.getImage("RGBtiff").close(); 
+                    //IJ.run(WindowManager.getImage("RGBtiff"),"RGB Color","");
+                    IJ.run(imp,"RGB Color","");
+                    imp.close();
+                    //WindowManager.getImage("RGBtiff").close(); 
                     //imp = WindowManager.getCurrentImage();
                     //imp.setTitle("RGBtiff");
-                    WindowManager.getActiveWindow().setName("RGBtiff"); 
+                    imp = WindowManager.getCurrentImage();
+                    imp.setTitle("RGBtiff");
+                    //WindowManager.getActiveWindow().setName("RGBtiff"); 
 		}
-		IJ.run("RGB to YCbCr stack");
+                //imp.show();
+		IJ.run(imp, "RGB to YCbCr stack", "");
 		IJ.run("Stack to Images");
                 
                 WindowManager.getImage("Y").close();
-                WindowManager.getImage("RGBtiff").close();
+                //WindowManager.getImage("RGBtiff").close();
+                imp.close();
 		/**
                  *Luminance from hemisphere captures
                  */
@@ -659,34 +665,46 @@ public class SpectralRTI_Toolkit implements Command {
                          */
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
-                        ImageJFunctions.show(imglib2_img,"Luminance");
+                        imp.setTitle("Luminance");
+                        //ImageJFunctions.show(imglib2_img,"Luminance");
                         // it would be better to crop early in the process, especially before reducing to 8-bit and jpeg compression
                         // normalize
                         if (brightnessAdjustApply.equals("RTI images also")) {
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                                WindowManager.getImage("Luminance").setRoi(normX, normY, normWidth, normHeight);
-                                IJ.run("Enhance Contrast...", "saturated=0.4");//Enhances image contrast by using either histogram stretching or histogram equalization.  Affects entire stack
+                                //WindowManager.getImage("Luminance").setRoi(normX, normY, normWidth, normHeight);
+                                imp.setRoi(normX, normY, normWidth, normHeight);
+                                IJ.run(imp, "Enhance Contrast...", "saturated=0.4");//Enhances image contrast by using either histogram stretching or histogram equalization.  Affects entire stack
                                 IJ.run("Select None");//Deactivates the selection in the active image.
                             } 
                             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                IJ.run("Multiply...", "value="+normalizationFixedValue+"");
+                                IJ.run(imp,"Multiply...", "value="+normalizationFixedValue+"");
                             }
                         }
-                        IJ.run("8-bit"); //Applies the current display range mapping function to the pixel data. If there is a selection, only pixels within the selection are modified
+                        IJ.run(imp,"8-bit", ""); //Applies the current display range mapping function to the pixel data. If there is a selection, only pixels within the selection are modified
+                        imp.show();
                         IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]"); //Concatenates multiple images or stacks. Images with mismatching type and dimensions are omitted
                         IJ.run("YCbCr stack to RGB"); //Converts a two or three slice stack into an RGB image, assuming that the slices are in R, G, B order. The stack must be 8-bit or 16-bit grayscale
                         //Save as jpeg
                         int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
-                        if (extensionIndex != -1)
-                        {
-                            simpleImageName = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
-                        }
-                        noClobber(projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleImageName+".jpg");
-                        IJ.saveAs("jpeg", projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleImageName+".jpg");
-                        WindowManager.getImage("AccurateColor_"+simpleImageName+".jpg").close();
+                       
+                        String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
+                        String simpleName2 = projectName + "_";
+                        String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
+                        
+//                        logService.log().info("1 : "+simpleName1);
+//                        logService.log().info("2 : "+simpleName2);
+//                        logService.log().info("3 : "+simpleName3);
+                        simpleImageName = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
+                        logService.log().info(simpleImageName);
+                        
+                        noClobber(simpleImageName+".jpg");
+                        IJ.saveAs("jpeg",simpleImageName+".jpg");
+                        WindowManager.getImage("AccurateColor_"+simpleName2+simpleName3+".jpg").close();
                         WindowManager.getImage("YCC").close();
-                        WindowManager.getImage("Luminance").changes = false;
-                        WindowManager.getImage("Luminance").close();                      
+                        imp.changes=false;
+                        imp.close();
+                        //WindowManager.getImage("Luminance").changes = false;
+                        //WindowManager.getImage("Luminance").close();                      
                     }
 		}
                 WindowManager.getImage("Cb").close();
@@ -847,9 +865,14 @@ public class SpectralRTI_Toolkit implements Command {
                 WindowManager.getImage("B").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
 		IJ.run(WindowManager.getImage("B"), "Enhance Contrast...", "saturated=0.4 normalize");
 		IJ.run(WindowManager.getImage("B"), "8-bit", "");
+                
 		IJ.run("Concatenate...", "  title=[Stack] image1=R image2=G image3=B image4=[-- None --]");
+                //RGB stack of black and white
 		IJ.run(WindowManager.getImage("Stack"), "Stack to RGB", "");
+                //RGB image of color.  Why isn't it color?
                 WindowManager.getImage("Stack").close();
+                
+                
 		//create extended spectrum static diffuse
 		if (xsRakingDesired){
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
@@ -903,6 +926,7 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.run("8-bit");
                         //IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
                         IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+                        //Should this be color here?
                         IJ.run("YCbCr stack to RGB");
                         int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                         if (extensionIndex != -1)
@@ -1376,6 +1400,8 @@ public class SpectralRTI_Toolkit implements Command {
                 ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
                 Executor executor = new DefaultExecutor();
                 executor.setWatchdog(watchdog);
+                logService.log().info("Running the following command");
+                    logService.log().info(cmdLine.toString());
                 executor.execute(cmdLine, resultHandler);
                 try {
                     // some time later the result handler callback was invoked so we
@@ -1542,7 +1568,7 @@ public class SpectralRTI_Toolkit implements Command {
          * @param colorProcess
          * @exception IOException if file is not found.  
         */
-        public void runFitter(String colorProcess) throws IOException, Throwable { 
+        public void runFitter(String colorProcess) throws IOException, Throwable {
             String preferredFitter = theList.get("preferredFitter");
             preferredFitter = preferredFitter.replace("/", File.separator);
             String fitterOutput = "";
@@ -1591,8 +1617,8 @@ public class SpectralRTI_Toolkit implements Command {
                     CommandLine cmdLine = new CommandLine("cmd.exe");
                     cmdLine.addArgument(preferredFitter);
                     cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
-                    cmdLine.addArgument(theList.get("hshOrder"));
-                    cmdLine.addArgument(theList.get("hshThreads"));
+                    cmdLine.addArgument(""+hshOrder);
+                    cmdLine.addArgument(""+hshThreads);
                     cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
                     logService.log().info("Running the following command");
                     logService.log().info(cmdLine.toString());
@@ -1608,6 +1634,8 @@ public class SpectralRTI_Toolkit implements Command {
                         resultHandler.waitFor();
                         logService.log().info("Executed command 6");
                         fitterOutput = ""+resultHandler.getExitValue();
+                        logService.log().info("Fiter output   "+fitterOutput);
+                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1631,12 +1659,13 @@ public class SpectralRTI_Toolkit implements Command {
                         resultHandler.waitFor();
                         logService.log().info("Executed command 6");
                         fitterOutput = ""+resultHandler.getExitValue();
+                        logService.log().info("Fiter output   "+fitterOutput);
+                        Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                logService.log().info(fitterOutput);
-                Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
+                
                 if (webRtiDesired) {
                     String webString;
                     webRtiMaker = theList.get("webRtiMaker");
@@ -1663,6 +1692,8 @@ public class SpectralRTI_Toolkit implements Command {
                         ExecuteWatchdog watchdog2 = new ExecuteWatchdog(60*1000);
                         Executor executor2 = new DefaultExecutor();
                         executor2.setWatchdog(watchdog2);
+                        logService.log().info("Running the following command");
+                    logService.log().info(cmdLine2.toString());
                         executor2.execute(cmdLine2, resultHandler2);
                         try {
                             // some time later the result handler callback was invoked so we
@@ -1755,6 +1786,7 @@ public class SpectralRTI_Toolkit implements Command {
      * @throws java.io.IOException
      * @throws java.lang.Throwable
         */
+        // BHTODO this is not creating the lpfile correctly
         public void createLpFile(String colorProcess, String projDir) throws IOException, Throwable{
             List<String> listOfLpFiles_list;
             String[] listOfLpFiles;
@@ -1831,7 +1863,7 @@ public class SpectralRTI_Toolkit implements Command {
             String lpFileAsText = "";
             logService.log().info("Trying to read from "+lpFile.toPath());
             while((line=lpFileReader.readLine()) != null){
-                lpFileAsText += line; 
+                lpFileAsText += line+System.lineSeparator(); 
             }
             lpFileReader.close();
             lpLines = lpFileAsText.split("\n");//split(File.openAsString(lpSource),"\n");
@@ -1845,9 +1877,15 @@ public class SpectralRTI_Toolkit implements Command {
             for (int i=0;i<lpLines.length;i++) {
                 newLpLine = lpLines[i];
                 newLpLine = newLpLine.replace("\\", "/"); //simplest to avoid a backslash on the right side of a regular expression replace in the next few lines
-                String funnyProjectDirectory = projectDirectory.replace("\\","/");
+                String funnyProjectDirectory = projectDirectory.replace("\\","/"); //Detect this slash and replace.
+                //Yikes we would like this to be able to save the more complicated name...
+
                 newLpLine = newLpLine.replace("LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"_");
                 newLpLine = newLpLine.replace("canonical",funnyProjectDirectory+colorProcess+"RTI/"+colorProcess+"_"+projectName+"_RTI");
+                newLpLine = newLpLine + System.lineSeparator();
+                //YIKES Must actually write this file with the correct slash in it for the OS you are running on...
+                newLpLine = newLpLine.replace("/", File.separator); //write it in with the proper slash
+                logService.log().info("New lp line is "+newLpLine);
                 //newLpLine = newLpLine.replace("/",File.separator);
                 //Yikes not sure this is writing in correct.  Always right in with / and convert on read. Commented out line above.
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"), newLpLine.getBytes(), StandardOpenOption.APPEND);
