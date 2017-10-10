@@ -130,9 +130,9 @@ public class SpectralRTI_Toolkit implements Command {
         private final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
         private String positionNumber = "";
         String pcaMethod = "";
-        private List<File> redNarrowbands_list = new ArrayList<>();
-        private List<File> greenNarrowbands_list = new ArrayList<>();
-        private List<File> blueNarrowbands_list = new ArrayList<>();
+        private List<String> redNarrowbands_list = new ArrayList<>();
+        private List<String> greenNarrowbands_list = new ArrayList<>();
+        private List<String> blueNarrowbands_list = new ArrayList<>();
         
         Object[] redNarrowbands = new File[0];
         Object[] greenNarrowbands = new File[0];
@@ -458,7 +458,7 @@ public class SpectralRTI_Toolkit implements Command {
                     else if ((i+1)/listOfNarrowbandCaptures.length > 0.67) defaultRange = "R";
                     else defaultRange = "G";
                     narrowBandDialog.setInsets(0,0,0);
-                    String narrowCapture = listOfNarrowbandCaptures[i].toString();
+                    String narrowCapture = listOfNarrowbandCaptures[i].getName();
                     narrowBandDialog.addRadioButtonGroup(narrowCapture, rgbnOptions, 1, 4, defaultRange);
 		} 
                 /**
@@ -468,13 +468,13 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int j=0; j<listOfNarrowbandCaptures.length; j++) {
                     rangeChoice = narrowBandDialog.getNextRadioButton();
                     if (rangeChoice.equals("R")) {
-                        redNarrowbands_list.add(listOfNarrowbandCaptures[j]);
+                        redNarrowbands_list.add(listOfNarrowbandCaptures[j].getName());
                     } 
                     else if (rangeChoice.equals("G")) {
-                        greenNarrowbands_list.add(listOfNarrowbandCaptures[j]);
+                        greenNarrowbands_list.add(listOfNarrowbandCaptures[j].getName());
                     } 
                     else if (rangeChoice.equals("B")) {
-                        blueNarrowbands_list.add(listOfNarrowbandCaptures[j]);
+                        blueNarrowbands_list.add(listOfNarrowbandCaptures[j].getName());
                     }
 		}
                 logService.log().info("We should have red, green and blue narrow bands");
@@ -490,16 +490,18 @@ public class SpectralRTI_Toolkit implements Command {
                     File narrowbandNoGamma = new File(listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString()); //projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+
                     imp = opener.openImage( narrowbandNoGamma.toString() );
                     imglib2_img = ImagePlusAdapter.wrap( imp );
-                    ImageJFunctions.show(imglib2_img, "Preview");
+                    imp.setTitle("Preview");
+                    //ImageJFunctions.show(imglib2_img, "Preview");
+                    imp.show();
                     dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
                     dWait.show();
-                    bounds = WindowManager.getImage("Preview").getRoi().getBounds();
+                    bounds = imp.getRoi().getBounds();
                     pcaX = bounds.x;
                     pcaY = bounds.y;
                     pcaHeight = bounds.height;
                     pcaWidth = bounds.width;
-                    WindowManager.getImage("Preview").close();
-		};
+                    imp.close();
+		}
             }
             /**
              * @see only interaction here, processing later 
@@ -839,6 +841,8 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int i=1;i<greenNarrowbands.length;i++) {
                     greenStringList = greenStringList+"|"+greenNarrowbands[i].toString();
 		}
+                logService.log().info("What is greenStringList");
+                logService.log().info(greenStringList);
 		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+greenStringList+") sort");
                 WindowManager.getImage("Captures-Narrowband-NoGamma").setTitle("GreenStack");
                 WindowManager.getImage("GreenStack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
@@ -861,6 +865,8 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int i=1;i<blueNarrowbands.length;i++) {
                     blueStringList = blueStringList+"|"+blueNarrowbands[i].toString();
 		}
+                logService.log().info("What is blueStringList");
+                logService.log().info(blueStringList);
 		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+blueStringList+") sort");
                 WindowManager.getImage("Captures-Narrowband-NoGamma").setTitle("BlueStack");
                 WindowManager.getImage("BlueStack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
@@ -1533,8 +1539,9 @@ public class SpectralRTI_Toolkit implements Command {
              END DEBUGGING */
             imp = opener.openImage( listOfHemisphereCaptures[Math.round(listOfHemisphereCaptures.length/2)].toString() );
             imglib2_img = ImagePlusAdapter.wrap( imp );
-            ImageJFunctions.show(imglib2_img, "Preview");
-            
+            imp.setTitle("Preview");
+            //ImageJFunctions.show(imglib2_img, "Preview");
+            imp.show();
             String[] brightnessAdjustOptions = new String[3];
             brightnessAdjustOptions[0] = "No";
             brightnessAdjustOptions[1] = "Yes, by normalizing each image to a selected area";
@@ -1561,7 +1568,7 @@ public class SpectralRTI_Toolkit implements Command {
                 //logService.log().warn("Bright Case 1");
                 dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
                 dWait.show();
-                bounds = WindowManager.getImage("Preview").getRoi().getBounds();
+                bounds = imp.getRoi().getBounds();
                 region = new RectangleOverlay();
                 normX = bounds.x;
                 normY = bounds.y;
@@ -1573,7 +1580,7 @@ public class SpectralRTI_Toolkit implements Command {
                // logService.log().warn("Bright Case 2");
                 dWait = new WaitForUserDialog("Use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered next." );
                 dWait.show();
-                IJ.run("Multiply...");
+                IJ.run(imp, "Multiply...", "");
                 GenericDialog gdMultiplier = new GenericDialog("Enter selected multiplier");
                 gdMultiplier.addNumericField("Enter selected multiplier: ", 1.30,2,4,"");
                 gdMultiplier.showDialog();
@@ -1584,7 +1591,7 @@ public class SpectralRTI_Toolkit implements Command {
             else{
                 logService.log().warn("Bright NOCASE");
             }
-            WindowManager.getImage("Preview").close();
+            imp.close();
         } 
         
         /** 
