@@ -12,7 +12,6 @@
     * This was originally written as an ImageJ Macro by Todd Hanneken.  Hosted in Todd's repo at
     * https://github.com/thanneken/SpectralRTI_Toolkit
  * </p>
-
   *<h2> Helpful sources links </h2>
   * <ul>
   *     <li> https://imagej.nih.gov/ij/docs/guide/146-26.html </li>
@@ -715,30 +714,37 @@ public class SpectralRTI_Toolkit implements Command {
             if (acRakingDesired) {
                 imp = opener.openImage( accurateColorSource.toString() ); 
                 imglib2_img = ImagePlusAdapter.wrap( imp );
-                ImageJFunctions.show(imglib2_img, "RGBtiff");
+                imp.setTitle("RGBtiff");
+                //ImageJFunctions.show(imglib2_img, "RGBtiff");
 		if (imp.getBitDepth() == 8) {
-                    IJ.run("RGB Color");
+                    IJ.run(imp,"RGB Color","");
 		}
 		/**
                  * @see create accurate color static diffuse
                 */
 		noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
-		IJ.save(WindowManager.getImage("RGBtiff"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
+		IJ.save(imp, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
 		createJp2(projectName+"_Ac_00", projectDirectory);
                 toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
                 //Files.deleteIfExists(toDelete.toPath()); //Why do we do this?
-		IJ.run("RGB to YCbCr stack");
+		IJ.run(imp, "RGB to YCbCr stack", "");
 		IJ.run("Stack to Images"); //Converts the slices in the current stack to separate image windows.
                 WindowManager.getImage("Y").close();
-                WindowManager.getImage("RGBtiff").setActivated();
+                imp.changes = false;
+                imp.close();
+                //WindowManager.getImage("RGBtiff").setActivated();
 		//Luminance from transmissive
                 logService.log().info("Transmissive source has value "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
                     logService.log().info("Inside Transmissive Source Flag");
                     imp = opener.openImage( transmissiveSource ); 
-                    ImageJFunctions.show(imglib2_img,"TransmissiveLuminance");
-                    IJ.run("8-bit");
+                    imp.setTitle("TransmissiveLuminance");
+                    //ImageJFunctions.show(imglib2_img,"TransmissiveLuminance");
+                    IJ.run(imp, "8-bit", "");
+                    imp.show();
                     IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
+                    imp.changes=false;
+                    imp.close();
                     IJ.run("YCbCr stack to RGB");
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     IJ.save(WindowManager.getImage("YCC - RGB"),projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
@@ -747,30 +753,34 @@ public class SpectralRTI_Toolkit implements Command {
                     //Files.deleteIfExists(toDelete.toPath());   
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
-                    WindowManager.getImage("RGBtiff").changes = false;
-                    WindowManager.getImage("RGBtiff").close(); //Yikes pay attention to this.  Do we want to close it here?
+                    //WindowManager.getImage("RGBtiff").changes = false;
+                    //WindowManager.getImage("RGBtiff").close(); //Yikes pay attention to this.  Do we want to close it here?
 		}
 		//Luminance from hemisphere captures
                 logService.log().warn("Entering a hemishpere captures loop");
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
                         if (listOfRakingDirections.get(i)) {
-                            logService.log().info("listOfRakingDirection is "+listOfRakingDirections.get(i));
-                            logService.log().info("Hemisphere caputre is "+listOfHemisphereCaptures[i].toString());
+                            //logService.log().info("listOfRakingDirection is "+listOfRakingDirections.get(i));
+                            //logService.log().info("Hemisphere caputre is "+listOfHemisphereCaptures[i].toString());
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
+                            imp.setTitle("Luminance");
                             imglib2_img = ImagePlusAdapter.wrap(imp);
-                            ImageJFunctions.show(imglib2_img,"Luminance");
+                            //ImageJFunctions.show(imglib2_img,"Luminance");
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                                WindowManager.getImage("Luminance").setRoi(normX, normY, normWidth, normHeight);
-                                IJ.run("Enhance Contrast...", "saturated=0.4");
+                                imp.setRoi(normX, normY, normWidth, normHeight);
+                                IJ.run(imp, "Enhance Contrast...", "saturated=0.4");
 //                                run("Select None");
                             } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                IJ.run("Multiply...", "value="+normalizationFixedValue+""); //Multiplies the image or selection by the specified real constant. With 8-bit images, results greater than 255 are set to 255
+                                IJ.run(imp, "Multiply...", "value="+normalizationFixedValue+""); //Multiplies the image or selection by the specified real constant. With 8-bit images, results greater than 255 are set to 255
                             }
-                            WindowManager.getImage("Luminance").setActivated(); //This image is 16bit and causing problems below
-                            IJ.run("8-bit");
+                           //WindowManager.getImage("Luminance").setActivated(); //This image is 16bit and causing problems below
+                            IJ.run(imp, "8-bit", "");
+                            imp.show();
                             IJ.run("Concatenate...", "title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
                             IJ.run("YCbCr stack to RGB");
+                            imp.changes = false;
+                            imp.close();
                             positionNumber = IJ.pad(i+1, 2).toString();
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             logService.log().info("What is the thing we are trying to save here   " + projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
@@ -780,8 +790,7 @@ public class SpectralRTI_Toolkit implements Command {
                             //Files.deleteIfExists(toDelete.toPath());     
                             WindowManager.getImage("YCC - RGB").close();
                             WindowManager.getImage("YCC").close(); 
-                            WindowManager.getImage("Luminance").changes = false;
-                            WindowManager.getImage("Luminance").close();
+                            
                         }
                     }
 		}
@@ -889,10 +898,14 @@ public class SpectralRTI_Toolkit implements Command {
 		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource );
                     imglib2_img = ImagePlusAdapter.wrap( imp );
-                    ImageJFunctions.show(imglib2_img, "TransmissiveLuminance");
-                    IJ.run("8-bit");
+                    imp.setTitle("TransmissiveLuminance");
+                    //ImageJFunctions.show(imglib2_img, "TransmissiveLuminance");
+                    IJ.run(imp, "8-bit", "");
+                    imp.show();
                     IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
                     IJ.run("YCbCr stack to RGB");
+                    imp.changes=false;
+                    imp.close();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     createJp2(projectName+"_Xs_Tx", projectDirectory);
@@ -900,8 +913,8 @@ public class SpectralRTI_Toolkit implements Command {
                    // Files.deleteIfExists(toDelete.toPath()); 
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
-                    WindowManager.getImage("TransmissiveLuminance").changes = false;
-                    WindowManager.getImage("TransmissiveLuminance").close();
+                    //WindowManager.getImage("TransmissiveLuminance").changes = false;
+                    //WindowManager.getImage("TransmissiveLuminance").close();
 		}
 		if (xsRtiDesired) {
                     if (!extended_spectrum_dir.exists()) {
@@ -913,17 +926,19 @@ public class SpectralRTI_Toolkit implements Command {
                     if (xsRtiDesired) {
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
-                        ImageJFunctions.show(imglib2_img,"Luminance");
+                        imp.setTitle("Luminance");
+                        //ImageJFunctions.show(imglib2_img,"Luminance");
                         if (brightnessAdjustApply.equals("RTI images also")) {
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                                WindowManager.getImage("Luminance").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                                IJ.run(WindowManager.getImage("Luminance"),"Enhance Contrast...", "saturated=0.4");
+                                imp.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                                IJ.run(imp,"Enhance Contrast...", "saturated=0.4");
                                 IJ.run("Select None");
                             } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                IJ.run(WindowManager.getImage("Luminance"), "Multiply...", "value="+normalizationFixedValue+"");
+                                IJ.run(imp, "Multiply...", "value="+normalizationFixedValue+"");
                             }
                         }
-                        IJ.run("8-bit");
+                        IJ.run(imp, "8-bit", "");
+                        imp.show();
                         //IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
                         IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
                         //Should this be color here?
@@ -937,24 +952,28 @@ public class SpectralRTI_Toolkit implements Command {
                         noClobber(projectDirectory+"ExtendedSpectrumRTI"+File.separator+simpleImageName+".jpg");
                         IJ.saveAs("jpeg", projectDirectory+"ExtendedSpectrumRTI"+File.separator+simpleImageName+".jpg");
                         WindowManager.getImage("YCC").close();
-                        WindowManager.getImage("Luminance").changes = false;
-                        WindowManager.getImage("Luminance").close();
+                        imp.changes = false;
+                        imp.close();
                         WindowManager.getImage(simpleImageName+".jpg").close();
                     }
                     if (xsRakingDesired) {
                         if (listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
-                            ImageJFunctions.show(imglib2_img,"Luminance");
+                            imp.setTitle("Luminance");
+                            //ImageJFunctions.show(imglib2_img,"Luminance");
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                                WindowManager.getImage("Luminance").setRoi(normX,normY,normWidth,normHeight); 
-                                IJ.run("Enhance Contrast...", "saturated=0.4");
+                                imp.setRoi(normX,normY,normWidth,normHeight); 
+                                IJ.run(imp, "Enhance Contrast...", "saturated=0.4");
                                 IJ.run("Select None");
                             } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                IJ.run("Multiply...", "value="+normalizationFixedValue+"");
+                                IJ.run(imp, "Multiply...", "value="+normalizationFixedValue+"");
                             }
-                            IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
+                            IJ.run(imp, "8-bit", "");
+                            imp.show();
                             IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
+                            imp.changes = false;
+                            imp.close();
                             IJ.run("YCbCr stack to RGB");
                             positionNumber = IJ.pad(i+1, 2).toString();
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
@@ -964,8 +983,6 @@ public class SpectralRTI_Toolkit implements Command {
                             //Files.deleteIfExists(toDelete.toPath()); 
                             WindowManager.getImage("YCC").close();
                             WindowManager.getImage("YCC - RGB").close();
-                            WindowManager.getImage("Luminance").changes = false;
-                            WindowManager.getImage("Luminance").close();
                             //IJ.selectWindow("Luminance");
                             //IJ.run("Close");
                         }
@@ -1072,10 +1089,14 @@ public class SpectralRTI_Toolkit implements Command {
                     if (!transmissiveSource.equals("")) {
                         imp = opener.openImage( transmissiveSource );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
-                        ImageJFunctions.show(imglib2_img,"TransmissiveLuminance");
-                        IJ.run("8-bit");
+                        imp.setTitle("TransmissiveLuminance");
+                        //ImageJFunctions.show(imglib2_img,"TransmissiveLuminance");
+                        IJ.run(imp, "8-bit", "");
+                        imp.show();
                         IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
                         IJ.run("YCbCr stack to RGB");
+                        imp.changes = false;
+                        imp.close();
                         noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         createJp2(projectName+"_Ps_Tx", projectDirectory);
@@ -1083,8 +1104,8 @@ public class SpectralRTI_Toolkit implements Command {
                         //Files.deleteIfExists(toDelete.toPath());
                         WindowManager.getImage("YCC - RGB").close();
                         WindowManager.getImage("YCC").close();
-                        WindowManager.getImage("TransmissiveLuminance").changes = false;
-                        WindowManager.getImage("TransmissiveLuminance").close();
+                        //WindowManager.getImage("TransmissiveLuminance").changes = false;
+                       // WindowManager.getImage("TransmissiveLuminance").close();
                     }
 		}
 		if (psRtiDesired) {
@@ -1098,18 +1119,19 @@ public class SpectralRTI_Toolkit implements Command {
                     if (psRtiDesired||listOfRakingDirections.size() >= i+1) {
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
-                        ImageJFunctions.show(imglib2_img,"Luminance");
+                        imp.setTitle("Luminance");
+                        //ImageJFunctions.show(imglib2_img,"Luminance");
                         int extensionIndex = -1;
-                        IJ.run("Duplicate...", "title=EnhancedLuminance");
+                        IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
                         WindowManager.getImage("EnhancedLuminance").setActivated();
                         if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                             WindowManager.getImage("EnhancedLuminance").setRoi(normX,normY,normWidth,normHeight); 
-                            IJ.run("Enhance Contrast...", "saturated=0.4");
+                            IJ.run(WindowManager.getImage("EnhancedLuminance"),"Enhance Contrast...", "saturated=0.4");
                             IJ.run("Select None");
                         } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                            IJ.run("Multiply...", "value="+normalizationFixedValue+"");
+                            IJ.run(WindowManager.getImage("EnhancedLuminance"),"Multiply...", "value="+normalizationFixedValue+"");
                         }
-                        IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
+                        IJ.run(imp, "8-bit", "");
                         IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
                         //IJ.run("8-bit");
                         if (listOfRakingDirections.size() >= i+1) {
@@ -1152,9 +1174,9 @@ public class SpectralRTI_Toolkit implements Command {
                             WindowManager.getImage("Pseudocolor_"+simpleImageName+".jpg").close();
                         }
                         WindowManager.getImage("EnhancedLuminance").changes = false;
-                        WindowManager.getImage("Luminance").changes = false;
+                        imp.changes = false;
                         WindowManager.getImage("EnhancedLuminance").close();
-                        WindowManager.getImage("Luminance").close();
+                        imp.close();
                     }
 		}
                 WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").close();
@@ -1176,7 +1198,7 @@ public class SpectralRTI_Toolkit implements Command {
 		}
                 imp = opener.openImage(csSource);
                 imglib2_img = ImagePlusAdapter.wrap( imp );
-                ImageJFunctions.show(imglib2_img,"csSource");
+                //ImageJFunctions.show(imglib2_img,"csSource");
 		if ((imp.getImageStackSize() == 1)&&(imp.getBitDepth()<24)) {
                     if (csRakingDesired) {
                         noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
@@ -1185,24 +1207,23 @@ public class SpectralRTI_Toolkit implements Command {
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
                         //Files.deleteIfExists(toDelete.toPath());
                     }
-                    IJ.run("8-bit");
-                    IJ.run("Duplicate...", "title=Cb");
-                    IJ.run("Duplicate...", "title=Cr");
+                    IJ.run(imp, "8-bit", "");
+                    IJ.run(imp, "Duplicate...", "title=Cb");
+                    IJ.run(imp, "Duplicate...", "title=Cr");
 		} 
                 else if (imp.getImageStackSize() == 2) {
-                    IJ.run("8-bit");
-                    IJ.run("Stack to Images");
+                    IJ.run(imp, "8-bit", "");
+                    IJ.run(imp, "Stack to Images", "");
                     WindowManager.getImage(1).setTitle("Cb");
                     WindowManager.getImage(2).setTitle("Cr");
-                    
 		} 
                 else if ((imp.getImageStackSize() > 2)||(imp.getBitDepth()==24)){
                     if (imp.getImageStackSize() > 3) {
-                        IJ.run("Slice Keeper", "first=1 last=3 increment=1");
+                        IJ.run(imp, "Slice Keeper", "first=1 last=3 increment=1");
                         logService.log().info("Only the first three slices in the stack can be used at this time.");
                     }
                     if (imp.getBitDepth() == 8) {
-                        IJ.run("RGB Color");
+                        IJ.run(imp, "RGB Color", "");
                     }
                     //create a 00 static diffuse
                     if (csRakingDesired) {
@@ -1212,7 +1233,7 @@ public class SpectralRTI_Toolkit implements Command {
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
                         //Files.deleteIfExists(toDelete.toPath());
                     }
-                    IJ.run("RGB to YCbCr stack");
+                    IJ.run(imp, "RGB to YCbCr stack", "");
                     IJ.run("8-bit");
                     IJ.run("Stack to Images");
                     WindowManager.getImage("Y").close();
@@ -1221,10 +1242,13 @@ public class SpectralRTI_Toolkit implements Command {
 		if (!transmissiveSource.equals("")) {
                     imp = opener.openImage( transmissiveSource );
                     imglib2_img = ImagePlusAdapter.wrap( imp );
-                    ImageJFunctions.show(imglib2_img,"TransmissiveLuminance");
-                    IJ.run("8-bit");
+                    //ImageJFunctions.show(imglib2_img,"TransmissiveLuminance");
+                    IJ.run(imp, "8-bit", "");
+                    imp.show();
                     IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
                     IJ.run("YCbCr stack to RGB");
+                    imp.changes = false;
+                    imp.close();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     createJp2(projectName+"_"+csProcessName+"_Tx", projectDirectory);
@@ -1232,34 +1256,34 @@ public class SpectralRTI_Toolkit implements Command {
                     //Files.deleteIfExists(toDelete.toPath());
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
-                    WindowManager.getImage("TransmissiveLuminance").changes = false;
-                    WindowManager.getImage("TransmissiveLuminance").close();
+                    //WindowManager.getImage("TransmissiveLuminance").changes = false;
+                    //WindowManager.getImage("TransmissiveLuminance").close();
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
                         if ((csRtiDesired)||(listOfRakingDirections.get(i))) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
-                            ImageJFunctions.show(imglib2_img,"Luminance");
+                            //ImageJFunctions.show(imglib2_img,"Luminance");
                             int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                             if (extensionIndex != -1)
                             {
                                 simpleImageName = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
                             }
-                            IJ.run("Duplicate...", "title=EnhancedLuminance");
+                            IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                                 region = new RectangleOverlay();
-                                WindowManager.getImage("Luminance").setRoi(normX,normY,normWidth,normHeight); 
-                                IJ.run("Enhance Contrast...", "saturated=0.4");
+                                imp.setRoi(normX,normY,normWidth,normHeight); 
+                                IJ.run(WindowManager.getImage("EnhancedLuminance"),"Enhance Contrast...", "saturated=0.4");
                                 IJ.run("Select None");
                             } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                IJ.run("Multiply...", "value="+normalizationFixedValue+"");
+                                IJ.run(WindowManager.getImage("EnhancedLuminance"),"Multiply...", "value="+normalizationFixedValue+"");
                             }
                             //IJ.selectWindow("Luminance");
                             IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
                             WindowManager.getWindow("EnhancedLuminance").toFront();
                             //IJ.selectWindow("EnhancedLuminance");
-                            IJ.run("8-bit");
+                            IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
                             if (listOfRakingDirections.get(i)){
                                 IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
                                 IJ.run("YCbCr stack to RGB");
@@ -1290,9 +1314,9 @@ public class SpectralRTI_Toolkit implements Command {
                                 //IJ.run("Close");
                             }
                             WindowManager.getImage("EnhancedLuminance").changes = false;
-                            WindowManager.getImage("Luminance").changes = false;
+                            imp.changes = false;
                             WindowManager.getImage("EnhancedLuminance").close();
-                            WindowManager.getImage("Luminance").close();
+                            imp.close();
                         }
                     }
 		}
