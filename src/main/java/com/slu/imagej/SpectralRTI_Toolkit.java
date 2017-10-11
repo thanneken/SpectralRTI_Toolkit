@@ -12,7 +12,7 @@
     * This was originally written as an ImageJ Macro by Todd Hanneken.  Hosted in Todd's repo at
     * https://github.com/thanneken/SpectralRTI_Toolkit
  * </p>
-  *<h2> Helpful sources links </h2>
+  *<h2> Helpful sources' links </h2>
   * <ul>
   *     <li> https://imagej.nih.gov/ij/docs/guide/146-26.html </li>
   *     <li> https://imagej.net/2016-04-19_-_Writing_ImageJ2_Plugins:_A_Beginner%27s_Perspective </li>
@@ -25,6 +25,8 @@
   *     <li> https://docs.oracle.com/javase/tutorial/essential/io/file.html </li>
   *     <li> http://imagej.1557.x6.nabble.com/Re-Plugin-Command-To-Close-Window-Without-quot-Save-Changes-quot-Dialog-td3683293.html </li>
   *     <li> http://www.javapractices.com/topic/TopicAction.do?Id=42 </li>
+  *     <li> https://stackoverflow.com/questions/15199119/runtime-exec-waitfor-doesnt-wait-until-process-is-done </li>
+  *     <li> NEW </li>
   *     <li> NEW </li>
   *     <li> NEW </li>
   * </ul>
@@ -63,7 +65,7 @@ import net.imagej.overlay.RectangleOverlay;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -77,12 +79,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// Apache Commons for native shell command support.  Still requires a windows + all other OS version.  Follow the isWindows variable
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.Executor;
 
 /**
  * @author bhaberbe
@@ -94,7 +90,7 @@ import org.apache.commons.exec.Executor;
 public class SpectralRTI_Toolkit implements Command {
         private Context context;
         
-        /** The global ImagePlus object to be used throughout.  Used with the IJ library for ImageJ functionality */
+        /** The global ImagePlus object to be used throughout.  Used with the IJ library for ImageJ functionality, supported by IJ2. */
         protected ImagePlus imp;
         
         /** The global ImgLib2 compatible Img type object to be used throughout.  Used with the ImgLib2 library. */
@@ -105,6 +101,8 @@ public class SpectralRTI_Toolkit implements Command {
         private LogService logService;
                 
         //SRTI vars
+        private Process p;
+        private Process p2;
         private int jpegQuality = 100; //maximize quality for non-distribution phases
         private final int jpegQualityWebRTI = 100; //lower for final distribution
         private final int ramWebRTI = 8192;
@@ -123,16 +121,16 @@ public class SpectralRTI_Toolkit implements Command {
 	private String lpSource = "";
 	private String projectDirectory = "";
 	private String projectName = "";
-        private List<Boolean> listOfRakingDirections = new ArrayList<>();
+        private final List<Boolean> listOfRakingDirections = new ArrayList<>();
         private String simpleImageName = "";
         private Rectangle bounds;
         //This is important for native commands.  Java is NOT PLATFORM INDEPENDENT, so check what platform we are.
         private final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
         private String positionNumber = "";
         String pcaMethod = "";
-        private List<String> redNarrowbands_list = new ArrayList<>();
-        private List<String> greenNarrowbands_list = new ArrayList<>();
-        private List<String> blueNarrowbands_list = new ArrayList<>();
+        private final List<String> redNarrowbands_list = new ArrayList<>();
+        private final List<String> greenNarrowbands_list = new ArrayList<>();
+        private final List<String> blueNarrowbands_list = new ArrayList<>();
         
         Object[] redNarrowbands = new File[0];
         Object[] greenNarrowbands = new File[0];
@@ -454,6 +452,7 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
 		for (int i=0; i<listOfNarrowbandCaptures.length; i++) {
+                    //Yikes are these right?  I feel like default assignment is wrong...
                     if ((i+1)/listOfNarrowbandCaptures.length < 0.34) defaultRange = "B";
                     else if ((i+1)/listOfNarrowbandCaptures.length > 0.67) defaultRange = "R";
                     else defaultRange = "G";
@@ -478,8 +477,6 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
                 logService.log().info("We should have red, green and blue narrow bands");
-                
-                logService.log().info("Do we have the three?");
                 redNarrowbands = redNarrowbands_list.toArray();
                 greenNarrowbands = greenNarrowbands_list.toArray();
                 blueNarrowbands = blueNarrowbands_list.toArray();
@@ -1008,8 +1005,8 @@ public class SpectralRTI_Toolkit implements Command {
 		if (pcaMethod.equals("Generate and select using defaults")) {
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
                     if (fluorescenceNoGamma.exists()) {
-                            IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                            IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
+                        IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
+                        IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
                     } 
                     else {
                         //WindowManager.getImage("Captures-Narrowband-NoGamma").setTitle("Captures-Fluorescence-NoGamma");
@@ -1079,7 +1076,7 @@ public class SpectralRTI_Toolkit implements Command {
                     } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                         IJ.run("Multiply...", "value="+normalizationFixedValue+"");
                     }
-                    IJ.run("Luminance", "8-bit"); //on Luminance
+                    IJ.run(WindowManager.getImage("Luminance"), "8-bit", ""); //on Luminance
                     IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
                     IJ.run("YCbCr stack to RGB");
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
@@ -1372,7 +1369,7 @@ public class SpectralRTI_Toolkit implements Command {
         * @return listOfFiles A list of files from the given directory
         * @throws java.io.IOException
         */
-        public String createJp2(String inFile, String projDir) throws IOException {
+        public String createJp2(String inFile, String projDir) throws IOException, InterruptedException {
             logService.log().info("We are in create jp2");
             logService.log().warn(inFile +" , "+projDir);
             String preferredCompress = theList.get("preferredCompress");
@@ -1397,7 +1394,6 @@ public class SpectralRTI_Toolkit implements Command {
             }
             if (preferredJp2Args.equals("")){
                 GenericDialog gd = new GenericDialog("Approve arguments for Jpeg 2000 compression");
-                //Yikes -,2.4, ... is that -, supposed to be
                 String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible\\=no Clevels\\=5 Stiles\\=\\{1024,1024\\} Cblk\\=\\{64,64\\} Cuse_sop\\=yes Cuse_eph\\=yes Corder\\=RPCL ORGgen_plt\\=yes ORGtparts\\=R Cmodes\\=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
                 gd.addStringField("Arguments:",arguments,80);
                 gd.showDialog();
@@ -1418,54 +1414,16 @@ public class SpectralRTI_Toolkit implements Command {
              //Pay attention to preferredJP2Args, it assumes !isWindows
             if(isWindows){
                 logService.log().warn("Windows native command");
-                //preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
-                CommandLine cmdLine = new CommandLine("cmd.exe");
-                cmdLine.addArgument(preferredCompress);
-                cmdLine.addArgument("-i");
-                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".tiff");
-                cmdLine.addArgument("-o");
-                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".jp2");
-                cmdLine.addArgument(preferredJp2Args);
-                DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-                ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
-                Executor executor = new DefaultExecutor();
-                executor.setWatchdog(watchdog);
-                logService.log().info("Running the following command");
-                    logService.log().info(cmdLine.toString());
-                executor.execute(cmdLine, resultHandler);
-                try {
-                    // some time later the result handler callback was invoked so we
-                    // can safely request the exit value
-                    resultHandler.waitFor();
-                    logService.log().info("Executed command 5");
-                    logService.log().info(resultHandler.getExitValue());
-                    returnString = ""+resultHandler.getExitValue();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
+                logService.log().info(commandString);
+                p = Runtime.getRuntime().exec("cmd /c start /wait"+commandString);
+                p.waitFor();
+//preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
+                
             }
             else{
-                CommandLine cmdLine = new CommandLine("sh");
-                cmdLine.addArgument(preferredCompress);
-                cmdLine.addArgument("-i");
-                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".tiff");
-                cmdLine.addArgument("-o");
-                cmdLine.addArgument(projDir+"StaticRaking"+File.separator+inFile+".jp2 ");
-                cmdLine.addArgument(preferredJp2Args);
-                DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-                ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
-                Executor executor = new DefaultExecutor();
-                executor.setWatchdog(watchdog);
-                executor.execute(cmdLine, resultHandler);
-                try {
-                    // some time later the result handler callback was invoked so we
-                    // can safely request the exit value
-                    resultHandler.waitFor();
-                    logService.log().info("Executed command 5");
-                    returnString = ""+resultHandler.getExitValue();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-                }
+               String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
+               p = Runtime.getRuntime().exec(commandString);
             }
             logService.log().info("Complete createJP2");
             return returnString;
@@ -1644,59 +1602,15 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), appendString.getBytes(), StandardOpenOption.APPEND);
                 if(isWindows){
                     //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
-                    logService.log().warn("Windows native commands");
-                    CommandLine cmdLine = new CommandLine("cmd.exe");
-                    cmdLine.addArgument(preferredFitter);
-                    cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
-                    cmdLine.addArgument(""+hshOrder);
-                    cmdLine.addArgument(""+hshThreads);
-                    cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
-                    logService.log().info("Running the following command");
-                    logService.log().info(cmdLine.toString());
-                    DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-                    ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
-                    Executor executor = new DefaultExecutor();
-                    //executor.setExitValue(1);
-                    executor.setWatchdog(watchdog);
-                    executor.execute(cmdLine, resultHandler);
-                    try {
-                        // some time later the result handler callback was invoked so we
-                        // can safely request the exit value
-                        resultHandler.waitFor();
-                        logService.log().info("Executed command 6");
-                        fitterOutput = ""+resultHandler.getExitValue();
-                        logService.log().info("Fiter output   "+fitterOutput);
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                    logService.log().info(commandString);
+                    p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
+                    p.waitFor();
                 }
                 else{
-                    CommandLine cmdLine = new CommandLine("sh");
-                    cmdLine.addArgument(preferredFitter);
-                    cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp ");
-                    cmdLine.addArgument(theList.get("hshOrder"));
-                    cmdLine.addArgument(theList.get("hshThreads"));
-                    cmdLine.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
-                    DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-                    ExecuteWatchdog watchdog = new ExecuteWatchdog(60*1000);
-                    Executor executor = new DefaultExecutor();
-                    //executor.setExitValue(1);
-                    executor.setWatchdog(watchdog);
-                    executor.execute(cmdLine, resultHandler);
-                    try {
-                        // some time later the result handler callback was invoked so we
-                        // can safely request the exit value
-                        resultHandler.waitFor();
-                        logService.log().info("Executed command 6");
-                        fitterOutput = ""+resultHandler.getExitValue();
-                        logService.log().info("Fiter output   "+fitterOutput);
-                        Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt"), fitterOutput.getBytes(), StandardOpenOption.APPEND);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                    p = Runtime.getRuntime().exec(commandString);
                 }
-                
                 if (webRtiDesired) {
                     String webString;
                     webRtiMaker = theList.get("webRtiMaker");
@@ -1712,55 +1626,15 @@ public class SpectralRTI_Toolkit implements Command {
                     
                     if(isWindows){
                         //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
-                        logService.log().warn("Windows native commands");   
-                        CommandLine cmdLine2 = new CommandLine("cmd.exe");
-                        cmdLine2.addArgument(preferredFitter);
-                        cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
-                        cmdLine2.addArgument(theList.get("hshOrder"));
-                        cmdLine2.addArgument(theList.get("hshThreads"));
-                        cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
-                        DefaultExecuteResultHandler resultHandler2 = new DefaultExecuteResultHandler();
-                        ExecuteWatchdog watchdog2 = new ExecuteWatchdog(60*1000);
-                        Executor executor2 = new DefaultExecutor();
-                        executor2.setWatchdog(watchdog2);
-                        logService.log().info("Running the following command");
-                    logService.log().info(cmdLine2.toString());
-                        executor2.execute(cmdLine2, resultHandler2);
-                        try {
-                            // some time later the result handler callback was invoked so we
-                            // can safely request the exit value
-                            resultHandler2.waitFor();
-                            logService.log().info("Executed command 7");
-                            webRtiMakerOutput = ""+resultHandler2.getExitValue();
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                        String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                        logService.log().info(commandString);
+                        p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
+                        p2.waitFor();
                     }
                     else{
-                        CommandLine cmdLine2 = new CommandLine("sh");
-                        cmdLine2.addArgument(preferredFitter);
-                        cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp");
-                        cmdLine2.addArgument(theList.get("hshOrder"));
-                        cmdLine2.addArgument(theList.get("hshThreads"));
-                        cmdLine2.addArgument(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti");
-                        DefaultExecuteResultHandler resultHandler2 = new DefaultExecuteResultHandler();
-                        ExecuteWatchdog watchdog2 = new ExecuteWatchdog(60*1000);
-                        Executor executor2 = new DefaultExecutor();
-                        executor2.setWatchdog(watchdog2);
-                        executor2.execute(cmdLine2, resultHandler2);
-                        try {
-                            // some time later the result handler callback was invoked so we
-                            // can safely request the exit value
-                            resultHandler2.waitFor();
-                            logService.log().info("Executed command 7");
-                            webRtiMakerOutput = ""+resultHandler2.getExitValue();
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                        String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                        p2 = Runtime.getRuntime().exec(commandString);
                     }
-                    logService.log().info(webRtiMakerOutput);
-                    appendString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";                       
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiMaker.getBytes(), StandardOpenOption.APPEND);
                 }
             } 
             else if (preferredFitter.endsWith("cmd")||preferredFitter.endsWith("bash")) {
