@@ -26,8 +26,8 @@
   *     <li> http://imagej.1557.x6.nabble.com/Re-Plugin-Command-To-Close-Window-Without-quot-Save-Changes-quot-Dialog-td3683293.html </li>
   *     <li> http://www.javapractices.com/topic/TopicAction.do?Id=42 </li>
   *     <li> https://stackoverflow.com/questions/15199119/runtime-exec-waitfor-doesnt-wait-until-process-is-done </li>
-  *     <li> NEW </li>
-  *     <li> NEW </li>
+  *     <li> https://stackoverflow.com/questions/35427546/how-to-add-scrollablescrollbar-component-checkbox-in-a-panel-in-javaswing </li>
+  *     <li> https://docs.oracle.com/javase/tutorial/uiswing/layout/visual.html </li>
   *     <li> NEW </li>
   * </ul>
 */
@@ -46,7 +46,7 @@ import ij.ImagePlus; // this is IJ 1.x but still needs to be used for the comple
 
 
 //ImageJ2 specific imports
-import java.awt.Rectangle;
+
 import net.imagej.ImageJ; 
 import org.scijava.Context;
 import org.scijava.command.Command;
@@ -55,6 +55,8 @@ import org.scijava.plugin.Plugin;
 import org.scijava.log.LogService;
 import net.imglib2.img.Img;
 import io.scif.img.ImgIOException;
+import java.awt.Component;
+import java.awt.Dialog;
 import net.imglib2.img.ImagePlusAdapter; //Wraps ij.ImagePlus into an ImgLib2 image (ImgPlus but acts like ImagePlus)
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.real.FloatType;
@@ -78,13 +80,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.Rectangle;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Enumeration;
+import javax.swing.AbstractButton;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 
 
 /**
  * @author bhaberbe
  * @see the @Plugin tag here, it allows me to define where I want this to show up in the ImageJ menu.
  * The class to be be implemented as an ImageJ command.  Does not need an image opened already.  
- * This is compliant with ImageJ2 and intended to be used with the Fiji version. Java 8 compatible?
+ * This is compliant with ImageJ2 and intended to be used with the Fiji version.
  */
 @Plugin(type = Command.class, menuPath = "Plugins>SpectralRTI_Toolkit")  
 public class SpectralRTI_Toolkit implements Command {
@@ -95,6 +126,14 @@ public class SpectralRTI_Toolkit implements Command {
         
         /** The global ImgLib2 compatible Img type object to be used throughout.  Used with the ImgLib2 library. */
         protected Img< FloatType > imglib2_img;       
+        
+        private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        
+        private Dimension minSize = new Dimension(200, 200);
+        
+        private Dimension preferredSize = new Dimension(800, 500);
+        
+        private Dimension bestFit = new Dimension(screenSize.width-20, screenSize.height-20);
         
         /** The logger for the given application, in this case ImageJ */
         @Parameter
@@ -154,12 +193,63 @@ public class SpectralRTI_Toolkit implements Command {
             theList.put("hshThreads", "0");
             theList.put("webRitMaker", "");
         }
+        private JPanel contentPane = new JPanel();
+        
         final ImageJ ij2 = new ImageJ();
         //End SRTI vars
 	public double value;
         public String name;
         public File spectralPrefsFile = new File("SpectralRTI_Toolkit-prefs.txt");//This is in the base fiji folder. 
         public String prefsFileAsText = "";
+        
+        private void testCode() throws IOException, Throwable{
+            logService.log().info("TEST CODE!");
+            DirectoryChooser file_dialog;
+            file_dialog = new DirectoryChooser("Choose the Project Directory"); 
+            projectDirectory = file_dialog.getDirectory();
+            logService.log().info("Project directory is ...  "+projectDirectory+" ...");
+            if(projectDirectory == null || projectDirectory.equals("")){
+                logService.log().warn("No project directory provided.  Error out");
+                IJ.error("You must provide a project directory to continue.");
+                throw new Throwable("You must provide a project directory."); //DIE if now directory provided
+            }
+            else{
+                projectDirectory = projectDirectory.replace("\\",File.separator);
+            }
+            File[] listOfHemisphereCaptures = new File[0];
+            listOfHemisphereCaptures = getHemisphereCaptures(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+            logService.log().info("There are "+listOfHemisphereCaptures.length+" captures.");           
+            
+            contentPane = new JPanel();
+            contentPane.setLayout(new GridLayout(10, 0, 8, 12));
+            
+            
+            
+            JCheckBox[] positions = new JCheckBox[listOfHemisphereCaptures.length];
+            for(int l=0; l<listOfHemisphereCaptures.length; l++){
+                JCheckBox ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
+                positions[l] = ch;
+                contentPane.add(ch);
+                //listOfHemisphereCaptures_list.add(listOfHemisphereCaptures[l].toString());
+            }
+
+            JScrollPane spanel = new JScrollPane(contentPane);
+            spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+            spanel.setPreferredSize(preferredSize);           
+            int result = JOptionPane.showConfirmDialog(null, spanel, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+            if ( result != -1) {
+                for(JCheckBox check : positions){
+                    listOfRakingDirections.add(check.isSelected());
+                }
+                logService.log().info("Gather good checks?");
+                logService.log().info(listOfRakingDirections);
+            } 
+            else {
+                //Pane was cancelled or closed.
+            }
+           
+        }
         
         private void theMacro_tested() throws IOException, Throwable{
             //want these variables to be accessible across functions and to reset each time the macro is run
@@ -190,6 +280,21 @@ public class SpectralRTI_Toolkit implements Command {
             String csSource = "";
             BufferedReader prefsReader = null;
             boolean swapBack = false;
+            //Make JOptionPane's scrollable when feeding in panel.
+            contentPane.addHierarchyListener(new HierarchyListener() {
+                public void hierarchyChanged(HierarchyEvent e) {
+                 //when the hierarchy changes get the ancestor for the message
+                 Window window = SwingUtilities.getWindowAncestor(contentPane);
+                 //check to see if the ancestor is an instance of Dialog and isn't resizable
+                 if (window instanceof Dialog) {
+                  Dialog dialog = (Dialog)window;
+                  if (!dialog.isResizable()) {
+                   //set resizable to true
+                   dialog.setResizable(true);
+                  }
+                 }
+                }
+               }); 
             //End vars I had to add
             /*
                 *Consult user for the project directory
@@ -213,10 +318,9 @@ public class SpectralRTI_Toolkit implements Command {
             if (spectralPrefsFile.exists()) { //If this exists, overwrite the labels and show a dialog with the settings
                 prefsDialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-
                 prefs = prefsFileAsText.split(System.lineSeparator()); //This does not work
                 logService.log().info(Arrays.toString(prefs));
-                for (int i=0;i<prefs.length;i++) {
+                for (int i=0;i<prefs.length;i++){
                     //Swap the labels out for presentation
                     String key = prefs[i].substring(0, prefs[i].indexOf("="));
                     key = key.replace("preferredCompress","JP2 Compressor");
@@ -229,12 +333,14 @@ public class SpectralRTI_Toolkit implements Command {
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                     prefsDialog.addStringField(key, value1, 80);
                 }
+                prefsDialog.setMaximumSize(bestFit);
                 prefsDialog.showDialog();
                 swapBack = true;
             }
             else{
                 GenericDialog noPrefs = new GenericDialog("No preference file found");
                 noPrefs.addMessage("A prefs file will be created for you to store your choices in later sessions.");
+                noPrefs.setMaximumSize(bestFit);
                 noPrefs.showDialog();
                 logService.log().warn("We are making  a new prefs file with the empty defaults.");
                 /**
@@ -310,7 +416,7 @@ public class SpectralRTI_Toolkit implements Command {
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
-            while (listOfHemisphereCaptures.length <= 29 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")) {
+            while (listOfHemisphereCaptures.length <= 29 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")){
                 listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
             }
             if(listOfHemisphereCaptures.length < 30){
@@ -346,6 +452,7 @@ public class SpectralRTI_Toolkit implements Command {
             tasksDialog.addCheckbox("Custom RTI",false);
             tasksDialog.addCheckbox("Custom Static Raking",false);
             tasksDialog.addCheckbox("WebRTI",true);
+            tasksDialog.setMaximumSize(bestFit);
             tasksDialog.showDialog();
             if (tasksDialog.wasCanceled()) {
                 IJ.error("You must provide a task set to continue.");
@@ -379,7 +486,9 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Back in main macro after brightness adjust prompt");
             }
             if (acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
-                logService.log().info("We triggered static raking code in main macro");
+                logService.log().info("We triggered static raking code in main macro.  Sweertrt!!");
+                logService.log().info("Pulling up light positions with maximum deimensions");
+                logService.log().info(bestFit);
                 if (!static_ranking_dir.exists()) {
                     Path staticFilePath = static_ranking_dir.toPath();
                     Files.createDirectory(staticFilePath);
@@ -402,6 +511,7 @@ public class SpectralRTI_Toolkit implements Command {
                     GenericDialog transSourceDialog = new GenericDialog("Select Transmissive Source");
                     transSourceDialog.addMessage("Select Transmissive Source");
                     transSourceDialog.addRadioButtonGroup("File: ", listOfTransmissiveSources, listOfTransmissiveSources.length, 1, listOfTransmissiveSources[0]);
+                    transSourceDialog.setMaximumSize(bestFit);
                     transSourceDialog.showDialog();
                     transmissiveSource = transSourceDialog.getNextRadioButton();
                 } 
@@ -410,20 +520,50 @@ public class SpectralRTI_Toolkit implements Command {
                 }
 
                 boolean[] defaults = new boolean[listOfHemisphereCaptures.length];
-                GenericDialog lightDialog = new GenericDialog("Select Light Positions");
-                lightDialog.addMessage("Select light positions for lossless static raking images");
-                ArrayList<String> listOfHemisphereCaptures_list = new ArrayList<String>();
-                String[] listOfHemisphereCaptures_string = new String[listOfHemisphereCaptures.length];
+
+                contentPane = new JPanel();
+                contentPane.setLayout(new GridLayout(10, 0, 8, 12));
+                JLabel selectLightPositions = new JLabel("Select light positions for lossless static raking images");
+                contentPane.add(selectLightPositions);
+                
+                //Make JOptionPane's scrollable when feeding in panel.
+                contentPane.addHierarchyListener(new HierarchyListener() {
+                    public void hierarchyChanged(HierarchyEvent e) {
+                     //when the hierarchy changes get the ancestor for the message
+                     Window window = SwingUtilities.getWindowAncestor(contentPane);
+                     //check to see if the ancestor is an instance of Dialog and isn't resizable
+                     if (window instanceof Dialog) {
+                      Dialog dialog = (Dialog)window;
+                      if (!dialog.isResizable()) {
+                       //set resizable to true
+                       dialog.setResizable(true);
+                      }
+                     }
+                    }
+                   }); 
+
+                JCheckBox[] positions = new JCheckBox[listOfHemisphereCaptures.length];
                 for(int l=0; l<listOfHemisphereCaptures.length; l++){
-                    listOfHemisphereCaptures_list.add(listOfHemisphereCaptures[l].toString());
+                    JCheckBox ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
+                    positions[l] = ch;
+                    contentPane.add(ch);
+                    //listOfHemisphereCaptures_list.add(listOfHemisphereCaptures[l].toString());
                 }
-                listOfHemisphereCaptures_list.toArray(listOfHemisphereCaptures_string);
-                lightDialog.addCheckboxGroup(1+(listOfHemisphereCaptures.length/4), 4, listOfHemisphereCaptures_string, defaults); //8 columns
-                lightDialog.showDialog();
-                logService.log().info("Add T/F list of raking directions for hemisphere captures.");
-                for(int k=0;k<listOfHemisphereCaptures.length;k++) {
-                    //logService.log().info(lightDialog.getNextBoolean());
-                    listOfRakingDirections.add(lightDialog.getNextBoolean());
+
+                JScrollPane spanel = new JScrollPane(contentPane);
+                spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                spanel.setPreferredSize(preferredSize);           
+                int result = JOptionPane.showConfirmDialog(null, spanel, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+                if ( result != -1) {
+                    for(JCheckBox check : positions){
+                        listOfRakingDirections.add(check.isSelected());
+                    }
+                    logService.log().info("Gather good checks?");
+                    logService.log().info(listOfRakingDirections);
+                } 
+                else {
+                    //Pane was cancelled or closed.  How should i handle (@userHitCancel)
                 }
                 logService.log().warn(listOfRakingDirections.toString());
             }
@@ -441,41 +581,120 @@ public class SpectralRTI_Toolkit implements Command {
                 rgbnOptions[1] = "G";
                 rgbnOptions[2] = "B";
                 rgbnOptions[3] = "none";
-                String defaultRange = ""; 
+                String defaultRange = "";
                 String rangeChoice = "";
-                GenericDialog narrowBandDialog = new GenericDialog("Assign Narrowband Captures");
-		narrowBandDialog.addMessage("Assign each narrowband capture to the visible range of R, G, B, or none");
+
                 logService.log().info("I need a list of narrow band captures here");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
                 if (listOfNarrowbandCaptures.length<9) { //Yikes is this right!  
                     logService.log().warn("You must have 9 or more narrow band captures!");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
-		for (int i=0; i<listOfNarrowbandCaptures.length; i++) {
-                    //Yikes are these right?  I feel like default assignment is wrong...
-                    if ((i+1)/listOfNarrowbandCaptures.length < 0.34) defaultRange = "B";
-                    else if ((i+1)/listOfNarrowbandCaptures.length > 0.67) defaultRange = "R";
-                    else defaultRange = "G";
-                    narrowBandDialog.setInsets(0,0,0);
-                    String narrowCapture = listOfNarrowbandCaptures[i].getName();
-                    narrowBandDialog.addRadioButtonGroup(narrowCapture, rgbnOptions, 1, 4, defaultRange);
-		} 
-                /**
-                 * @see problem here if runs off screen... no an option to use two columns.  Bryan confirms, I noticed this as well.
-                 */
-                narrowBandDialog.showDialog();
-		for (int j=0; j<listOfNarrowbandCaptures.length; j++) {
-                    rangeChoice = narrowBandDialog.getNextRadioButton();
-                    if (rangeChoice.equals("R")) {
-                        redNarrowbands_list.add(listOfNarrowbandCaptures[j].getName());
-                    } 
-                    else if (rangeChoice.equals("G")) {
-                        greenNarrowbands_list.add(listOfNarrowbandCaptures[j].getName());
-                    } 
-                    else if (rangeChoice.equals("B")) {
-                        blueNarrowbands_list.add(listOfNarrowbandCaptures[j].getName());
+                
+                
+                contentPane = new JPanel();
+                contentPane.setLayout(new GridLayout(0, 1, 8, 12)); //Just want one column, as tall as it needs to be (scroll vertical)
+                JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none");
+                contentPane.add(assignNarrowband);
+
+                //Make JOptionPane's scrollable when feeding in panel.
+                contentPane.addHierarchyListener(new HierarchyListener() {
+                    public void hierarchyChanged(HierarchyEvent e) {
+                     //when the hierarchy changes get the ancestor for the message
+                     Window window = SwingUtilities.getWindowAncestor(contentPane);
+                     //check to see if the ancestor is an instance of Dialog and isn't resizable
+                     if (window instanceof Dialog) {
+                      Dialog dialog = (Dialog)window;
+                      if (!dialog.isResizable()) {
+                       //set resizable to true
+                       dialog.setResizable(true);
+                      }
+                     }
                     }
-		}
+                   }); 
+                // https://stackoverflow.com/questions/201287/how-do-i-get-which-jradiobutton-is-selected-from-a-buttongroup
+                // http://www.codejava.net/java-se/swing/jradiobutton-basic-tutorial-and-examples
+                ButtonGroup[] bgroups = new ButtonGroup[listOfNarrowbandCaptures.length];
+                //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
+                for (int i=0; i<listOfNarrowbandCaptures.length; i++) {
+                    //Create a new button group for this capture
+                    ButtonGroup capture_radios = new ButtonGroup();
+                    JRadioButton radioOptionR = new JRadioButton("R");
+                    radioOptionR.setActionCommand("R");
+                    JRadioButton radioOptionG = new JRadioButton("G");
+                    radioOptionR.setActionCommand("G");
+                    JRadioButton radioOptionB = new JRadioButton("B");
+                    radioOptionR.setActionCommand("B");
+                    JRadioButton radioOptionNone = new JRadioButton("None");
+                    radioOptionR.setActionCommand("None");
+                    capture_radios.add(radioOptionR);
+                    capture_radios.add(radioOptionG);
+                    capture_radios.add(radioOptionB);
+                    capture_radios.add(radioOptionNone);
+                    //add this new group to the array of groups
+                    bgroups[i] = capture_radios;
+                    //Auto-select the correct button
+                    if ((i+1)/listOfNarrowbandCaptures.length < 0.34){
+                        defaultRange = "B";
+                        radioOptionB.setSelected(true);
+                    }
+                    else if ((i+1)/listOfNarrowbandCaptures.length > 0.67){
+                        defaultRange = "R";
+                        radioOptionR.setSelected(true);
+                    }
+                    else {
+                        defaultRange = "G";
+                        radioOptionG.setSelected(true);
+                    }
+                    String narrowCapture = listOfNarrowbandCaptures[i].getName();
+                    JLabel jlabel = new JLabel(narrowCapture);
+                    contentPane.add(jlabel);
+                    JPanel contentGroup = new JPanel();
+                    contentGroup.setLayout(new GridLayout(1,1,8,12)); // Want radio options in one row, should only need a single column.
+                    //Add the button group it its own panel
+                    contentGroup.setName(narrowCapture);
+                    contentGroup.add(radioOptionR);
+                    contentGroup.add(radioOptionG);
+                    contentGroup.add(radioOptionB);
+                    contentGroup.add(radioOptionNone);
+                    //Add the button group panel to the overall content container
+                    contentPane.add(contentGroup);                   
+		} 
+
+                JScrollPane spanel = new JScrollPane(contentPane);
+                spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                spanel.setPreferredSize(preferredSize);           
+                int result = JOptionPane.showConfirmDialog(null, spanel, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION);
+                //Once user hits OK, gather their selections.  If they hit cancel, then fail out.
+                if ( result != -1) {
+                    for(int d=0; d<bgroups.length; d++){
+                        //Go over each button group (one for each narrow band capture, in order)
+                        ButtonGroup grabSelection = bgroups[d]; 
+                        //Get each button out of the group
+                        for (Enumeration<AbstractButton> buttons = grabSelection.getElements(); buttons.hasMoreElements();) {
+                            AbstractButton button = buttons.nextElement();
+                            //Loop each button and see if it is selected
+                            if (button.isSelected()) {
+                                //If it is selected, it will have "R", "G", "B". or "None" as its text.  Designate to the appropriate list based on this text.
+                                rangeChoice = button.getText();
+                                if (rangeChoice.equals("R")) {
+                                    redNarrowbands_list.add(listOfNarrowbandCaptures[d].getName());
+                                } 
+                                else if (rangeChoice.equals("G")) {
+                                    greenNarrowbands_list.add(listOfNarrowbandCaptures[d].getName());
+                                } 
+                                else if (rangeChoice.equals("B")) {
+                                    blueNarrowbands_list.add(listOfNarrowbandCaptures[d].getName());
+                                }
+                            }
+                        }
+                    }
+                } 
+                else {
+                    //Pane was cancelled or closed.  How should i handle (@userHitCancel)
+                }
+
                 logService.log().info("We should have red, green and blue narrow bands");
                 redNarrowbands = redNarrowbands_list.toArray();
                 greenNarrowbands = greenNarrowbands_list.toArray();
@@ -503,12 +722,13 @@ public class SpectralRTI_Toolkit implements Command {
             /**
              * @see only interaction here, processing later 
              */
-            if (psRtiDesired || psRakingDesired) {
+            if (psRtiDesired || psRakingDesired){
                 //identify 2 source images for pca pseudocolor
                 File listOfPseudocolorSources_dir = new File(projectDirectory+"PCA"+File.separator);
                 if(!listOfPseudocolorSources_dir.exists()){
                     GenericDialog nofldr = new GenericDialog("FYI");
                     nofldr.addMessage("A Pseudo Color folder has been created for you");
+                    nofldr.setMaximumSize(bestFit);
                     nofldr.showDialog();
                     Files.createDirectory(listOfPseudocolorSources_dir.toPath());
                 }
@@ -523,6 +743,7 @@ public class SpectralRTI_Toolkit implements Command {
                 GenericDialog pseudoSources = new GenericDialog("Select sources for Pseudocolor");
                 pseudoSources.addMessage("Pseudocolor images require two source images (typically principal component images).");
                 pseudoSources.addRadioButtonGroup("Method: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
+                pseudoSources.setMaximumSize(bestFit);
                 pseudoSources.showDialog();
                 pcaMethod = pseudoSources.getNextRadioButton();
                 if (pcaHeight < 100) { //Looks like it was defined as 0 and never set or changed.  
@@ -615,6 +836,7 @@ public class SpectralRTI_Toolkit implements Command {
                         GenericDialog gd = new GenericDialog("Select Color Source");
                         gd.addMessage("Select Color Source");
                         gd.addRadioButtonGroup("File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
+                        gd.setMaximumSize(bestFit);
                         gd.showDialog();
                         accurateColorSource = new File(gd.getNextRadioButton());
                     }
@@ -1010,7 +1232,7 @@ public class SpectralRTI_Toolkit implements Command {
                     } 
                     else {
                         //WindowManager.getImage("Captures-Narrowband-NoGamma").setTitle("Captures-Fluorescence-NoGamma");
-                            //rename("Captures-Narrowband-NoGamma");
+                        //rename("Captures-Narrowband-NoGamma");
                     }
                     WindowManager.getImage("Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                     IJ.run("PCA ");
@@ -1332,6 +1554,7 @@ public class SpectralRTI_Toolkit implements Command {
             WindowManager.closeAllWindows();
             GenericDialog end = new GenericDialog("Processing Complete");
             end.addMessage("Processing Complete at "+timestamp());
+            end.setMaximumSize(bestFit);
             end.showDialog();
             logService.log().warn("END OF TESTED MACRO PIECE");
         }
@@ -1340,7 +1563,8 @@ public class SpectralRTI_Toolkit implements Command {
         @Override
 	public void run() {
             try {
-                theMacro_tested();
+               theMacro_tested();
+               //testCode();
             } catch (IOException ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Throwable ex) {
@@ -1396,6 +1620,7 @@ public class SpectralRTI_Toolkit implements Command {
                 GenericDialog gd = new GenericDialog("Approve arguments for Jpeg 2000 compression");
                 String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible\\=no Clevels\\=5 Stiles\\=\\{1024,1024\\} Cblk\\=\\{64,64\\} Cuse_sop\\=yes Cuse_eph\\=yes Corder\\=RPCL ORGgen_plt\\=yes ORGtparts\\=R Cmodes\\=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
                 gd.addStringField("Arguments:",arguments,80);
+                gd.setMaximumSize(bestFit);
                 gd.showDialog();
                 preferredJp2Args = gd.getNextString();
                 preferredJp2Args =preferredJp2Args.replace("\\", "/");
@@ -1512,6 +1737,7 @@ public class SpectralRTI_Toolkit implements Command {
             GenericDialog gd = new GenericDialog("Adjust brightness of hemisphere captures?");
             gd.addRadioButtonGroup("Adjust brightness of hemisphere captures? ", brightnessAdjustOptions, brightnessAdjustOptions.length, 1, brightnessAdjustOptions[1]);
             gd.addRadioButtonGroup("Apply adjustment to which output images? ",brightnessAdjustApplies,brightnessAdjustApplies.length,1,brightnessAdjustApplies[0]);
+            gd.setMaximumSize(bestFit);
             gd.showDialog();
             
             brightnessAdjustOption = gd.getNextRadioButton();
@@ -1541,6 +1767,7 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.run(imp, "Multiply...", "");
                 GenericDialog gdMultiplier = new GenericDialog("Enter selected multiplier");
                 gdMultiplier.addNumericField("Enter selected multiplier: ", 1.30,2,4,"");
+                gdMultiplier.setMaximumSize(bestFit);
                 gdMultiplier.showDialog();
                 //logService.log().info("Should have a multiplier below...");
                 normalizationFixedValue = (int) gdMultiplier.getNumericFields().get(0);
@@ -1713,6 +1940,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else{
                     noLpData.addMessage("Please provide LP data in a LightPositionData directory in your project directory.  A LightPositionData directory was created for you.");
+                    noLpData.setMaximumSize(bestFit);
                     noLpData.showDialog();
                     //throw new Throwable("You need to have light position data to continue.");
                     Files.createDirectory(folder.toPath());
@@ -1737,6 +1965,7 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else if (listOfLpFiles_list.isEmpty()) {
                     noLpData.addMessage("Please provide light position source files in your LightPositionData directory in the future.");
+                    noLpData.setMaximumSize(bestFit);
                     noLpData.showDialog();
                     //throw new Throwable("You need to have light position data to continue.");
                     OpenDialog dialog = new OpenDialog("Locate Light Position Source File"); 
@@ -1746,6 +1975,7 @@ public class SpectralRTI_Toolkit implements Command {
                     GenericDialog dialog = new GenericDialog("Select Light Position Source File"); 
                     dialog.addMessage("We found light position files in your project directory.  Please choose the source file to use from below.");
                     dialog.addRadioButtonGroup("File: ", listOfLpFiles, listOfLpFiles_list.size(), 1, listOfLpFiles_list.get(0));
+                    dialog.setMaximumSize(bestFit);
                     dialog.showDialog();
                     lpSource = dialog.getNextRadioButton();
                 }
@@ -1753,6 +1983,7 @@ public class SpectralRTI_Toolkit implements Command {
             if(lpSource.equals("")){
                 GenericDialog lpFileFailure = new GenericDialog("Provide Light Position Source Data");
                 lpFileFailure.addMessage("Light position source data not found.  You must provide this data to continue.");
+                lpFileFailure.setMaximumSize(bestFit);
                 lpFileFailure.showDialog();
                 throw new Throwable("Light position source data not found");
             }
@@ -1760,6 +1991,7 @@ public class SpectralRTI_Toolkit implements Command {
             if(!lpFile.exists()){
                 GenericDialog lpFileFailure = new GenericDialog("Provide Light Position Source Data");
                 lpFileFailure.addMessage("Light position source data not found.  You must provide this data to continue.");
+                lpFileFailure.setMaximumSize(bestFit);
                 lpFileFailure.showDialog();
                 throw new Throwable("Light position source data not found");
             }
@@ -1796,6 +2028,8 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"), newLpLine.getBytes(), StandardOpenOption.APPEND);
             }
         }
+        
+        
 
 	/**
 	 * Main method for debugging.
