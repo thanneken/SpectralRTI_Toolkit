@@ -314,7 +314,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("Web RTI Maker","webRtiMaker");
                     String value2 = prefsDialog.getNextString(); //Gather new information
                     theList.put(key,value2);
-                    prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.getProperty("line.separator"), key+"="+value2+System.getProperty("line.separator")); //replace the prefs var
+                    prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
                 }
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
@@ -1514,13 +1514,17 @@ public class SpectralRTI_Toolkit implements Command {
             String directory = "";
             String returnString = "/created/JP2file";
             logService.log().info("Checking prefs and vars for processing");
+            logService.log().info("Preferred Compress1: "+preferredCompress);
+            logService.log().info("Preferred Args: "+preferredJp2Args);
             if (preferredCompress.equals("")){
                 dialog = new OpenDialog("Locate kdu_compress or ojp_compress"); 
                 preferredCompress = dialog.getPath();
                 preferredCompress = preferredCompress.replace("\\", "/");
+                logService.log().info("Preferred Compress2: "+preferredCompress);
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
                 compressString = "preferredCompress="+preferredCompress+System.lineSeparator();
-                prefsFileAsText = prefsFileAsText.replaceFirst("preferredCompress=.*\\\n", compressString); //replace the prefs var
+                System.out.println("Compress String: "+compressString); 
+                prefsFileAsText = prefsFileAsText.replaceFirst("preferredCompress=.*\\"+System.lineSeparator(), compressString); //replace the prefs var
                 theList.put("preferredCompress", preferredCompress);
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
@@ -1535,7 +1539,7 @@ public class SpectralRTI_Toolkit implements Command {
                 preferredString = "preferredJp2Args="+preferredJp2Args;
                 theList.put("preferredJp2Args", preferredJp2Args);
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\\n", preferredString); //replace the prefs var
+                prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\"+System.lineSeparator(), preferredString); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
             logService.log().info("Heading off to noClobber from createJP2");
@@ -1702,7 +1706,7 @@ public class SpectralRTI_Toolkit implements Command {
                 preferredFitter = dialog.getPath();
                 preferredFitter =preferredFitter.replace("\\", "/");
                 appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
-                prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.getProperty("line.separator"), appendString); //replace the prefs var
+                prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), appendString); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
             if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
@@ -1752,7 +1756,7 @@ public class SpectralRTI_Toolkit implements Command {
                         webRtiMaker = dialog2.getPath();
                         webRtiMaker =webRtiMaker.replace("\\", "/");
                         webString = "webRtiMaker="+webRtiMaker;
-                        prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.getProperty("line.separator"),webString+System.getProperty("line.separator")); //replace the prefs var
+                        prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.lineSeparator(),webString+System.lineSeparator()); //replace the prefs var
                         Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
                     }
                     
