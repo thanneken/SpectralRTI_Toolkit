@@ -204,51 +204,20 @@ public class SpectralRTI_Toolkit implements Command {
         
         private void testCode() throws IOException, Throwable{
             logService.log().info("TEST CODE!");
-            DirectoryChooser file_dialog;
-            file_dialog = new DirectoryChooser("Choose the Project Directory"); 
-            projectDirectory = file_dialog.getDirectory();
-            logService.log().info("Project directory is ...  "+projectDirectory+" ...");
-            if(projectDirectory == null || projectDirectory.equals("")){
-                logService.log().warn("No project directory provided.  Error out");
-                IJ.error("You must provide a project directory to continue.");
-                throw new Throwable("You must provide a project directory."); //DIE if now directory provided
-            }
-            else{
-                projectDirectory = projectDirectory.replace("\\",File.separator);
-            }
-            File[] listOfHemisphereCaptures = new File[0];
-            listOfHemisphereCaptures = getHemisphereCaptures(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-            logService.log().info("There are "+listOfHemisphereCaptures.length+" captures.");           
+            logService.log().warn("Windows native command...Need to make sure this is actually saving the JP2");
+            String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible=no Clevels=5 Stiles={1024,1024} Cblk={64,64} Cuse_sop=yes Cuse_eph=yes Corder=RPCL ORGgen_plt=yes ORGtparts=R Cmodes=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
+                
+            //String commandString = " cd \"C:\\Program Files (x86)\\Kakadu\\\""; //works
+            //String commandString = "notepad.exe"; //works
+            String commandString = "\"C:\\Program Files (x86)\\Kakadu\\kdu_compress.exe\" -i E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff -o E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff.jp2 "+arguments; //failed I think
+           //String commandString = "cd \"C:\\Program Files (x86)\\Kakadu\\\" kdu_compress.exe"; //failed I think
+                    //+ "-i E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff -o E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff.jp2 "+arguments;
+            //logService.log().info("cmd /c start /wait "+commandString);
+            //p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
             
-            contentPane = new JPanel();
-            contentPane.setLayout(new GridLayout(10, 0, 8, 12));
-            
-            
-            
-            JCheckBox[] positions = new JCheckBox[listOfHemisphereCaptures.length];
-            for(int l=0; l<listOfHemisphereCaptures.length; l++){
-                JCheckBox ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
-                positions[l] = ch;
-                contentPane.add(ch);
-                //listOfHemisphereCaptures_list.add(listOfHemisphereCaptures[l].toString());
-            }
-
-            JScrollPane spanel = new JScrollPane(contentPane);
-            spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-            spanel.setPreferredSize(preferredSize);           
-            int result = JOptionPane.showConfirmDialog(null, spanel, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
-            if ( result != -1) {
-                for(JCheckBox check : positions){
-                    listOfRakingDirections.add(check.isSelected());
-                }
-                logService.log().info("Gather good checks?");
-                logService.log().info(listOfRakingDirections);
-            } 
-            else {
-                //Pane was cancelled or closed.
-            }
-           
+            logService.log().info("\"C:\\Program Files (x86)\\Kakadu\\kdu_compress.exe\" -i E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff -o E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff.jp2 "+arguments);
+            p = Runtime.getRuntime().exec("C:\\Program Files (x86)\\Kakadu\\kdu_compress.exe -i E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff -o E:/BJH_macroResult/Projects/BraynTest3/StaticRaking/BraynTest3_Ps_03.tiff.jp2 "+arguments, null, new File("C:\\Program Files (x86)\\Kakadu\\"));
+            p.waitFor();           
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -273,6 +242,7 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean csRakingDesired = false;
             Boolean acRakingDesired = false;
             Boolean xsRakingDesired = false;
+            Boolean shortName = true; //BHTODO implement short vs long file name user preference.   
             File[] listOfAccurateColorSources = new File[0];
             File[] listOfAccurateColorFiles = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
@@ -584,7 +554,7 @@ public class SpectralRTI_Toolkit implements Command {
                 String defaultRange = "";
                 String rangeChoice = "";
 
-                logService.log().info("I need a list of narrow band captures here");
+                logService.log().info("I need a list of narrow band captures here for xsRTI or xsRaking");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
                 if (listOfNarrowbandCaptures.length<9) { //Yikes is this right!  
                     logService.log().warn("You must have 9 or more narrow band captures!");
@@ -732,6 +702,12 @@ public class SpectralRTI_Toolkit implements Command {
                     nofldr.showDialog();
                     Files.createDirectory(listOfPseudocolorSources_dir.toPath());
                 }
+                logService.log().info("I need a list of narrow band captures here for psRTI || psRaking ");
+                logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
+                if (listOfNarrowbandCaptures.length<9) { //Yikes is this right!  
+                    logService.log().warn("You must have at least 2 or more narrow band captures for PseudoColor!");
+                    throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
+                }
                 File[] listOfPseudocolorSources = listOfPseudocolorSources_dir.listFiles();
                 String defaultPca = "";
                 if (listOfPseudocolorSources.length > 1) defaultPca = "Open pregenerated images" ;
@@ -746,8 +722,19 @@ public class SpectralRTI_Toolkit implements Command {
                 pseudoSources.setMaximumSize(bestFit);
                 pseudoSources.showDialog();
                 pcaMethod = pseudoSources.getNextRadioButton();
+                logService.log().info("Got PCA method: "+pcaMethod);
                 if (pcaHeight < 100) { //Looks like it was defined as 0 and never set or changed.  
-                    imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
+                    logService.log().info("Need to open a narrowband from");
+                    logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
+                    logService.log().info("At position");
+                    logService.log().info(Math.round(listOfNarrowbandCaptures.length/2));
+                    if(listOfNarrowbandCaptures.length >= 1){
+                        imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
+                    }  
+                    else{ //Yikes How about one from the hemisphere captures?  Is that an appropriate fix?
+                        logService.log().info("No narrowband captures");
+                        throw new Throwable("There needs to be at least one image in the narrowban nogamma captres folder...");
+                    }
                     imglib2_img = ImagePlusAdapter.wrap( imp );
                     ImageJFunctions.show(imglib2_img, "Preview");
                     dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
@@ -947,7 +934,7 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.save(imp, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
 		createJp2(projectName+"_Ac_00", projectDirectory);
                 toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_00"+".tiff");
-                //Files.deleteIfExists(toDelete.toPath()); //Why do we do this?
+                Files.deleteIfExists(toDelete.toPath()); //Why do we do this?
 		IJ.run(imp, "RGB to YCbCr stack", "");
 		IJ.run("Stack to Images"); //Converts the slices in the current stack to separate image windows.
                 WindowManager.getImage("Y").close();
@@ -971,7 +958,7 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.save(WindowManager.getImage("YCC - RGB"),projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     createJp2(projectName+"_Ac_Tx", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
-                    //Files.deleteIfExists(toDelete.toPath());   
+                    Files.deleteIfExists(toDelete.toPath());   
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
                     //WindowManager.getImage("RGBtiff").changes = false;
@@ -1008,7 +995,7 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ac_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
-                            //Files.deleteIfExists(toDelete.toPath());     
+                            Files.deleteIfExists(toDelete.toPath());     
                             WindowManager.getImage("YCC - RGB").close();
                             WindowManager.getImage("YCC").close(); 
                             
@@ -1113,7 +1100,7 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.save(WindowManager.getImage("Stack (RGB)"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
                     createJp2(projectName+"_Xs_00", projectDirectory); 
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
-                    //Files.deleteIfExists(toDelete.toPath());      //Yikes uncomment when done debugging
+                    Files.deleteIfExists(toDelete.toPath());      //Yikes uncomment when done debugging
 		}
 		IJ.run(WindowManager.getImage("Stack (RGB)"), "RGB to YCbCr stack", "");
 		IJ.run("Stack to Images");
@@ -1135,7 +1122,7 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     createJp2(projectName+"_Xs_Tx", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
-                   // Files.deleteIfExists(toDelete.toPath()); 
+                    Files.deleteIfExists(toDelete.toPath()); 
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
                     //WindowManager.getImage("TransmissiveLuminance").changes = false;
@@ -1205,7 +1192,7 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
                             createJp2(projectName+"_Xs_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
-                            //Files.deleteIfExists(toDelete.toPath()); 
+                            Files.deleteIfExists(toDelete.toPath()); 
                             WindowManager.getImage("YCC").close();
                             WindowManager.getImage("YCC - RGB").close();
                             //IJ.selectWindow("Luminance");
@@ -1222,9 +1209,12 @@ public class SpectralRTI_Toolkit implements Command {
 		}
             }
             if (psRtiDesired || psRakingDesired) {
+                logService.log().info("Processing Psuedocolor...");
+                logService.log().info("PCA method is "+pcaMethod);
                 File fluorescenceNoGamma = new File(projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator);
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod.equals("Generate and select using defaults")) {
+                    logService.log().info("1");
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
@@ -1239,6 +1229,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //WindowManager.getWindow("PCA of Captures-Narrowband-NoGamma").toFront();
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma"),"Slice Keeper", "first=2 last=3 increment=1");
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
+                    WindowManager.getImage("Captures-Narrowband-NoGamma").changes = false;
                     WindowManager.getImage("Captures-Narrowband-NoGamma").close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setActivated();
@@ -1248,6 +1239,7 @@ public class SpectralRTI_Toolkit implements Command {
 		//option to create new ones and manually select (close all but two)
 		} 
                 else if (pcaMethod.equals("Generate and manually select two")) {
+                    logService.log().info("2");
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
@@ -1259,6 +1251,7 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.run("PCA ");
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
+                    WindowManager.getImage("Captures-Narrowband-NoGamma").changes = false;
                     WindowManager.getImage("Captures-Narrowband-NoGamma").close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setActivated();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
@@ -1272,9 +1265,13 @@ public class SpectralRTI_Toolkit implements Command {
                  */
 		} 
                 else if (pcaMethod.equals("Open pregenerated images")) {
+                    logService.log().info("3");
                     dWait = new WaitForUserDialog("Select area", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
+                    dWait.show();
                     if (WindowManager.getImageCount() > 1){ 
                         IJ.run("Images to Stack", "name=Stack title=[] use"); 
+                        WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
+                        //WindowManager.getImage("Stack").setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
                     }
                     //setBatchMode(true); 
                     //setBatchMode("hide");
@@ -1284,20 +1281,27 @@ public class SpectralRTI_Toolkit implements Command {
                     * @see integrate pca pseudocolor with rti luminance
                     * @see create static diffuse (not trivial... use median of all)
                 */
+                logService.log().info("Process Part 2");
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                     IJ.run("Z Project...", "projection=Median");
-                    WindowManager.getActiveWindow().setName("Luminance");
-                    WindowManager.getImage("Captures-Hemisphere-Gamma").close();    
+                    logService.log().info("Running Z Project");
+                    WindowManager.getImage("MED_Captures-Hemisphere-Gamma").setTitle("Luminance");
+                    WindowManager.getImage("Captures-Hemisphere-Gamma").changes = false;
+                    WindowManager.getImage("Captures-Hemisphere-Gamma").close();   
                     WindowManager.getImage("Luminance").setActivated();
+                    logService.log().info("Brightness Adjust...");
                     if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                         region = new RectangleOverlay();
                         WindowManager.getImage("Luminance").setRoi(normX,normY,normWidth,normHeight); 
+                        logService.log().info("Enhance Contrast...");
                         IJ.run("Enhance Contrast...", "saturated=0.4");
                         IJ.run("Select None");
-                    } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                    } 
+                    else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                         IJ.run("Multiply...", "value="+normalizationFixedValue+"");
                     }
+                    logService.log().info("8-bit and Stack");
                     IJ.run(WindowManager.getImage("Luminance"), "8-bit", ""); //on Luminance
                     IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
                     IJ.run("YCbCr stack to RGB");
@@ -1305,7 +1309,7 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     createJp2(projectName+"_Ps_00", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
-                    //Files.deleteIfExists(toDelete.toPath());
+                    Files.deleteIfExists(toDelete.toPath());
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
                     WindowManager.getImage("Luminance").changes = false;
@@ -1326,7 +1330,7 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         createJp2(projectName+"_Ps_Tx", projectDirectory);
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
-                        //Files.deleteIfExists(toDelete.toPath());
+                        Files.deleteIfExists(toDelete.toPath());
                         WindowManager.getImage("YCC - RGB").close();
                         WindowManager.getImage("YCC").close();
                         //WindowManager.getImage("TransmissiveLuminance").changes = false;
@@ -1367,9 +1371,10 @@ public class SpectralRTI_Toolkit implements Command {
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             WindowManager.getImage("YCC - RGB").close();
+                            logService.log().info("I suspect this is not saving.  Check for "+projectName+"_Ps_"+positionNumber);
                             createJp2(projectName+"_Ps_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
-                            //Files.deleteIfExists(toDelete.toPath());
+                            Files.deleteIfExists(toDelete.toPath());
                         }
                         if ((psRtiDesired)&&(brightnessAdjustApply.equals("RTI images also"))){ 
                             IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
@@ -1404,13 +1409,16 @@ public class SpectralRTI_Toolkit implements Command {
                         imp.close();
                     }
 		}
+                WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").changes = false;
                 WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").close();
                 System.gc();
 		//IJ.run("Collect Garbage");
 		if (psRtiDesired) {
+                    logService.log().info("PS RTI is desired, so create lp file and run fitter pseudocolor");
                     createLpFile("Pseudocolor", projectDirectory);
                     runFitter("Pseudocolor");
 		}
+                logService.log().info("Finished pseudocolor");
             }
             if (csRtiDesired || csRakingDesired) { //processing phase
 		csSource = csSource.replace("\\",File.separator);
@@ -1430,7 +1438,7 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.save(imp, projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
                         createJp2(projectName+"_"+csProcessName+"_00", projectDirectory);
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
-                        //Files.deleteIfExists(toDelete.toPath());
+                        Files.deleteIfExists(toDelete.toPath());
                     }
                     IJ.run(imp, "8-bit", "");
                     IJ.run(imp, "Duplicate...", "title=Cb");
@@ -1456,7 +1464,7 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.save(imp, projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
                         createJp2(projectName+"_"+csProcessName+"_00", projectDirectory);
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
-                        //Files.deleteIfExists(toDelete.toPath());
+                        Files.deleteIfExists(toDelete.toPath());
                     }
                     IJ.run(imp, "RGB to YCbCr stack", "");
                     IJ.run("8-bit");
@@ -1478,7 +1486,7 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     createJp2(projectName+"_"+csProcessName+"_Tx", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
-                    //Files.deleteIfExists(toDelete.toPath());
+                    Files.deleteIfExists(toDelete.toPath());
                     WindowManager.getImage("YCC - RGB").close();
                     WindowManager.getImage("YCC").close();
                     //WindowManager.getImage("TransmissiveLuminance").changes = false;
@@ -1519,7 +1527,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 WindowManager.getImage("YCC - RGB").close();
                                 createJp2(projectName+"_"+csProcessName+"_"+positionNumber, projectDirectory);
                                 toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
-                                //Files.deleteIfExists(toDelete.toPath());
+                                Files.deleteIfExists(toDelete.toPath());
                             }
                             if ((csRtiDesired)&&(brightnessAdjustApply.equals("RTI images also"))){
                                 IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
@@ -1618,7 +1626,7 @@ public class SpectralRTI_Toolkit implements Command {
             }
             if (preferredJp2Args.equals("")){
                 GenericDialog gd = new GenericDialog("Approve arguments for Jpeg 2000 compression");
-                String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible\\=no Clevels\\=5 Stiles\\=\\{1024,1024\\} Cblk\\=\\{64,64\\} Cuse_sop\\=yes Cuse_eph\\=yes Corder\\=RPCL ORGgen_plt\\=yes ORGtparts\\=R Cmodes\\=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
+                String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible=no Clevels=5 Stiles={1024,1024} Cblk={64,64} Cuse_sop=yes Cuse_eph=yes Corder=RPCL ORGgen_plt=yes ORGtparts=R Cmodes=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
                 gd.addStringField("Arguments:",arguments,80);
                 gd.setMaximumSize(bestFit);
                 gd.showDialog();
@@ -1635,23 +1643,32 @@ public class SpectralRTI_Toolkit implements Command {
             //Boolean noClob = noClobber(projDir+inFile+".txt"); //DEBUGGING
             logService.log().warn("noClobber in createJP2 returned "+noClob);
             logService.log().info("Executing command in createJP2: "+preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o " +projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args+"\n");
-           
+            logService.log().info("Does"+projDir+"StaticRaking"+File.separator+inFile+".tiff exist?");
+            File checkFileForTesting = new File(projDir+"StaticRaking"+File.separator+inFile+".tiff");
+            logService.log().info(checkFileForTesting.exists());
              //Pay attention to preferredJP2Args, it assumes !isWindows
             if(isWindows){
-                logService.log().warn("Windows native command");
+                logService.log().warn("Windows native command...Need to make sure this is actually saving the JP2");
                 String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
                 logService.log().info(commandString);
-                p = Runtime.getRuntime().exec("cmd /c start /wait"+commandString);
-                p.waitFor();
-//preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
-                
+                String compressLoc = preferredCompress.substring(0, preferredCompress.lastIndexOf(File.separator)+1);
+                logService.log().info("compress dir:");
+                logService.log().info(compressLoc);
+                p = Runtime.getRuntime().exec(preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args, null, new File("C:\\Program Files (x86)\\Kakadu\\"));
+                p.waitFor();   
+                //p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //Not working
+                //p.waitFor();
+                returnString = projDir+"StaticRaking"+File.separator+inFile+".jp2";
+                //preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
             }
             else{
                String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
                p = Runtime.getRuntime().exec(commandString);
             }
-            logService.log().info("Complete createJP2");
+            logService.log().info("Complete createJP2.  File is");
+            logService.log().info(returnString);
             return returnString;
+            
         }
         
         /** 
@@ -1915,8 +1932,8 @@ public class SpectralRTI_Toolkit implements Command {
          * Create Light Position file with filenames from newly created series and light positions from previously generated lp file.
          * @param colorProcess The name of the process being performed
          * @param projDir The project direction
-     * @throws java.io.IOException
-     * @throws java.lang.Throwable
+         * @throws java.io.IOException
+         *@throws java.lang.Throwable
         */
         // BHTODO this is not creating the lpfile correctly
         public void createLpFile(String colorProcess, String projDir) throws IOException, Throwable{
