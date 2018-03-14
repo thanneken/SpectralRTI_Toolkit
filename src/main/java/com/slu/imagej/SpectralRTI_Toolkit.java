@@ -215,12 +215,8 @@ public class SpectralRTI_Toolkit implements Command {
             //want these variables to be accessible across functions and to reset each time the macro is run
             startTime = timestamp();
             File accurateColorSource = null;
-            HashMap <String, String> prefsConsolut = new HashMap<>();
             GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
-            String line= "";
             String[] prefs = null;
-            String prefsLines = "";
-            List<String> prefsConsult_list = null;
             DirectoryChooser file_dialog;
             Boolean lpDesired=false;
             Boolean acRtiDesired=false;
@@ -237,7 +233,6 @@ public class SpectralRTI_Toolkit implements Command {
             File[] listOfNarrowbandCaptures = new File[0];
             File[] listOfHemisphereCaptures = new File[0];
             String csSource = "";
-            BufferedReader prefsReader = null;
             boolean swapBack = false;         
             
             /*
@@ -274,6 +269,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("hshOrder","HSH Order");
                     key = key.replace("hshThreads","HSH Threads");
                     key = key.replace("webRtiMaker","Web RTI maker");
+                    key = key.replace("fullFileName","Full File Names");
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                     prefsDialog.addStringField(key, value1, 80);
                 }
@@ -299,6 +295,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("fullFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             //Gather new values from the dialog, reset the labels and update the new values.
             if(swapBack){
@@ -312,6 +309,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("HSH Order","hshOrder");
                     key = key.replace("HSH Threads","hshThreads");
                     key = key.replace("Web RTI Maker","webRtiMaker");
+                    key = key.replace("Full File Names","fullFileNames");
                     String value2 = prefsDialog.getNextString(); //Gather new information
                     theList.put(key,value2);
                     prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
@@ -455,11 +453,18 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else if (listOfTransmissiveSources.length > 1) {
                     GenericDialog transSourceDialog = new GenericDialog("Select Transmissive Source");
-                    transSourceDialog.addMessage("Select Transmissive Source");
+                    transSourceDialog.addMessage("Select Transmissive Source. ");
                     transSourceDialog.addRadioButtonGroup("File: ", listOfTransmissiveSources, listOfTransmissiveSources.length, 1, listOfTransmissiveSources[0]);
                     transSourceDialog.setMaximumSize(bestFit);
                     transSourceDialog.showDialog();
-                    transmissiveSource = transSourceDialog.getNextRadioButton();
+                    if(transSourceDialog.wasCanceled()){ 
+                        //@userHitCancel is it OK to default to the first source?
+                        transmissiveSource = listOfTransmissiveSources[0];
+                    }
+                    else{
+                        transmissiveSource = transSourceDialog.getNextRadioButton();
+                    }
+                    
                 } 
                 else if (listOfTransmissiveSources.length == 0) {
                     transmissiveSource = "";
@@ -476,17 +481,17 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane.addHierarchyListener(new HierarchyListener() {
                     public void hierarchyChanged(HierarchyEvent e) {
                      //when the hierarchy changes get the ancestor for the message
-                     Window window = SwingUtilities.getWindowAncestor(contentPane);
+                    Window window = SwingUtilities.getWindowAncestor(contentPane);
                      //check to see if the ancestor is an instance of Dialog and isn't resizable
-                     if (window instanceof Dialog) {
-                      Dialog dialog = (Dialog)window;
-                      if (!dialog.isResizable()) {
-                       //set resizable to true
-                        dialog.setResizable(true);
-                      }
-                     }
+                        if (window instanceof Dialog) {
+                            Dialog dialog = (Dialog)window;
+                            if (!dialog.isResizable()) {
+                           //set resizable to true
+                                dialog.setResizable(true);
+                            }
+                        }
                     }
-                   }); 
+                }); 
 
                 JCheckBox[] positions = new JCheckBox[listOfHemisphereCaptures.length];
                 for(int l=0; l<listOfHemisphereCaptures.length; l++){
@@ -500,15 +505,28 @@ public class SpectralRTI_Toolkit implements Command {
                 spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 spanel.setPreferredSize(preferredSize);           
                 int result = JOptionPane.showConfirmDialog(null, spanel, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+                boolean atLeastOne = false;
                 if ( result != -1) {
                     for(JCheckBox check : positions){
                         listOfRakingDirections.add(check.isSelected());
+                        if(check.isSelected()){
+                            atLeastOne = true;
+                        }
                     }
                     logService.log().info("Gather good checks?");
                     logService.log().info(listOfRakingDirections);
                 } 
                 else {
-                    //Pane was cancelled or closed.  How should i handle (@userHitCancel)
+                    //@userHitCancel
+                    //Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
+                    for(JCheckBox check : positions){
+                        listOfRakingDirections.add(check.isSelected());
+                    }
+                }
+                if(!atLeastOne){
+                    //Does the user have to make at least one selection?
+                    logService.log().warn("You must make at least one selection!");
+                    throw new Throwable("You must make at least one selection to continue!");
                 }
                 logService.log().warn(listOfRakingDirections.toString());
             }
@@ -633,6 +651,8 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else {
                     //Pane was cancelled or closed.  How should i handle (@userHitCancel)
+                    logService.log().warn("You must designate the captures to the visible range of R, G, B, or none");
+                    throw new Throwable("You must designate the captures to the visible range of R, G, B, or none to continue!");
                 }
 
                 logService.log().info("We should have red, green and blue narrow bands");
@@ -651,6 +671,11 @@ public class SpectralRTI_Toolkit implements Command {
                     imp.show();
                     dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
                     dWait.show();
+                    if(dWait.escPressed() || imp.getRoi() == null){
+                        //@userHitCancel
+                        logService.log().warn("You must provide a box!");
+                        throw new Throwable("You must draw a rectangle to continue!");
+                    }
                     bounds = imp.getRoi().getBounds();
                     pcaX = bounds.x;
                     pcaY = bounds.y;
@@ -674,7 +699,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 logService.log().info("I need a list of narrow band captures here for psRTI || psRaking ");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
-                if (listOfNarrowbandCaptures.length<9) { //Yikes is this right!  
+                if (listOfNarrowbandCaptures.length<9) { 
                     logService.log().warn("You must have at least 2 or more narrow band captures for PseudoColor!");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
@@ -691,6 +716,11 @@ public class SpectralRTI_Toolkit implements Command {
                 pseudoSources.addRadioButtonGroup("Method: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
                 pseudoSources.setMaximumSize(bestFit);
                 pseudoSources.showDialog();
+                if(pseudoSources.wasCanceled()){
+                    //@userHitCancel
+                    logService.log().warn("You must provide which method to use!");
+                    throw new Throwable("You must provide which method to use to continue!");
+                }
                 pcaMethod = pseudoSources.getNextRadioButton();
                 logService.log().info("Got PCA method: "+pcaMethod);
                 if (pcaHeight < 100) { //Looks like it was defined as 0 and never set or changed.  
@@ -709,6 +739,11 @@ public class SpectralRTI_Toolkit implements Command {
                     ImageJFunctions.show(imglib2_img, "Preview");
                     dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
                     dWait.show();
+                    if(dWait.escPressed() || WindowManager.getImage("Preview").getRoi() == null){
+                        //@userHitCancel
+                        logService.log().warn("You must provide a box!");
+                        throw new Throwable("You must draw a rectangle to continue!");
+                    }
                     bounds = WindowManager.getImage("Preview").getRoi().getBounds();
                     pcaX = bounds.x;
                     pcaY = bounds.y;
@@ -731,6 +766,11 @@ public class SpectralRTI_Toolkit implements Command {
                 imglib2_img = ImagePlusAdapter.wrap( imp );
                 ImageJFunctions.show(imglib2_img, "Preview");                
                 dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
+                if(dWait.escPressed() || WindowManager.getImage("Preview").getRoi() == null){
+                    //@userHitCancel
+                    logService.log().warn("You must provide a box!");
+                    throw new Throwable("You must draw a rectangle to continue!");
+                }
                 dWait.show();
                 bounds = WindowManager.getImage("Preview").getRoi().getBounds();
                 WindowManager.getImage("Preview").close();
@@ -780,12 +820,16 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                     }
                     if (!accurateColorSource.exists()) {
-                        logService.log().info("Could not find accurateColorSource");
+                        logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
                         gd.addMessage("Select Color Source");
                         gd.addRadioButtonGroup("File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
-                        gd.setMaximumSize(bestFit);
                         gd.showDialog();
+                        if(gd.wasCanceled()){
+                            //@userHitCancel
+                            logService.log().warn("You must provide a color source!");
+                            throw new Throwable("You must provide a color source to continue!");
+                        }
                         accurateColorSource = new File(gd.getNextRadioButton());
                     }
 		}
@@ -1069,7 +1113,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 imp.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                                 IJ.run(imp,"Enhance Contrast...", "saturated=0.4");
                                 IJ.run("Select None");
-                            } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                            } 
+                            else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                                 IJ.run(imp, "Multiply...", "value="+normalizationFixedValue+"");
                             }
                         }
@@ -1099,7 +1144,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 imp.setRoi(normX,normY,normWidth,normHeight); 
                                 IJ.run(imp, "Enhance Contrast...", "saturated=0.4");
                                 IJ.run("Select None");
-                            } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                            } 
+                            else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                                 IJ.run(imp, "Multiply...", "value="+normalizationFixedValue+"");
                             }
                             IJ.run(imp, "8-bit", "");
@@ -1161,7 +1207,8 @@ public class SpectralRTI_Toolkit implements Command {
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
                         IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
-                    } else {
+                    } 
+                    else {
                         // ?
                     }
                     IJ.run("PCA ");
@@ -1171,7 +1218,12 @@ public class SpectralRTI_Toolkit implements Command {
                     WindowManager.getImage("Captures-Narrowband-NoGamma").close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setActivated();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                    dWait = new WaitForUserDialog("Select area", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
+                    dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
+                    if(dWait.escPressed()){
+                        //@userHitCancel
+                        logService.log().warn("You must delete slices!");
+                        throw new Throwable("You must delete slices to continue!");
+                    }
                     dWait.show();
                     WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
@@ -1181,11 +1233,20 @@ public class SpectralRTI_Toolkit implements Command {
 		} 
                 else if (pcaMethod.equals("Open pregenerated images")) {
                     logService.log().info("3");
-                    dWait = new WaitForUserDialog("Select area", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
+                    dWait = new WaitForUserDialog("Designated Images", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
+                    if(dWait.escPressed()){
+                        //@userHitCancel
+                        logService.log().warn("You must make selections!");
+                        throw new Throwable("You must make selections to continue!");
+                    }
                     dWait.show();
                     if (WindowManager.getImageCount() > 1){ 
                         IJ.run("Images to Stack", "name=Stack title=[] use"); 
                         WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
+                    }
+                    else{
+                        logService.log().warn("Improper selections");
+                        throw new Throwable("Open a pair of images or stack of two slices to continue!");
                     }
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
 		}
@@ -1265,7 +1326,8 @@ public class SpectralRTI_Toolkit implements Command {
                             WindowManager.getImage("EnhancedLuminance").setRoi(normX,normY,normWidth,normHeight); 
                             IJ.run(WindowManager.getImage("EnhancedLuminance"),"Enhance Contrast...", "saturated=0.4");
                             IJ.run("Select None");
-                        } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                        } 
+                        else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                             IJ.run(WindowManager.getImage("EnhancedLuminance"),"Multiply...", "value="+normalizationFixedValue+"");
                         }
                         IJ.run(imp, "8-bit", "");
@@ -1479,8 +1541,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             }
               logService.log().warn("Finished processing the run().");
-	}
-        
+	}       
 
         /**
         * Helper function to populate the file list for hemisphereCaputers.  Based off getFilesList() macro
@@ -1493,7 +1554,7 @@ public class SpectralRTI_Toolkit implements Command {
             return listOfFiles;
         }
         
-        
+       
         /** 
         * Create a JP2000 image?
         * @param inFile The directory to check
@@ -1536,7 +1597,7 @@ public class SpectralRTI_Toolkit implements Command {
                 gd.showDialog();
                 preferredJp2Args = gd.getNextString();
                 preferredJp2Args =preferredJp2Args.replace("\\", "/");
-                preferredString = "preferredJp2Args="+preferredJp2Args;
+                preferredString = "preferredJp2Args="+preferredJp2Args+System.lineSeparator();
                 theList.put("preferredJp2Args", preferredJp2Args);
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
                 prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\"+System.lineSeparator(), preferredString); //replace the prefs var
@@ -1622,7 +1683,7 @@ public class SpectralRTI_Toolkit implements Command {
         * @param listOfHemisphereCaptures the list of files in the hemishphere folder
         * @exception ImgIOException if image cannot be opened.
         */
-        public void promptBrightnessAdjust(File[] listOfHemisphereCaptures) throws ImgIOException {
+        public void promptBrightnessAdjust(File[] listOfHemisphereCaptures) throws ImgIOException, Throwable {
             /* DEBGUGGIN 
             logService.log().info("In brightness adjust.  I should have a list of hemisphere captures.  What is the legnth?");
             logService.log().info(listOfHemisphereCaptures.length);
@@ -1656,12 +1717,21 @@ public class SpectralRTI_Toolkit implements Command {
             
             brightnessAdjustOption = gd.getNextRadioButton();
             brightnessAdjustApply = gd.getNextRadioButton();
+            
+            if(gd.wasCanceled()){
+                brightnessAdjustOption = "No";
+            }
 
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
                 //logService.log().warn("Bright Case 1");
                 dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
                 dWait.show();
+                if(dWait.escPressed() || imp.getRoi() == null){
+                    //@userHitCancel
+                    logService.log().warn("You must draw a rectangle!");
+                    throw new Throwable("You must draw a rectangle to continue!");
+                }
                 bounds = imp.getRoi().getBounds();
                 region = new RectangleOverlay();
                 normX = bounds.x;
@@ -1674,6 +1744,11 @@ public class SpectralRTI_Toolkit implements Command {
                // logService.log().warn("Bright Case 2");
                 dWait = new WaitForUserDialog("Use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered next." );
                 dWait.show();
+                if(dWait.escPressed()){
+                    //@userHitCancel
+                    logService.log().warn("You must supply a multiplier!");
+                    throw new Throwable("You must supply a multiplier to continue!");
+                }
                 IJ.run(imp, "Multiply...", "");
                 GenericDialog gdMultiplier = new GenericDialog("Enter selected multiplier");
                 gdMultiplier.addNumericField("Enter selected multiplier: ", 1.30,2,4,"");
@@ -1740,7 +1815,9 @@ public class SpectralRTI_Toolkit implements Command {
                     //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
                     String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     logService.log().info(commandString);
-                    p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
+                    p = Runtime.getRuntime().exec("cmd /c start "+commandString);
+                    //p = Runtime.getRuntime().exec(commandString, null, new File("E:\\TRH_macroResult\\RTIbuilder_v2_0_2\\Fitters\\HSHfitter\\"));
+                    //p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
                     p.waitFor();
                 }
                 else{
@@ -1759,12 +1836,14 @@ public class SpectralRTI_Toolkit implements Command {
                         prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.lineSeparator(),webString+System.lineSeparator()); //replace the prefs var
                         Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
                     }
-                    
                     if(isWindows){
                         //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
                         String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                         logService.log().info(commandString);
-                        p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
+                        p2 = Runtime.getRuntime().exec("cmd /c start "+commandString);
+                        //p2 = Runtime.getRuntime().exec(commandString, null, new File("E:\\TRH_macroResult\\RTIbuilder_v2_0_2\\Fitters\\HSHfitter\\"));
+                        //p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
+                        //p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
                         p2.waitFor();
                     }
                     else{
