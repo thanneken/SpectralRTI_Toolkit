@@ -209,6 +209,10 @@ public class SpectralRTI_Toolkit implements Command {
         
         private void testCode() throws IOException, Throwable{
             logService.log().info("TEST CODE!");       
+            File compress = new File("C:\\Program Files (x86)\\Kakadu\\kdu_compress.exe");
+            String compressLocation = compress.getAbsoluteFile().getParentFile().getName();
+            logService.log().info("This is the location");
+            logService.log().info(compressLocation);
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -1603,6 +1607,9 @@ public class SpectralRTI_Toolkit implements Command {
                 prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\"+System.lineSeparator(), preferredString); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
+            File preferredCompressFile = new File(preferredCompress);
+            String compressLocation = preferredCompressFile.getParent();
+            logService.log().info("Preferred JP2 compress location: "+compressLocation);
             logService.log().info("Heading off to noClobber from createJP2");
             Boolean noClob = noClobber(projDir+"StaticRaking"+File.separator+inFile+".jp2"); 
             logService.log().warn("noClobber in createJP2 returned "+noClob);
@@ -1617,7 +1624,7 @@ public class SpectralRTI_Toolkit implements Command {
                 String compressLoc = preferredCompress.substring(0, preferredCompress.lastIndexOf(File.separator)+1);
                 logService.log().info("compress dir:");
                 logService.log().info(compressLoc);
-                p = Runtime.getRuntime().exec(preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args, null, new File("C:\\Program Files (x86)\\Kakadu\\"));
+                p = Runtime.getRuntime().exec(preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args, null, new File(compressLocation)); //compressLocation
                 p.waitFor();   
                 returnString = projDir+"StaticRaking"+File.separator+inFile+".jp2";
                 //preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
@@ -1770,12 +1777,13 @@ public class SpectralRTI_Toolkit implements Command {
          * @exception IOException if file is not found.  
         */
         public void runFitter(String colorProcess) throws IOException, Throwable {
+            logService.log().info("Running the fitter...");
             String preferredFitter = theList.get("preferredFitter");
             preferredFitter = preferredFitter.replace("/", File.separator);
-            String fitterOutput = "";
-            String webRtiMakerOutput = "";
             String webRtiMaker = "";
             String appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
+            File preferredHSH;
+            String hshLocation = "";
             if (preferredFitter.equals("")) {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 preferredFitter = dialog.getPath();
@@ -1789,6 +1797,9 @@ public class SpectralRTI_Toolkit implements Command {
                 if (hshOrder < 2 ) hshOrder = 3;
                 int hshThreads = Integer.parseInt(theList.get("hshThreads"));
                 if (hshThreads < 1 ) hshThreads = 16;
+                preferredHSH = new File(preferredFitter);
+                hshLocation = preferredHSH.getParent();
+                logService.log().info("HSH location: "+hshLocation);
                 appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
                 File fitterFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
                 if(!fitterFile.exists()){
@@ -1815,8 +1826,8 @@ public class SpectralRTI_Toolkit implements Command {
                     //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
                     String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     logService.log().info(commandString);
-                    p = Runtime.getRuntime().exec("cmd /c start "+commandString);
-                    //p = Runtime.getRuntime().exec(commandString, null, new File("E:\\TRH_macroResult\\RTIbuilder_v2_0_2\\Fitters\\HSHfitter\\"));
+                    //p = Runtime.getRuntime().exec("cmd /c start "+commandString);
+                    p = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
                     //p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
                     p.waitFor();
                 }
@@ -1840,8 +1851,8 @@ public class SpectralRTI_Toolkit implements Command {
                         //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
                         String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                         logService.log().info(commandString);
-                        p2 = Runtime.getRuntime().exec("cmd /c start "+commandString);
-                        //p2 = Runtime.getRuntime().exec(commandString, null, new File("E:\\TRH_macroResult\\RTIbuilder_v2_0_2\\Fitters\\HSHfitter\\"));
+                        //p2 = Runtime.getRuntime().exec("cmd /c start "+commandString);
+                        p2 = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
                         //p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
                         //p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
                         p2.waitFor();
@@ -1857,7 +1868,8 @@ public class SpectralRTI_Toolkit implements Command {
                 if (hshOrder < 2 ) hshOrder = 3;
                 int hshThreads = Integer.parseInt(theList.get("hshThreads"));
                 if (hshThreads < 1 ) hshThreads = 16;
-
+                preferredHSH = new File(preferredFitter);
+                hshLocation = preferredHSH.getParent();
                 logService.log().info("Adding command to batch command file "+preferredFitter+": hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti\n");
 
                 appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
