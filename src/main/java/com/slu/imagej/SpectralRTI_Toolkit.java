@@ -782,9 +782,7 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.showMessageWithCancel("Use RTI Builder to Create LP File","Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in\n"+projectDirectory+"LightPositionData"+File.separator+"\nPress cancel to discontinue Spectral RTI Toolkit or Ok to continue with other tasks after the lp file has been created.");
             }
             if(acRtiDesired || acRakingDesired){ //Gather accurate color info
-                //if(null != accurateColorSources_dirs.listFiles()){
                 listOfAccurateColorSources = accurate_color_dir.listFiles();
-                //}
                 String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
                 ArrayList<String>  listOfAccurateColorSources_list = new ArrayList<String>();
                 for (File f : listOfAccurateColorSources) {
@@ -799,11 +797,6 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator); 
 		} 
                 else { //There were multiple sources, let the user pick the one they want to use.
-//                    for (int i=0; i<listOfAccurateColorSources.length; i++) {
-//                        if (listOfAccurateColorSources[i].toString().indexOf("sRGB")>0) {
-//                            accurateColorSource = listOfAccurateColorSources[i];
-//                        }
-//                    }
                     if (accurateColorSource == null) {
                         logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
