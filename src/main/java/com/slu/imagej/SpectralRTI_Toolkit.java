@@ -782,29 +782,22 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.showMessageWithCancel("Use RTI Builder to Create LP File","Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in\n"+projectDirectory+"LightPositionData"+File.separator+"\nPress cancel to discontinue Spectral RTI Toolkit or Ok to continue with other tasks after the lp file has been created.");
             }
             if(acRtiDesired || acRakingDesired){ //Gather accurate color info
-                //if(null != accurateColorSources_dirs.listFiles()){
                 listOfAccurateColorSources = accurate_color_dir.listFiles();
-                //}
                 String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
                 ArrayList<String>  listOfAccurateColorSources_list = new ArrayList<String>();
                 for (File f : listOfAccurateColorSources) {
                    listOfAccurateColorSources_list.add(f.toString());
                 }
                 listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
-		if (listOfAccurateColorSources.length == 1) {
+		if (listOfAccurateColorSources.length == 1) { //There was only one source, so auto select it
                     accurateColorSource = listOfAccurateColorSources[0];
 		} 
-                else if (listOfAccurateColorSources.length == 0) {
+                else if (listOfAccurateColorSources.length == 0) { //There were no sources, this is an error.
                     IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator); 
 		} 
-                else {
-                    for (int i=0; i<listOfAccurateColorSources.length; i++) {
-                        if (listOfAccurateColorSources[i].toString().indexOf("sRGB")>0) {
-                            accurateColorSource = listOfAccurateColorSources[i];
-                        }
-                    }
-                    if (!accurateColorSource.exists()) {
+                else { //There were multiple sources, let the user pick the one they want to use.
+                    if (accurateColorSource == null) {
                         logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
                         gd.addMessage("Select Color Source");
