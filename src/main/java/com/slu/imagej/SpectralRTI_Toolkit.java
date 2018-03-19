@@ -1972,14 +1972,10 @@ public class SpectralRTI_Toolkit implements Command {
                 newLpLine = lpLines[i];
                 newLpLine = newLpLine.replace("\\", "/"); //simplest to avoid a backslash on the right side of a regular expression replace in the next few lines
                 String funnyProjectDirectory = projectDirectory.replace("\\","/"); //Detect this slash and replace.
-                //Yikes we would like this to be able to save the more complicated name...
                 newLpLine = newLpLine.replace("LightPositionData/jpeg-exports/",colorProcess+"RTI/"+colorProcess+"_");
                 newLpLine = newLpLine.replace("canonical",funnyProjectDirectory+colorProcess+"RTI/"+colorProcess+"_"+projectName+"_RTI");
                 newLpLine = newLpLine + System.lineSeparator();
-                //YIKES Must actually write this file with the correct slash in it for the OS you are running on...
-                newLpLine = newLpLine.replace("/", File.separator); //write it in with the proper slash
-                //newLpLine = newLpLine.replace("/",File.separator);
-                //Always right in with / and convert on read. Commented out line above.
+                newLpLine = newLpLine.replace("/", File.separator);
                 Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"), newLpLine.getBytes(), StandardOpenOption.APPEND);
             }
         }
