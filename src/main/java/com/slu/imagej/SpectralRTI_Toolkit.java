@@ -791,20 +791,20 @@ public class SpectralRTI_Toolkit implements Command {
                    listOfAccurateColorSources_list.add(f.toString());
                 }
                 listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
-		if (listOfAccurateColorSources.length == 1) {
+		if (listOfAccurateColorSources.length == 1) { //There was only one source, so auto select it
                     accurateColorSource = listOfAccurateColorSources[0];
 		} 
-                else if (listOfAccurateColorSources.length == 0) {
+                else if (listOfAccurateColorSources.length == 0) { //There were no sources, this is an error.
                     IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator); 
 		} 
-                else {
-                    for (int i=0; i<listOfAccurateColorSources.length; i++) {
-                        if (listOfAccurateColorSources[i].toString().indexOf("sRGB")>0) {
-                            accurateColorSource = listOfAccurateColorSources[i];
-                        }
-                    }
-                    if (!accurateColorSource.exists()) {
+                else { //There were multiple sources, let the user pick the one they want to use.
+//                    for (int i=0; i<listOfAccurateColorSources.length; i++) {
+//                        if (listOfAccurateColorSources[i].toString().indexOf("sRGB")>0) {
+//                            accurateColorSource = listOfAccurateColorSources[i];
+//                        }
+//                    }
+                    if (accurateColorSource == null) {
                         logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
                         gd.addMessage("Select Color Source");
