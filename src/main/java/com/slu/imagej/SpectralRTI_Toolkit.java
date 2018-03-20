@@ -596,7 +596,7 @@ public class SpectralRTI_Toolkit implements Command {
                         defaultRange = "G";
                         radioOptionG.setSelected(true);
                     }
-                    String narrowCapture = listOfNarrowbandCaptures[i].getName();
+                    String narrowCapture = listOfNarrowbandCaptures[i].toString();
                     JLabel jlabel = new JLabel(narrowCapture);
                     contentPane.add(jlabel);
                     JPanel contentGroup = new JPanel();
@@ -1325,7 +1325,7 @@ public class SpectralRTI_Toolkit implements Command {
                             extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                             if (extensionIndex != -1)
                             {
-                                String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
+                                String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                                 String simpleName2 = projectName + "_";
                                 String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 longImageName = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
