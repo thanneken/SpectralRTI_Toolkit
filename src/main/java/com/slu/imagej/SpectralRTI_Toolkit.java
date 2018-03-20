@@ -100,6 +100,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import javax.swing.BoxLayout;
 
 /**
  * @author bhaberbe
@@ -457,7 +458,9 @@ public class SpectralRTI_Toolkit implements Command {
                 boolean[] defaults = new boolean[listOfHemisphereCaptures.length];
 
                 contentPane = new JPanel();
-                contentPane.setLayout(new GridLayout(10, 0, 8, 12));
+                JPanel scrollGrid = new JPanel();
+                scrollGrid.setLayout(new GridLayout(10, 0, 8, 12));
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
                 JLabel selectLightPositions = new JLabel("Select light positions for lossless static raking images");
                 labelPanel.add(selectLightPositions);
@@ -483,14 +486,15 @@ public class SpectralRTI_Toolkit implements Command {
                 for(int l=0; l<listOfHemisphereCaptures.length; l++){
                     JCheckBox ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
                     positions[l] = ch;
-                    contentPane.add(ch);
+                    scrollGrid.add(ch);
                 }
 
-                JScrollPane spanel = new JScrollPane(contentPane);
+                JScrollPane spanel = new JScrollPane(scrollGrid);
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-                spanel.setPreferredSize(preferredSize);           
-                int result = JOptionPane.showConfirmDialog(null, spanel, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+                spanel.setPreferredSize(preferredSize);         
+                contentPane.add(spanel);
+                int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
                 boolean atLeastOne = false;
                 if ( result != -1) {
                     for(JCheckBox check : positions){
