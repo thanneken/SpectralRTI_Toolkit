@@ -688,8 +688,8 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("I need a list of narrow band captures here for psRTI || psRaking ");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
                 if (listOfNarrowbandCaptures.length<9) { 
-                    logService.log().warn("You must have at least 2 or more narrow band captures for PseudoColor!");
-                    throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
+                    logService.log().warn("You must have at least 9 or more narrow band captures for PseudoColor!");
+                    throw new Throwable("You must have 9 or more narrow band captures for PseudoColor!");
                 }
                 File[] listOfPseudocolorSources = listOfPseudocolorSources_dir.listFiles();
                 String defaultPca = "";
@@ -1285,7 +1285,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (psRtiDesired||listOfRakingDirections.size() >= i+1) {
+                    if (psRtiDesired||listOfRakingDirections.get(i)) { //YIKES double check on this
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
                         imp.setTitle("Luminance");
@@ -1302,7 +1302,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         IJ.run(imp, "8-bit", "");
                         IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
-                        if (listOfRakingDirections.size() >= i+1) {
+                        if (listOfRakingDirections.get(i)) { //Yikes double check on this
                             IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
                             IJ.run("YCbCr stack to RGB");
                             WindowManager.getImage("YCC").close();
