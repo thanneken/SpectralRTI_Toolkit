@@ -100,7 +100,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JProgressBar;
 
 /**
  * @author bhaberbe
@@ -193,13 +196,9 @@ public class SpectralRTI_Toolkit implements Command {
         public String name;
         public File spectralPrefsFile = new File("SpectralRTI_Toolkit-prefs.txt");//This is in the base fiji folder. 
         public String prefsFileAsText = "";
-        
+                
         private void testCode() throws IOException, Throwable{
-            logService.log().info("TEST CODE!");       
-            File compress = new File("C:\\Program Files (x86)\\Kakadu\\kdu_compress.exe");
-            String compressLocation = compress.getAbsoluteFile().getParentFile().getName();
-            logService.log().info("This is the location");
-            logService.log().info(compressLocation);
+            logService.log().info("TEST CODE!"); 
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -1742,6 +1741,21 @@ public class SpectralRTI_Toolkit implements Command {
             String appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
             File preferredHSH;
             String hshLocation = "";
+            
+            JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
+            contentPane = new JPanel();
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel labelPanel = new JPanel();
+            JLabel fitterText = new JLabel("Running the fitter.  This could take a while.  This window will close and a notification"
+                    + " will appear when the process is complete.  Thank you for your patience.");
+            labelPanel.add(fitterText);
+            contentPane.add(labelPanel);
+            fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            fitterNoticeFrame.getContentPane().add(contentPane);
+            fitterNoticeFrame.pack();
+            fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
+            fitterNoticeFrame.setVisible(true);  
+                 
             if (preferredFitter.equals("")) {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 preferredFitter = dialog.getPath();
@@ -1789,10 +1803,14 @@ public class SpectralRTI_Toolkit implements Command {
                     p = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
                     //p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
                     p.waitFor();
+                    fitterNoticeFrame.setVisible(false);
+                    contentPane.removeAll();
                 }
                 else{
                     String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     p = Runtime.getRuntime().exec(commandString);
+                    fitterNoticeFrame.setVisible(false);
+                    contentPane.removeAll();
                 }
                 if (webRtiDesired) {
                     String webString;
