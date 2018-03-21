@@ -199,24 +199,6 @@ public class SpectralRTI_Toolkit implements Command {
                 
         private void testCode() throws IOException, Throwable{
             logService.log().info("TEST CODE!"); 
-            JFrame testFrame = new JFrame("Working...");
-            contentPane = new JPanel();
-            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-            JPanel labelPanel = new JPanel();
-            JLabel selectLightPositions = new JLabel("Running the fitter.  This could take a while.  This window will close and a notification"
-                    + " will appear when the process is complete.  Thank you for your patience."+System.lineSeparator()
-            + "Working...");
-            labelPanel.add(selectLightPositions);
-            contentPane.add(labelPanel);
-            testFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            testFrame.getContentPane().add(contentPane);
-            testFrame.pack();
-            testFrame.setLocation(screenSize.width/2-testFrame.getSize().width/2, screenSize.height/2-testFrame.getSize().height/2);
-            testFrame.setVisible(true);
-            p = Runtime.getRuntime().exec("C:\\Program Files\\NetBeans 8.0\\bin\\netbeans.exe"); //compressLocation
-            p.waitFor();  
-            testFrame.setVisible(false);
-            contentPane.removeAll();
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -1535,8 +1517,8 @@ public class SpectralRTI_Toolkit implements Command {
         @Override
 	public void run() {
             try {
-               //theMacro_tested();
-               testCode();
+               theMacro_tested();
+               //testCode();
             } catch (IOException ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Throwable ex) {
