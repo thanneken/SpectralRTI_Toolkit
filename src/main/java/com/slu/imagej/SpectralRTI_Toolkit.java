@@ -100,7 +100,9 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
+import javax.swing.JProgressBar;
 
 /**
  * @author bhaberbe
@@ -193,7 +195,7 @@ public class SpectralRTI_Toolkit implements Command {
         public String name;
         public File spectralPrefsFile = new File("SpectralRTI_Toolkit-prefs.txt");//This is in the base fiji folder. 
         public String prefsFileAsText = "";
-        
+                
         private void testCode() throws IOException, Throwable{
             logService.log().info("TEST CODE!");       
             File compress = new File("C:\\Program Files (x86)\\Kakadu\\kdu_compress.exe");
@@ -1742,6 +1744,11 @@ public class SpectralRTI_Toolkit implements Command {
             String appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
             File preferredHSH;
             String hshLocation = "";
+            GenericDialog gd = new GenericDialog("Working...");
+            gd.addMessage("Running the fitter.  This could take a while.  This window will close and a notification"
+                    + " will appear when the process is complete.  Thank you for your patience."+System.lineSeparator()
+            + "Working...");
+            gd.showDialog();
             if (preferredFitter.equals("")) {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 preferredFitter = dialog.getPath();
@@ -1789,10 +1796,13 @@ public class SpectralRTI_Toolkit implements Command {
                     p = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
                     //p = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
                     p.waitFor();
+                    gd.dispose();
                 }
                 else{
                     String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     p = Runtime.getRuntime().exec(commandString);
+                    p.waitFor();
+                    gd.dispose();
                 }
                 if (webRtiDesired) {
                     String webString;
