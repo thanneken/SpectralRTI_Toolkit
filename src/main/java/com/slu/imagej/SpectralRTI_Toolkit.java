@@ -464,6 +464,7 @@ public class SpectralRTI_Toolkit implements Command {
                 else if (listOfTransmissiveSources.length > 1) {
                     GenericDialog transSourceDialog = new GenericDialog("Select Transmissive Source");
                     transSourceDialog.addMessage("Select Transmissive Source. ");
+                    // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
                     transSourceDialog.addRadioButtonGroup("File: ", listOfTransmissiveSources, listOfTransmissiveSources.length, 1, listOfTransmissiveSources[0]);
                     transSourceDialog.setMaximumSize(bestFit);
                     transSourceDialog.showDialog();
@@ -511,6 +512,7 @@ public class SpectralRTI_Toolkit implements Command {
                     JCheckBox ch = null;
                     if(shortName){
                         ch = new JCheckBox("…"+listOfHemisphereCaptures[l].getName());
+                        ch.setToolTipText(listOfHemisphereCaptures[l].toString());
                     }
                     else{
                         ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
@@ -634,6 +636,7 @@ public class SpectralRTI_Toolkit implements Command {
                         narrowCapture = listOfNarrowbandCaptures[i].toString();
                     }
                     JLabel jlabel = new JLabel(narrowCapture);
+                    jlabel.setToolTipText(listOfNarrowbandCaptures[i].toString());
                     contentPane.add(jlabel);
                     JPanel contentGroup = new JPanel();
                     contentGroup.setLayout(new GridLayout(1,1,8,4)); // Want radio options in one row, should only need a single column.
@@ -848,6 +851,7 @@ public class SpectralRTI_Toolkit implements Command {
                         logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
                         gd.addMessage("Select Color Source");
+                        // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
                         gd.addRadioButtonGroup("File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
                         gd.showDialog();
                         if(gd.wasCanceled()){
