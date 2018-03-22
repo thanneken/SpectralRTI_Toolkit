@@ -31,9 +31,10 @@
   *     <li> https://stackoverflow.com/questions/10685893/run-exe-file-in-java-from-file-location </li>
   *     <li> https://stackoverflow.com/questions/201287/how-do-i-get-which-jradiobutton-is-selected-from-a-buttongroup </li>
   *     <li> http://www.codejava.net/java-se/swing/jradiobutton-basic-tutorial-and-examples </li>
+  *     <li> https://stackoverflow.com/questions/3597550/ideal-method-to-truncate-a-string-with-ellipsis </li>
   *     <li> NEW </li>
   *     <li> NEW </li>
-  * 
+  *     <li> NEW </li>
   * </ul> 
 */
 
@@ -156,7 +157,8 @@ public class SpectralRTI_Toolkit implements Command {
 	private String projectName = "";
         private final List<Boolean> listOfRakingDirections = new ArrayList<>();
         private String simpleImageName = "";
-        private String longImageName = "";
+        private String filePath = "";
+        private String justFileName = "";
         private Rectangle bounds;
         //This is important for native commands.  Java is NOT PLATFORM INDEPENDENT, so check what platform we are.
         private final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
@@ -217,7 +219,7 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean csRakingDesired = false;
             Boolean acRakingDesired = false;
             Boolean xsRakingDesired = false;
-            Boolean shortName = true; //BHTODO implement short vs long file name user preference.   
+            Boolean shortName = false; //BHTODO implement short vs long file name user preference.   
             File[] listOfAccurateColorSources = new File[0];
             File[] listOfAccurateColorFiles = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
@@ -258,7 +260,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("hshOrder","HSH Order");
                     key = key.replace("hshThreads","HSH Threads");
                     key = key.replace("webRtiMaker","Web RTI maker");
-                    key = key.replace("fullFileName","Full File Names");
+                    key = key.replace("shortFileNames","Short File Names");
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                     prefsDialog.addStringField(key, value1, 80);
                 }
@@ -284,7 +286,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("fullFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
             //Gather new values from the dialog, reset the labels and update the new values.
             if(swapBack){
@@ -298,8 +300,11 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("HSH Order","hshOrder");
                     key = key.replace("HSH Threads","hshThreads");
                     key = key.replace("Web RTI Maker","webRtiMaker");
-                    key = key.replace("Full File Names","fullFileNames");
+                    key = key.replace("Short File Names","shortFileNames");
                     String value2 = prefsDialog.getNextString(); //Gather new information
+                    if(key.equals("shortFileNames")){
+                        shortName = (value2.equals("true") || value2.equals("yes"));
+                    }
                     theList.put(key,value2);
                     prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
                 }
@@ -379,8 +384,9 @@ public class SpectralRTI_Toolkit implements Command {
             tasksDialog.addCheckbox("Pseudocolor Static Raking",psRtiDesired);
             tasksDialog.addCheckbox("Custom RTI",false);
             tasksDialog.addCheckbox("Custom Static Raking",false);
-            tasksDialog.addCheckbox("WebRTI",true);
-            tasksDialog.setMaximumSize(bestFit);
+            tasksDialog.addCheckbox("WebRTI",false);
+            tasksDialog.addMessage("Set your file name appearance preference below");
+            tasksDialog.addCheckbox("Short File Names", shortName);
             tasksDialog.showDialog();
             if (tasksDialog.wasCanceled()) {
                 //@userHitCancel
@@ -397,6 +403,11 @@ public class SpectralRTI_Toolkit implements Command {
             csRtiDesired = tasksDialog.getNextBoolean();
             csRakingDesired = tasksDialog.getNextBoolean();
             webRtiDesired = tasksDialog.getNextBoolean();
+            shortName = tasksDialog.getNextBoolean(); //This is a preference, must write to prefs file
+            prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+            String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
+            prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
+            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefsFileprefs file
             
             /** DEBUGGING **/
             logService.log().info("Variable States listed below!");
@@ -410,8 +421,12 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("csRtiDesired: "+csRtiDesired);
             logService.log().info("csRakingDesired: "+csRakingDesired);
             logService.log().info("webRtiDesired: "+webRtiDesired);
+            logService.log().info("shotFileNames: "+shortName);
             /** END DEBUGGING **/
-            
+            if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || webRtiDesired)){
+                IJ.error("You must provide at least one task.");
+                throw new Throwable("You must provide at least one task set to continue.");
+            }
             if (acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired){
                 if (brightnessAdjustOption.equals("")) promptBrightnessAdjust(listOfHemisphereCaptures);
                 logService.log().info("Back in main macro after brightness adjust prompt");
@@ -424,20 +439,29 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 File[] listOfTransmissiveSources_dir = new File[0];
                 ArrayList<String> listOfTransmissiveSources_list = new ArrayList<String>();
+                ArrayList<String> listOfTransmissiveSources_short = new ArrayList<String>();
                 String[] listOfTransmissiveSources = new String[0];
                 if(transmissive_gamma_dir.exists()){
                     listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
                     for (File f : listOfTransmissiveSources_dir) {
                         listOfTransmissiveSources_list.add(f.toString());
+                        listOfTransmissiveSources_short.add("…"+f.getName());
                     }
                 }
-                listOfTransmissiveSources_list.toArray(listOfTransmissiveSources); //will this work for an array of 0?
+                if(shortName){
+                    listOfTransmissiveSources_short.toArray(listOfTransmissiveSources); //will this work for an array of 0?
+                }
+                else{
+                   listOfTransmissiveSources_list.toArray(listOfTransmissiveSources); //will this work for an array of 0? 
+                }
+                
                 if (listOfTransmissiveSources.length == 1){ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem
                     transmissiveSource = listOfTransmissiveSources[0];
                 } 
                 else if (listOfTransmissiveSources.length > 1) {
                     GenericDialog transSourceDialog = new GenericDialog("Select Transmissive Source");
                     transSourceDialog.addMessage("Select Transmissive Source. ");
+                    // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
                     transSourceDialog.addRadioButtonGroup("File: ", listOfTransmissiveSources, listOfTransmissiveSources.length, 1, listOfTransmissiveSources[0]);
                     transSourceDialog.setMaximumSize(bestFit);
                     transSourceDialog.showDialog();
@@ -448,7 +472,6 @@ public class SpectralRTI_Toolkit implements Command {
                     else{
                         transmissiveSource = transSourceDialog.getNextRadioButton();
                     }
-                    
                 } 
                 else if (listOfTransmissiveSources.length == 0) {
                     transmissiveSource = "";
@@ -483,7 +506,14 @@ public class SpectralRTI_Toolkit implements Command {
 
                 JCheckBox[] positions = new JCheckBox[listOfHemisphereCaptures.length];
                 for(int l=0; l<listOfHemisphereCaptures.length; l++){
-                    JCheckBox ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
+                    JCheckBox ch = null;
+                    if(shortName){
+                        ch = new JCheckBox("…"+listOfHemisphereCaptures[l].getName());
+                        ch.setToolTipText(listOfHemisphereCaptures[l].toString());
+                    }
+                    else{
+                        ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
+                    }
                     positions[l] = ch;
                     scrollGrid.add(ch);
                 }
@@ -595,8 +625,15 @@ public class SpectralRTI_Toolkit implements Command {
                         defaultRange = "G";
                         radioOptionG.setSelected(true);
                     }
-                    String narrowCapture = listOfNarrowbandCaptures[i].toString();
+                    String narrowCapture = "";
+                    if(shortName){
+                        narrowCapture = "…"+listOfNarrowbandCaptures[i].getName();
+                    }
+                    else{
+                        narrowCapture = listOfNarrowbandCaptures[i].toString();
+                    }
                     JLabel jlabel = new JLabel(narrowCapture);
+                    jlabel.setToolTipText(listOfNarrowbandCaptures[i].toString());
                     contentPane.add(jlabel);
                     JPanel contentGroup = new JPanel();
                     contentGroup.setLayout(new GridLayout(1,1,8,4)); // Want radio options in one row, should only need a single column.
@@ -702,7 +739,7 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfPcaMethods[0]="Generate and select using defaults";
                 listOfPcaMethods[1]="Generate and manually select two";
                 listOfPcaMethods[2]="Open pregenerated images";
-                GenericDialog pseudoSources = new GenericDialog("Select sources for Pseudocolor");
+                GenericDialog pseudoSources = new GenericDialog("Select Method for Pseudocolor");
                 pseudoSources.addMessage("Pseudocolor images require two source images (typically principal component images).");
                 pseudoSources.addRadioButtonGroup("Method: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
                 pseudoSources.setMaximumSize(bestFit);
@@ -768,8 +805,7 @@ public class SpectralRTI_Toolkit implements Command {
                         int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                         if (extensionIndex != -1)
                         {
-                            longImageName = projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                            //simpleImageName = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
+                            filePath = projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                         }
                         ImageJFunctions.show(imglib2_img, "LightPosition");
                         WindowManager.getImage("LightPosition").setRoi(0,0,(int)imglib2_img.dimension(3), (int)imglib2_img.dimension(4));
@@ -778,7 +814,7 @@ public class SpectralRTI_Toolkit implements Command {
                         if (!light_position_dir.exists()) Files.createDirectory(light_position_dir.toPath());
                         if (!jpegExportsFile.exists()) Files.createDirectory(jpegExportsFile.toPath());
                         //Do we need to tell the users we created these directories?
-                        IJ.saveAs("jpeg",longImageName+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or format
+                        IJ.saveAs("jpeg",filePath+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or format
                         WindowManager.getImage("LightPosition").close();
                     }
                 }
@@ -788,10 +824,21 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfAccurateColorSources = accurate_color_dir.listFiles();
                 String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
                 ArrayList<String>  listOfAccurateColorSources_list = new ArrayList<String>();
+                ArrayList<String>  listOfAccurateColorSources_short = new ArrayList<String>();
                 for (File f : listOfAccurateColorSources) {
                    listOfAccurateColorSources_list.add(f.toString());
+                   listOfAccurateColorSources_short.add("…"+f.getName());
+                   //elipses makes a weird box pop up next to the radio button...
                 }
-                listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
+                if(shortName){
+                    // YIKES null pointer exception when we go to grab the file.  Only use full name!
+                     //listOfAccurateColorSources_short.toArray(listOfAccurateColorSources_string);
+                    listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
+                }
+                else{
+                     listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
+                }
+               
 		if (listOfAccurateColorSources.length == 1) { //There was only one source, so auto select it
                     accurateColorSource = listOfAccurateColorSources[0];
 		} 
@@ -804,6 +851,7 @@ public class SpectralRTI_Toolkit implements Command {
                         logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
                         gd.addMessage("Select Color Source");
+                        // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
                         gd.addRadioButtonGroup("File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
                         gd.showDialog();
                         if(gd.wasCanceled()){
@@ -873,11 +921,11 @@ public class SpectralRTI_Toolkit implements Command {
                             String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
                             String simpleName2 = projectName + "_";
                             String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                            longImageName = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
+                            filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
                             simpleImageName = "AccurateColor_"+simpleName2+simpleName3;
                         }
-                        noClobber(longImageName+".jpg");
-                        IJ.saveAs("jpeg",longImageName+".jpg");
+                        noClobber(filePath+".jpg");
+                        IJ.saveAs("jpeg",filePath+".jpg");
                         WindowManager.getImage(simpleImageName+".jpg").close();
                         WindowManager.getImage("YCC").close();
                         imp.changes=false;
@@ -1105,12 +1153,12 @@ public class SpectralRTI_Toolkit implements Command {
                             String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
                             String simpleName2 = projectName + "_";
                             String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                            longImageName = projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+simpleName2+simpleName3;
+                            filePath = projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+simpleName2+simpleName3;
                             simpleImageName = "ExtendedSpectrum_"+simpleName2+simpleName3;
                         }
 
-                        noClobber(longImageName+".jpg");
-                        IJ.saveAs("jpeg",longImageName+".jpg");
+                        noClobber(filePath+".jpg");
+                        IJ.saveAs("jpeg",filePath+".jpg");
 
                         WindowManager.getImage("YCC").close();
                         imp.changes = false;
@@ -1327,11 +1375,11 @@ public class SpectralRTI_Toolkit implements Command {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                                 String simpleName2 = projectName + "_";
                                 String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                longImageName = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
+                                filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
                                 simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
                             }
-                            noClobber(longImageName+".jpg");
-                            IJ.saveAs("jpeg", longImageName+".jpg");
+                            noClobber(filePath+".jpg");
+                            IJ.saveAs("jpeg", filePath+".jpg");
                             WindowManager.getImage(simpleImageName+".jpg").close();
                         } 
                         else if (psRtiDesired) {
@@ -1345,11 +1393,11 @@ public class SpectralRTI_Toolkit implements Command {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
                                 String simpleName2 = projectName + "_";
                                 String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                longImageName = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
+                                filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
                                 simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
                             }
-                            noClobber(longImageName+".jpg");
-                            IJ.saveAs("jpeg", longImageName+".jpg");
+                            noClobber(filePath+".jpg");
+                            IJ.saveAs("jpeg", filePath+".jpg");
                             WindowManager.getImage(simpleImageName+".jpg").close();
                         }
                         WindowManager.getImage("EnhancedLuminance").changes = false;
@@ -1445,11 +1493,11 @@ public class SpectralRTI_Toolkit implements Command {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
                                 String simpleName2 = projectName + "_";
                                 String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                longImageName = projectDirectory+"CustomSourceRTI"+File.separator+"CustomSource_"+simpleName2+simpleName3;
+                                filePath = projectDirectory+"CustomSourceRTI"+File.separator+"CustomSource_"+simpleName2+simpleName3;
                                 simpleImageName = "CustomSource_"+simpleName2+simpleName3;
                             }
-                            noClobber(longImageName+".jpg");
-                            IJ.saveAs("jpeg", longImageName+".jpg");
+                            noClobber(filePath+".jpg");
+                            IJ.saveAs("jpeg", filePath+".jpg");
                             IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                                 region = new RectangleOverlay();
@@ -1478,16 +1526,16 @@ public class SpectralRTI_Toolkit implements Command {
                                 IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
                                 IJ.run("YCbCr stack to RGB");
                                 WindowManager.getImage("YCC").close();
-                                noClobber(longImageName+".jpg");
-                                IJ.saveAs("jpeg", longImageName+".jpg");
+                                noClobber(filePath+".jpg");
+                                IJ.saveAs("jpeg", filePath+".jpg");
                                 WindowManager.getImage(simpleImageName+".jpg").close();
                             } 
                             else if (csRtiDesired) {
                                 IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
                                 IJ.run("YCbCr stack to RGB");
                                 WindowManager.getImage("YCC").close();
-                                noClobber(longImageName+".jpg");
-                                IJ.saveAs("jpeg", longImageName+".jpg");
+                                noClobber(filePath+".jpg");
+                                IJ.saveAs("jpeg", filePath+".jpg");
                             }
                             WindowManager.getImage("EnhancedLuminance").changes = false;
                             imp.changes = false;
