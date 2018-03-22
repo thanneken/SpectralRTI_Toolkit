@@ -303,9 +303,7 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("Short File Names","shortFileNames");
                     String value2 = prefsDialog.getNextString(); //Gather new information
                     if(key.equals("shortFileNames")){
-                        logService.log().info("Detected shortFileNames key.  Check value and see if we can boolean true from "+value2);
                         shortName = (value2.equals("true") || value2.equals("yes"));
-                        logService.log().info(shortName);
                     }
                     theList.put(key,value2);
                     prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
@@ -406,7 +404,6 @@ public class SpectralRTI_Toolkit implements Command {
             csRakingDesired = tasksDialog.getNextBoolean();
             webRtiDesired = tasksDialog.getNextBoolean();
             shortName = tasksDialog.getNextBoolean(); //This is a preference, must write to prefs file
-            logService.log().info("Got file name preference from checkbox "+shortName);
             prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
             String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
             prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
