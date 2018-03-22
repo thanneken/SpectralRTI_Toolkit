@@ -831,9 +831,12 @@ public class SpectralRTI_Toolkit implements Command {
                 for (File f : listOfAccurateColorSources) {
                    listOfAccurateColorSources_list.add(f.toString());
                    listOfAccurateColorSources_short.add("…"+f.getName());
+                   //elipses makes a weird box pop up next to the radio button...
                 }
                 if(shortName){
-                     listOfAccurateColorSources_short.toArray(listOfAccurateColorSources_string);
+                    // YIKES null pointer exception when we go to grab the file.  Only use full name!
+                     //listOfAccurateColorSources_short.toArray(listOfAccurateColorSources_string);
+                    listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
                 }
                 else{
                      listOfAccurateColorSources_list.toArray(listOfAccurateColorSources_string);
