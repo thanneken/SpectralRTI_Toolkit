@@ -31,9 +31,10 @@
   *     <li> https://stackoverflow.com/questions/10685893/run-exe-file-in-java-from-file-location </li>
   *     <li> https://stackoverflow.com/questions/201287/how-do-i-get-which-jradiobutton-is-selected-from-a-buttongroup </li>
   *     <li> http://www.codejava.net/java-se/swing/jradiobutton-basic-tutorial-and-examples </li>
+  *     <li> https://stackoverflow.com/questions/3597550/ideal-method-to-truncate-a-string-with-ellipsis </li>
   *     <li> NEW </li>
   *     <li> NEW </li>
-  * 
+  *     <li> NEW </li>
   * </ul> 
 */
 
@@ -447,7 +448,7 @@ public class SpectralRTI_Toolkit implements Command {
                     listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
                     for (File f : listOfTransmissiveSources_dir) {
                         listOfTransmissiveSources_list.add(f.toString());
-                        listOfTransmissiveSources_short.add(f.getName());
+                        listOfTransmissiveSources_short.add("…"+f.getName());
                     }
                 }
                 if(shortName){
@@ -509,7 +510,7 @@ public class SpectralRTI_Toolkit implements Command {
                 for(int l=0; l<listOfHemisphereCaptures.length; l++){
                     JCheckBox ch = null;
                     if(shortName){
-                        ch = new JCheckBox(listOfHemisphereCaptures[l].getName());
+                        ch = new JCheckBox("…"+listOfHemisphereCaptures[l].getName());
                     }
                     else{
                         ch = new JCheckBox(listOfHemisphereCaptures[l].toString());
@@ -627,7 +628,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     String narrowCapture = "";
                     if(shortName){
-                        narrowCapture = listOfNarrowbandCaptures[i].getName();
+                        narrowCapture = "…"+listOfNarrowbandCaptures[i].getName();
                     }
                     else{
                         narrowCapture = listOfNarrowbandCaptures[i].toString();
@@ -826,7 +827,7 @@ public class SpectralRTI_Toolkit implements Command {
                 ArrayList<String>  listOfAccurateColorSources_short = new ArrayList<String>();
                 for (File f : listOfAccurateColorSources) {
                    listOfAccurateColorSources_list.add(f.toString());
-                   listOfAccurateColorSources_short.add(f.getName());
+                   listOfAccurateColorSources_short.add("…"+f.getName());
                 }
                 if(shortName){
                      listOfAccurateColorSources_short.toArray(listOfAccurateColorSources_string);
