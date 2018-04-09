@@ -445,7 +445,7 @@ public class SpectralRTI_Toolkit implements Command {
                     listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
                     for (File f : listOfTransmissiveSources_dir) {
                         listOfTransmissiveSources_list.add(f.toString());
-                        listOfTransmissiveSources_short.add("…"+f.getName());
+                        listOfTransmissiveSources_short.add("â€¦"+f.getName());
                     }
                 }
                 if(shortName){
@@ -508,7 +508,7 @@ public class SpectralRTI_Toolkit implements Command {
                 for(int l=0; l<listOfHemisphereCaptures.length; l++){
                     JCheckBox ch = null;
                     if(shortName){
-                        ch = new JCheckBox("…"+listOfHemisphereCaptures[l].getName());
+                        ch = new JCheckBox("â€¦"+listOfHemisphereCaptures[l].getName());
                         ch.setToolTipText(listOfHemisphereCaptures[l].toString());
                     }
                     else{
@@ -627,7 +627,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     String narrowCapture = "";
                     if(shortName){
-                        narrowCapture = "…"+listOfNarrowbandCaptures[i].getName();
+                        narrowCapture = "â€¦"+listOfNarrowbandCaptures[i].getName();
                     }
                     else{
                         narrowCapture = listOfNarrowbandCaptures[i].toString();
@@ -827,7 +827,7 @@ public class SpectralRTI_Toolkit implements Command {
                 ArrayList<String>  listOfAccurateColorSources_short = new ArrayList<String>();
                 for (File f : listOfAccurateColorSources) {
                    listOfAccurateColorSources_list.add(f.toString());
-                   listOfAccurateColorSources_short.add("…"+f.getName());
+                   listOfAccurateColorSources_short.add("â€¦"+f.getName());
                    //elipses makes a weird box pop up next to the radio button...
                 }
                 if(shortName){
@@ -2043,8 +2043,6 @@ public class SpectralRTI_Toolkit implements Command {
             }
         }
         
-        
-
 	/**
 	 * Main method so imageJ can start up the plugin.
 	 *
