@@ -105,6 +105,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JProgressBar;
+import org.apache.commons.io.comparator.NameFileComparator;
+
 
 /**
  * @author bhaberbe
@@ -327,6 +329,7 @@ public class SpectralRTI_Toolkit implements Command {
             IJ.run("Input/Output...","jpeg="+jpegQuality);
             
             listOfHemisphereCaptures = getHemisphereCaptures(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+            Arrays.sort(listOfHemisphereCaptures, NameFileComparator.NAME_COMPARATOR);
             File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
             File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
             File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
@@ -349,7 +352,7 @@ public class SpectralRTI_Toolkit implements Command {
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
-            while (listOfHemisphereCaptures.length <= 29 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")){
+            while (listOfHemisphereCaptures.length < 30 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")){
                 listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
             }
             if(listOfHemisphereCaptures.length < 30){
@@ -423,6 +426,7 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("webRtiDesired: "+webRtiDesired);
             logService.log().info("shotFileNames: "+shortName);
             /** END DEBUGGING **/
+            
             if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || webRtiDesired)){
                 IJ.error("You must provide at least one task.");
                 throw new Throwable("You must provide at least one task set to continue.");
@@ -613,18 +617,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //add this new group to the array of groups
                     bgroups[i] = capture_radios;
                     //Auto-select the correct button
-                    if ((i+1)/listOfNarrowbandCaptures.length < 0.34){
-                        defaultRange = "B";
-                        radioOptionB.setSelected(true);
-                    }
-                    else if ((i+1)/listOfNarrowbandCaptures.length > 0.67){
-                        defaultRange = "R";
-                        radioOptionR.setSelected(true);
-                    }
-                    else {
-                        defaultRange = "G";
-                        radioOptionG.setSelected(true);
-                    }
+                   
                     String narrowCapture = "";
                     if(shortName){
                         narrowCapture = "..."+listOfNarrowbandCaptures[i].getName();
@@ -643,6 +636,27 @@ public class SpectralRTI_Toolkit implements Command {
                     contentGroup.add(radioOptionG);
                     contentGroup.add(radioOptionB);
                     contentGroup.add(radioOptionNone);
+                    /*
+                    Since it is conventional to capture in a sequence of short to long wavelengths, it is helpful to default the first third of the files 
+                    in "narrowband captures" to blue, the middle third to green, and final third to red. 
+                    */
+                    float defaultFraction;
+                    float ind = (float) (i+1.0);
+                    float len = (float) listOfNarrowbandCaptures.length;
+                    defaultFraction = ind/len;
+                    logService.log().info(defaultFraction);
+                    if (defaultFraction < 0.34){
+                        defaultRange = "B";
+                        radioOptionB.setSelected(true);
+                    }
+                    else if (defaultFraction > 0.67){
+                        defaultRange = "R";
+                        radioOptionR.setSelected(true);
+                    }
+                    else {
+                        defaultRange = "G";
+                        radioOptionG.setSelected(true);
+                    }
                     //Add the button group panel to the overall content container
                     contentPane.add(contentGroup);                   
 		} 
@@ -1206,13 +1220,13 @@ public class SpectralRTI_Toolkit implements Command {
             if (psRtiDesired || psRakingDesired) {
                 File fluorescenceNoGamma = new File(projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator);
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
-		if (pcaMethod.equals("Generate and select using defaults")) {
+		if (pcaMethod.equals("Generate and select using defaults")){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
                         IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
-                    } 
-                    else {
+                    }
+                    else{
                         // ?
                     }
                     WindowManager.getImage("Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
@@ -1238,25 +1252,25 @@ public class SpectralRTI_Toolkit implements Command {
                         // ?
                     }
                     IJ.run("PCA ");
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
                     WindowManager.getImage("Captures-Narrowband-NoGamma").changes = false;
                     WindowManager.getImage("Captures-Narrowband-NoGamma").close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setActivated();
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                     dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
                     if(dWait.escPressed()){
                         //@userHitCancel
-                        logService.log().warn("You must delete slices!");
-                        throw new Throwable("You must delete slices to continue!");
+                        logService.log().warn("You must delete until there are slices!");
+                        throw new Throwable("You must delete until there are two slices to continue!");
                     }
                     dWait.show();
-                    WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
+                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
+                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
 		/**
                  * @see option to use previously generated principal component images
                  */
-		} 
+		}
                 else if (pcaMethod.equals("Open pregenerated images")) {
                     dWait = new WaitForUserDialog("Designated Images", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
                     if(dWait.escPressed()){
