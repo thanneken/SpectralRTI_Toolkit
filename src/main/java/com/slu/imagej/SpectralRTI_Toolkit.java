@@ -203,6 +203,27 @@ public class SpectralRTI_Toolkit implements Command {
                 
         private void testCode() throws IOException, Throwable{
             logService.log().info("TEST CODE!"); 
+//            String commandString = "E:\\TRH_macroResult\\RTIbuilder_v2_0_2\\Fitters\\HSHfitter\\hshfitter.exe E:\\BJH_macroResult\\Projects\\BraynTest3\\AccurateColorRTI\\BraynTest3_AccurateColorRTI.lp 3 16 E:\\BJH_macroResult\\Projects\\BraynTest3\\AccurateColorRTI\\BraynTest3_AccurateColorRTI_20180419_0926.rti";
+//            p = Runtime.getRuntime().exec(commandString, null, new File("E:\\TRH_macroResult\\RTIbuilder_v2_0_2\\Fitters\\HSHfitter"));
+//            p.waitFor();
+//            logService.log().info("Finished making RTI file...");
+//            
+            logService.log().info("Going to make a webRTI off an existing RTI");
+            String webRtiMaker = "E:\\TRH_macroResult\\webRTIViewer\\webGLRTIMaker-win-x64\\webGLRtiMaker.exe";
+            String commandString2 = webRtiMaker+" E:\\BJH_macroResult\\Projects\\BraynTest3\\AccurateColorRTI\\BraynTest3_AccurateColorRTI_20180419_0926.rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
+            logService.log().info("Command is "+commandString2);
+            p2 = Runtime.getRuntime().exec(commandString2, null, new File("E:\\TRH_macroResult\\webRTIViewer\\webGLRTIMaker-win-x64\\")); //webRTIMaker location
+            p2.waitFor();
+            logService.log().info("Finished making webRTI file...");
+            
+            String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI Test File</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \"BraynTest3_AccurateColorRTI_20180419_0926\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+            logService.log().info("Write webrti file to E:\\BJH_macroResult\\Projects\\BraynTest3\\AccurateColorRTI\\BraynTest3_AccurateColorRTI_20180419_0926_wrti.html");
+            String webRTIFile = "E:\\BJH_macroResult\\Projects\\BraynTest3\\AccurateColorRTI\\BraynTest3_AccurateColorRTI_20180419_0926_wrti.html";
+            File webFile = new File(webRTIFile);
+            if(!webFile.exists()){
+                Files.createFile(webFile.toPath()); 
+            }
+            Files.write(Paths.get(webRTIFile), webRtiString.getBytes(), StandardOpenOption.APPEND);
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -396,6 +417,7 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.error("You must provide a task set to continue.");
                 throw new Throwable("You must provide a task set to continue.");
             }
+            
             lpDesired = tasksDialog.getNextBoolean();
             acRtiDesired = tasksDialog.getNextBoolean();
             acRakingDesired = tasksDialog.getNextBoolean();
@@ -426,8 +448,8 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("webRtiDesired: "+webRtiDesired);
             logService.log().info("shotFileNames: "+shortName);
             /** END DEBUGGING **/
-            
-            if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || webRtiDesired)){
+            //Maybe denote these as at least one required in the UI window. 
+            if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired)){
                 IJ.error("You must provide at least one task.");
                 throw new Throwable("You must provide at least one task set to continue.");
             }
@@ -649,11 +671,11 @@ public class SpectralRTI_Toolkit implements Command {
                         defaultRange = "B";
                         radioOptionB.setSelected(true);
                     }
-                    else if (defaultFraction > 0.67){
+                    else if(defaultFraction > 0.67){
                         defaultRange = "R";
                         radioOptionR.setSelected(true);
                     }
-                    else {
+                    else{
                         defaultRange = "G";
                         radioOptionG.setSelected(true);
                     }
@@ -704,7 +726,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info(Arrays.toString(redNarrowbands));
                 logService.log().info(Arrays.toString(greenNarrowbands));
                 logService.log().info(Arrays.toString(blueNarrowbands));
-		if (pcaHeight < 100) { //Looks like it was defined as 0 and never set or changed.  
+		if (pcaHeight < 100){ //Looks like it was defined as 0 and never set or changed.  
                     File narrowbandNoGamma = new File(listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString()); //projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+
                     imp = opener.openImage( narrowbandNoGamma.toString() );
                     imglib2_img = ImagePlusAdapter.wrap( imp );
@@ -1579,8 +1601,8 @@ public class SpectralRTI_Toolkit implements Command {
         @Override
 	public void run() {
             try {
-               theMacro_tested();
-               //testCode();
+               //theMacro_tested();
+               testCode();
             } catch (IOException ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Throwable ex) {
@@ -1875,6 +1897,7 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane.removeAll();
                 }
                 if (webRtiDesired) {
+                    logService.log().info("I have found a desire for WebRTI...input");
                     String webString;
                     webRtiMaker = theList.get("webRtiMaker");
                     webRtiMaker = webRtiMaker.replace("/", File.separator);
@@ -1886,16 +1909,21 @@ public class SpectralRTI_Toolkit implements Command {
                         prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.lineSeparator(),webString+System.lineSeparator()); //replace the prefs var
                         Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
                     }
+                    logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
                     if(isWindows){
                         //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
-                        String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
-                        logService.log().info("Running the following fitter command...");
+                        String commandString = webRtiMaker+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
+                        logService.log().info("Running the webRTICommand...");
                         logService.log().info(commandString);                        
                         //p2 = Runtime.getRuntime().exec("cmd /c start "+commandString);
-                        p2 = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
+                        p2 = Runtime.getRuntime().exec(commandString, null, new File(webRtiMaker)); //hshLocation
                         //p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString); //works but waits for user to close window to finish plugin.
                         //p2 = Runtime.getRuntime().exec("cmd /c start /wait "+commandString);
                         p2.waitFor();
+                        String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+                        //appendString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+                        logService.log().info("Write webrti file to "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html");
+                        Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                     }
                     else{
                         String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
@@ -1934,6 +1962,7 @@ public class SpectralRTI_Toolkit implements Command {
                 if (webRtiDesired) {
                     String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
                     //appendString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+                    logService.log().info("Write webrti file to "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html");
                     Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
             } 
