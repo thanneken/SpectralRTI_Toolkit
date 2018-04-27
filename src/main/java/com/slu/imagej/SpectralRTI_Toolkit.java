@@ -719,7 +719,7 @@ public class SpectralRTI_Toolkit implements Command {
                     imp.setTitle("Preview");
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.show();
-                    dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
+                    dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
                     dWait.show();
                     if(dWait.escPressed() || imp.getRoi() == null){
                         //@userHitCancel
@@ -783,7 +783,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     imglib2_img = ImagePlusAdapter.wrap( imp );
                     ImageJFunctions.show(imglib2_img, "Preview");
-                    dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA\n(hint: limit to object or smaller)");
+                    dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
                     dWait.show();
                     if(dWait.escPressed() || WindowManager.getImage("Preview").getRoi() == null){
                         //@userHitCancel
