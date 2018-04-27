@@ -100,6 +100,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import java.util.Collections;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import org.apache.commons.io.comparator.NameFileComparator;
@@ -377,11 +378,11 @@ public class SpectralRTI_Toolkit implements Command {
             tasksDialog.addMessage("Select the tasks you would like to complete");
             tasksDialog.addCheckbox("Light Position Data",lpDesired);
             tasksDialog.addCheckbox("Accurate ColorRTI",acRtiDesired);
-            tasksDialog.addCheckbox("Accurate Color Static Raking",acRtiDesired);
+            tasksDialog.addCheckbox("Accurate Color Static Raking",acRakingDesired);
             tasksDialog.addCheckbox("Extended Spectrum RTI",xsRtiDesired);
-            tasksDialog.addCheckbox("Extended Spectrum Static Raking",xsRtiDesired);
+            tasksDialog.addCheckbox("Extended Spectrum Static Raking",xsRakingDesired);
             tasksDialog.addCheckbox("Pseudocolor RTI",psRtiDesired);
-            tasksDialog.addCheckbox("Pseudocolor Static Raking",psRtiDesired);
+            tasksDialog.addCheckbox("Pseudocolor Static Raking",psRakingDesired);
             tasksDialog.addCheckbox("Custom RTI",false);
             tasksDialog.addCheckbox("Custom Static Raking",false);
             tasksDialog.addCheckbox("WebRTI",false);
@@ -554,12 +555,13 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 if(!atLeastOne){
                     //Does the user have to make at least one selection?
-                    logService.log().warn("You must make at least one selection!");
+                    IJ.error("You must make at least one selection to continue!");
                     throw new Throwable("You must make at least one selection to continue!");
                 }
             }
             else { //We already have the list initiated, so do nothing
                 listOfRakingDirections = new ArrayList<>(listOfHemisphereCaptures.length+1);
+                Collections.fill(listOfRakingDirections, Boolean.FALSE);
                 logService.log().info("We already have the list initiated, so do nothing.  Raking is not desired.");
             }
                        
@@ -578,7 +580,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("List of narrow band captures for xsRTI or xsRaking");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
                 if (listOfNarrowbandCaptures.length<9) { 
-                    logService.log().warn("You must have 9 or more narrow band captures!");
+                    IJ.error("You must have 9 or more narrow band captures for Extended Spectrum!");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
                 contentPane = new JPanel();
@@ -700,7 +702,7 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else {
                     //Pane was cancelled or closed.  How should i handle (@userHitCancel)
-                    logService.log().warn("You must designate the captures to the visible range of R, G, B, or none");
+                    IJ.error("You must designate the captures to the visible range of R, G, B, or none to continue!");
                     throw new Throwable("You must designate the captures to the visible range of R, G, B, or none to continue!");
                 }
                 logService.log().info("We should have red, green and blue narrow bands");
@@ -721,7 +723,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait.show();
                     if(dWait.escPressed() || imp.getRoi() == null){
                         //@userHitCancel
-                        logService.log().warn("You must provide a box!");
+                        IJ.error("You must draw a rectangle to continue!");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
                     bounds = imp.getRoi().getBounds();
@@ -748,7 +750,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("I need a list of narrow band captures here for psRTI || psRaking ");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
                 if (listOfNarrowbandCaptures.length<9) { 
-                    logService.log().warn("You must have at least 9 or more narrow band captures for PseudoColor!");
+                    IJ.error("You must have 9 or more narrow band captures for PseudoColor!");
                     throw new Throwable("You must have 9 or more narrow band captures for PseudoColor!");
                 }
                 File[] listOfPseudocolorSources = listOfPseudocolorSources_dir.listFiles();
@@ -766,7 +768,7 @@ public class SpectralRTI_Toolkit implements Command {
                 pseudoSources.showDialog();
                 if(pseudoSources.wasCanceled()){
                     //@userHitCancel
-                    logService.log().warn("You must provide which method to use!");
+                    IJ.error("You must provide which method to use to continue!");
                     throw new Throwable("You must provide which method to use to continue!");
                 }
                 pcaMethod = pseudoSources.getNextRadioButton();
@@ -776,8 +778,8 @@ public class SpectralRTI_Toolkit implements Command {
                         imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
                     }  
                     else{ //Yikes I think this needs to be a failing situation.  Does it have to be?
-                        logService.log().info("No narrowband captures");
-                        throw new Throwable("There needs to be at least one image in the narrowban nogamma captres folder...");
+                        IJ.error("There needs to be at least one image in the narrowband nogamma captures folder...");
+                        throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
                     }
                     imglib2_img = ImagePlusAdapter.wrap( imp );
                     ImageJFunctions.show(imglib2_img, "Preview");
@@ -785,7 +787,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait.show();
                     if(dWait.escPressed() || WindowManager.getImage("Preview").getRoi() == null){
                         //@userHitCancel
-                        logService.log().warn("You must provide a box!");
+                        IJ.error("You must draw a rectangle to continue!");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
                     bounds = WindowManager.getImage("Preview").getRoi().getBounds();
@@ -812,7 +814,7 @@ public class SpectralRTI_Toolkit implements Command {
                 dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
                 if(dWait.escPressed() || WindowManager.getImage("Preview").getRoi() == null){
                     //@userHitCancel
-                    logService.log().warn("You must provide a box!");
+                    IJ.error("You must draw a rectangle to continue!");
                     throw new Throwable("You must draw a rectangle to continue!");
                 }
                 dWait.show();
@@ -876,7 +878,7 @@ public class SpectralRTI_Toolkit implements Command {
                         gd.showDialog();
                         if(gd.wasCanceled()){
                             //@userHitCancel
-                            logService.log().warn("You must provide a color source!");
+                            IJ.error("You must provide a color source to continue!");
                             throw new Throwable("You must provide a color source to continue!");
                         }
                         accurateColorSource = new File(gd.getNextRadioButton());
@@ -999,7 +1001,7 @@ public class SpectralRTI_Toolkit implements Command {
 		//Luminance from hemisphere captures
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
-                        if ((listOfRakingDirections.size() > i+1)) {
+                        if ((listOfRakingDirections.get(i+1))) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imp.setTitle("Luminance");
                             imglib2_img = ImagePlusAdapter.wrap(imp);
@@ -1182,7 +1184,7 @@ public class SpectralRTI_Toolkit implements Command {
                         WindowManager.getImage(simpleImageName+".jpg").close();
                     }
                     if (xsRakingDesired) {
-                        if ((listOfRakingDirections.size() > i+1)) {
+                        if ((listOfRakingDirections.get(i+1))) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
                             imp.setTitle("Luminance");
@@ -1262,7 +1264,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
                     if(dWait.escPressed()){
                         //@userHitCancel
-                        logService.log().warn("You must delete until there are slices!");
+                        IJ.error("You must delete until there are two slices to continue!");
                         throw new Throwable("You must delete until there are two slices to continue!");
                     }
                     dWait.show();
@@ -1277,7 +1279,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait = new WaitForUserDialog("Designated Images", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
                     if(dWait.escPressed()){
                         //@userHitCancel
-                        logService.log().warn("You must make selections!");
+                        IJ.error("You must make selections to continue!");
                         throw new Throwable("You must make selections to continue!");
                     }
                     dWait.show();
@@ -1286,7 +1288,7 @@ public class SpectralRTI_Toolkit implements Command {
                         WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
                     }
                     else{
-                        logService.log().warn("Improper selections");
+                        IJ.error("Open a pair of images or stack of two slices to continue!");
                         throw new Throwable("Open a pair of images or stack of two slices to continue!");
                     }
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
@@ -1352,7 +1354,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (psRtiDesired||(listOfRakingDirections.size() > i+1)) { //YIKES double check on this
+                    if (psRtiDesired||(listOfRakingDirections.get(i+1))){ //YIKES double check on this
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
                         imp.setTitle("Luminance");
@@ -1369,7 +1371,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         IJ.run(imp, "8-bit", "");
                         IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
-                        if (listOfRakingDirections.size() > i+1) { //Yikes double check on this
+                        if (listOfRakingDirections.get(i+1)) { //Yikes double check on this.  I believe it conrtols whether or not a StaticRaking file is created but doesn't rely on psrakingDesired.
                             IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
                             IJ.run("YCbCr stack to RGB");
                             WindowManager.getImage("YCC").close();
@@ -1500,7 +1502,7 @@ public class SpectralRTI_Toolkit implements Command {
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
-                        if ((csRtiDesired)||(listOfRakingDirections.get(i))) {
+                        if ((csRtiDesired)||listOfRakingDirections.get(i+1)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
                             int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
@@ -1526,7 +1528,7 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
                             WindowManager.getWindow("EnhancedLuminance").toFront();
                             IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
-                            if (listOfRakingDirections.get(i)){
+                            if (listOfRakingDirections.get(i+1)){
                                 IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
                                 IJ.run("YCbCr stack to RGB");
                                 WindowManager.getImage("YCC").close();
@@ -1757,7 +1759,7 @@ public class SpectralRTI_Toolkit implements Command {
                 dWait.show();
                 if(dWait.escPressed() || imp.getRoi() == null){
                     //@userHitCancel
-                    logService.log().warn("You must draw a rectangle!");
+                    IJ.error("You must draw a rectangle to continue!");
                     throw new Throwable("You must draw a rectangle to continue!");
                 }
                 bounds = imp.getRoi().getBounds();
@@ -1773,7 +1775,7 @@ public class SpectralRTI_Toolkit implements Command {
                 dWait.show();
                 if(dWait.escPressed()){
                     //@userHitCancel
-                    logService.log().warn("You must supply a multiplier!");
+                    IJ.error("You must supply a multiplier to continue!");
                     throw new Throwable("You must supply a multiplier to continue!");
                 }
                 IJ.run(imp, "Multiply...", "");
