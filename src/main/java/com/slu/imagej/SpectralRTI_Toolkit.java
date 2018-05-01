@@ -536,7 +536,7 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane.add(spanel);
                 int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
                 boolean atLeastOne = false;
-                if ( result != -1) {
+                if (result != -1){
                     for(JCheckBox check : positions){
                         listOfRakingDirections.add(check.isSelected());
                         if(check.isSelected()){
@@ -545,12 +545,12 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     logService.log().info("List of Raking directions (T/F):");
                     logService.log().info(listOfRakingDirections);
-                } 
+                }
                 else {
                     //@userHitCancel
                     //Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
                     for(JCheckBox check : positions){
-                        listOfRakingDirections.add(check.isSelected());
+                        listOfRakingDirections.add(Boolean.FALSE);
                     }
                 }
                 if(!atLeastOne){
@@ -560,11 +560,11 @@ public class SpectralRTI_Toolkit implements Command {
                 }
             }
             else { //We already have the list initiated, so do nothing
-                listOfRakingDirections = new ArrayList<>(listOfHemisphereCaptures.length+1);
-                Collections.fill(listOfRakingDirections, Boolean.FALSE);
+                listOfRakingDirections = new ArrayList<>();
+                while(listOfRakingDirections.size() < listOfHemisphereCaptures.length) listOfRakingDirections.add(Boolean.FALSE);
                 logService.log().info("We already have the list initiated, so do nothing.  Raking is not desired.");
             }
-                       
+            System.out.println("listOfRakingDirections length is "+listOfRakingDirections.size());           
             if (xsRtiDesired || xsRakingDesired){ // only interaction here, processing later
 		/**
                  * @see create a dialog suggesting and confirming which narrowband captures to use for R,G,and B
@@ -885,6 +885,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
             }
+            //Think about acRtiDesired || acRakingDesired so we can use just one loop over the hemishpere captures for all processing.  
             if (acRtiDesired) {
 		/**
                  *@see create series of images with luminance from hemisphere captures and chrominance from color image
@@ -960,6 +961,7 @@ public class SpectralRTI_Toolkit implements Command {
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
+                logService.log().info("Raking.  Get numbering right.");
                 imp = opener.openImage( accurateColorSource.toString() ); 
                 imglib2_img = ImagePlusAdapter.wrap( imp );
                 imp.setTitle("RGBtiff");
@@ -980,8 +982,8 @@ public class SpectralRTI_Toolkit implements Command {
                 imp.changes = false;
                 imp.close();
 		//Luminance from transmissive
-                logService.log().info("Transmissive source has value "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
+                    logService.log().info("Transmissive source has value "+transmissiveSource);
                     imp = opener.openImage( transmissiveSource ); 
                     imp.setTitle("TransmissiveLuminance");
                     IJ.run(imp, "8-bit", "");
@@ -999,9 +1001,14 @@ public class SpectralRTI_Toolkit implements Command {
                     WindowManager.getImage("YCC").close();
 		}
 		//Luminance from hemisphere captures
+                logService.log().info(listOfRakingDirections);
+                logService.log().info(listOfHemisphereCaptures);
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
+                    logService.log().info("On hem capture "+i+" of "+listOfHemisphereCaptures.length);
+                    logService.log().info(listOfHemisphereCaptures[i].toString());
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
-                        if ((listOfRakingDirections.get(i+1))) {
+                        logService.log().info("Checking against list of raking directions index "+(i)+" of "+listOfRakingDirections.size()+".");
+                        if (listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imp.setTitle("Luminance");
                             imglib2_img = ImagePlusAdapter.wrap(imp);
@@ -1017,7 +1024,10 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.run("YCbCr stack to RGB");
                             imp.changes = false;
                             imp.close();
+                            logService.log().info("I am making position numbers for these images.  The position number for this static raking is "+(i));
+                            //a 00 position number was saved at the beginning
                             positionNumber = IJ.pad(i+1, 2).toString();
+                            logService.log().info("Full position number "+positionNumber);
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ac_"+positionNumber, projectDirectory);
@@ -1184,7 +1194,7 @@ public class SpectralRTI_Toolkit implements Command {
                         WindowManager.getImage(simpleImageName+".jpg").close();
                     }
                     if (xsRakingDesired) {
-                        if ((listOfRakingDirections.get(i+1))) {
+                        if (listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
                             imp.setTitle("Luminance");
@@ -1354,7 +1364,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    if (psRtiDesired||(listOfRakingDirections.get(i+1))){ //YIKES double check on this
+                    if (psRtiDesired||listOfRakingDirections.get(i)){ //YIKES double check on this
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         imglib2_img = ImagePlusAdapter.wrap( imp );
                         imp.setTitle("Luminance");
@@ -1371,7 +1381,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         IJ.run(imp, "8-bit", "");
                         IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
-                        if (listOfRakingDirections.get(i+1)) { //Yikes double check on this.  I believe it conrtols whether or not a StaticRaking file is created but doesn't rely on psrakingDesired.
+                        if (listOfRakingDirections.get(i)) { //Yikes double check on this.  I believe it conrtols whether or not a StaticRaking file is created but doesn't rely on psrakingDesired.
                             IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
                             IJ.run("YCbCr stack to RGB");
                             WindowManager.getImage("YCC").close();
@@ -1502,7 +1512,7 @@ public class SpectralRTI_Toolkit implements Command {
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
-                        if ((csRtiDesired)||listOfRakingDirections.get(i+1)) {
+                        if ((csRtiDesired)|| listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imglib2_img = ImagePlusAdapter.wrap( imp );
                             int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
@@ -1528,7 +1538,7 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
                             WindowManager.getWindow("EnhancedLuminance").toFront();
                             IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
-                            if (listOfRakingDirections.get(i+1)){
+                            if (listOfRakingDirections.get(i)){
                                 IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
                                 IJ.run("YCbCr stack to RGB");
                                 WindowManager.getImage("YCC").close();
@@ -1613,7 +1623,7 @@ public class SpectralRTI_Toolkit implements Command {
         * @throws java.io.IOException
         */
         public String createJp2(String inFile, String projDir) throws IOException, InterruptedException {
-            logService.log().info("We are in create jp2");
+            logService.log().info("We are attempting to create jp2 file "+inFile);
             String preferredCompress = theList.get("preferredCompress");
             String preferredJp2Args = theList.get("preferredJp2Args");
             preferredCompress = preferredCompress.replace("/", File.separator);
@@ -1662,8 +1672,6 @@ public class SpectralRTI_Toolkit implements Command {
             else{
                 p = Runtime.getRuntime().exec(commandString);
             }
-            logService.log().info("Complete createJP2.  File is");
-            logService.log().info(returnString);
             return returnString;
         }
         
