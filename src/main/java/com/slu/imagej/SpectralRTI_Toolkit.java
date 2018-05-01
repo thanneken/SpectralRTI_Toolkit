@@ -576,6 +576,9 @@ public class SpectralRTI_Toolkit implements Command {
                 rgbnOptions[3] = "none";
                 String defaultRange = "";
                 String rangeChoice = "";
+                boolean atLeastOneR = false;
+                boolean atLeastOneG = false;
+                boolean atLeastOneB = false;
 
                 logService.log().info("List of narrow band captures for xsRTI or xsRaking");
                 logService.log().info(Arrays.toString(listOfNarrowbandCaptures));
@@ -587,7 +590,7 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane.setLayout(new GridLayout(0, 1, 8, 12)); //Just want one column, as tall as it needs to be (scroll vertical)
 
                 JPanel labelPanel = new JPanel();
-                JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none");
+                JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.  You must provide at least one selection for each visible range R, G and B.");
                 labelPanel.add(assignNarrowband);
                 contentPane.add(labelPanel);                
 
@@ -689,12 +692,15 @@ public class SpectralRTI_Toolkit implements Command {
                                 rangeChoice = button.getText();
                                 if (rangeChoice.equals("R")) {
                                     redNarrowbands_list.add(listOfNarrowbandCaptures[d].getName());
+                                    atLeastOneR = true;
                                 } 
                                 else if (rangeChoice.equals("G")) {
                                     greenNarrowbands_list.add(listOfNarrowbandCaptures[d].getName());
+                                    atLeastOneG = true;
                                 } 
                                 else if (rangeChoice.equals("B")) {
                                     blueNarrowbands_list.add(listOfNarrowbandCaptures[d].getName());
+                                    atLeastOneB = true;
                                 }
                             }
                         }
@@ -704,6 +710,20 @@ public class SpectralRTI_Toolkit implements Command {
                     //Pane was cancelled or closed.  How should i handle (@userHitCancel)
                     IJ.error("You must designate the captures to the visible range of R, G, B, or none to continue!");
                     throw new Throwable("You must designate the captures to the visible range of R, G, B, or none to continue!");
+                }
+                if(!(atLeastOneR && atLeastOneG && atLeastOneB)){
+                    String whichOnes = "You did not provide a selection of the visible range(s) ";
+                    if(!atLeastOneR){
+                        whichOnes +="R ";
+                    }
+                    if(!atLeastOneG){
+                        whichOnes +="G ";
+                    }
+                    if(!atLeastOneB){
+                        whichOnes +="B";
+                    }
+                    IJ.error("You must designate at least one capture to each of the visible ranges (R,G,B). "+whichOnes);
+                    throw new Throwable("You must designate at least one capture to each of the visible ranges (R,G,B). "+whichOnes);
                 }
                 logService.log().info("We should have red, green and blue narrow bands");
                 redNarrowbands = redNarrowbands_list.toArray();
@@ -961,7 +981,7 @@ public class SpectralRTI_Toolkit implements Command {
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
-                logService.log().info("Raking.  Get numbering right.");
+//                logService.log().info("Raking.  Get numbering right.");
                 imp = opener.openImage( accurateColorSource.toString() ); 
                 imglib2_img = ImagePlusAdapter.wrap( imp );
                 imp.setTitle("RGBtiff");
@@ -1001,11 +1021,9 @@ public class SpectralRTI_Toolkit implements Command {
                     WindowManager.getImage("YCC").close();
 		}
 		//Luminance from hemisphere captures
-                logService.log().info(listOfRakingDirections);
-                logService.log().info(listOfHemisphereCaptures);
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
-                    logService.log().info("On hem capture "+i+" of "+listOfHemisphereCaptures.length);
-                    logService.log().info(listOfHemisphereCaptures[i].toString());
+                    //logService.log().info("On hem capture "+i+" of "+listOfHemisphereCaptures.length);
+                    //logService.log().info(listOfHemisphereCaptures[i].toString());
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
                         logService.log().info("Checking against list of raking directions index "+(i)+" of "+listOfRakingDirections.size()+".");
                         if (listOfRakingDirections.get(i)) {
@@ -1024,10 +1042,10 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.run("YCbCr stack to RGB");
                             imp.changes = false;
                             imp.close();
-                            logService.log().info("I am making position numbers for these images.  The position number for this static raking is "+(i));
+                            //logService.log().info("I am making position numbers for these images.  The position number for this static raking is "+(i));
                             //a 00 position number was saved at the beginning
                             positionNumber = IJ.pad(i+1, 2).toString();
-                            logService.log().info("Full position number "+positionNumber);
+                            //logService.log().info("Full position number "+positionNumber);
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ac_"+positionNumber, projectDirectory);
@@ -1044,6 +1062,12 @@ public class SpectralRTI_Toolkit implements Command {
             if (xsRtiDesired || xsRakingDesired) {
 		//Red
 		String redStringList = redNarrowbands[0].toString();  //might be an array to string function somewhere to do this more elegantly
+                if(redNarrowbands.length == 1){
+                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
+                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
+                    redNarrowbands_list.add(redNarrowbands[0].toString());
+                    redNarrowbands = redNarrowbands_list.toArray();
+                }
 		for (int i=1;i<redNarrowbands.length;i++) {
                     redStringList = redStringList+"|"+redNarrowbands[i].toString();
 		}
@@ -1077,6 +1101,12 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(WindowManager.getImage("R"), "8-bit", "");
 		//Green
 		String greenStringList = greenNarrowbands[0].toString();  //might be an array to string function somewhere to do this more elegantly
+                if(greenNarrowbands.length == 1){
+                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
+                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
+                    greenNarrowbands_list.add(greenNarrowbands[0].toString());
+                    greenNarrowbands = greenNarrowbands_list.toArray();
+                }
 		for (int i=1;i<greenNarrowbands.length;i++) {
                     greenStringList = greenStringList+"|"+greenNarrowbands[i].toString();
 		}
@@ -1098,6 +1128,12 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(WindowManager.getImage("G"), "8-bit", "");
 		//Blue
 		String blueStringList = blueNarrowbands[0].toString();  //might be an array to string function somewhere to do this more elegantly
+                if(blueNarrowbands.length == 1){
+                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
+                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
+                    blueNarrowbands_list.add(blueNarrowbands[0].toString());
+                    blueNarrowbands = blueNarrowbands_list.toArray();
+                }
 		for (int i=1;i<blueNarrowbands.length;i++) {
                     blueStringList = blueStringList+"|"+blueNarrowbands[i].toString();
 		}
