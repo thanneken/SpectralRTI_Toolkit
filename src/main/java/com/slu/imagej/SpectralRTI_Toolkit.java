@@ -125,7 +125,9 @@ public class SpectralRTI_Toolkit implements Command {
         
         private Dimension minSize = new Dimension(200, 200);
         
-        private Dimension preferredSize = new Dimension(800, 500);
+        int prefW = (int) (screenSize.width*.85);
+        int prefH = (int) (screenSize.height*.85);
+        private Dimension preferredSize = new Dimension(prefW, prefH);
         
         private Dimension bestFit = new Dimension(screenSize.width-20, screenSize.height-20);
         
@@ -265,6 +267,7 @@ public class SpectralRTI_Toolkit implements Command {
                     prefsDialog.addStringField(key, value1, 80);
                 }
                 prefsDialog.setMaximumSize(bestFit);
+                //prefsDialog.setSize(preferredSize);
                 prefsDialog.showDialog();
                 swapBack = true;
             }
@@ -492,7 +495,7 @@ public class SpectralRTI_Toolkit implements Command {
 
                 contentPane = new JPanel();
                 JPanel scrollGrid = new JPanel();
-                scrollGrid.setLayout(new GridLayout(10, 0, 8, 12));
+                scrollGrid.setLayout(new GridLayout(20, 0, 0, 0));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
                 JLabel selectLightPositions = new JLabel("Select light positions for lossless static raking images");
@@ -532,11 +535,11 @@ public class SpectralRTI_Toolkit implements Command {
                 JScrollPane spanel = new JScrollPane(scrollGrid);
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-                spanel.setPreferredSize(preferredSize);         
+                spanel.setPreferredSize(preferredSize);     
                 contentPane.add(spanel);
                 int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
                 boolean atLeastOne = false;
-                if (result != -1){
+                if (result == JOptionPane.OK_OPTION){
                     for(JCheckBox check : positions){
                         listOfRakingDirections.add(check.isSelected());
                         if(check.isSelected()){
@@ -587,7 +590,7 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
                 contentPane = new JPanel();
-                contentPane.setLayout(new GridLayout(0, 1, 8, 12)); //Just want one column, as tall as it needs to be (scroll vertical)
+                contentPane.setLayout(new GridLayout(0, 1, 1, 1)); //Just want one column, as tall as it needs to be (scroll vertical)
 
                 JPanel labelPanel = new JPanel();
                 JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.  You must provide at least one selection for each visible range R, G and B.");
@@ -641,7 +644,7 @@ public class SpectralRTI_Toolkit implements Command {
                     jlabel.setToolTipText(listOfNarrowbandCaptures[i].toString());
                     contentPane.add(jlabel);
                     JPanel contentGroup = new JPanel();
-                    contentGroup.setLayout(new GridLayout(1,1,8,4)); // Want radio options in one row, should only need a single column.
+                    contentGroup.setLayout(new GridLayout(1,1,1,1)); // Want radio options in one row, should only need a single column.
                     //Add the button group it its own panel
                     contentGroup.setName(narrowCapture);
                     contentGroup.add(radioOptionR);
@@ -676,10 +679,11 @@ public class SpectralRTI_Toolkit implements Command {
                 JScrollPane spanel = new JScrollPane(contentPane);
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-                spanel.setPreferredSize(preferredSize);           
+                Dimension prefSize = new Dimension(800, preferredSize.height);
+                spanel.setPreferredSize(prefSize);           
                 int result = JOptionPane.showConfirmDialog(null, spanel, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION);
                 //Once user hits OK, gather their selections.  If they hit cancel, then fail out.
-                if ( result != -1) {
+                if ( result==JOptionPane.OK_OPTION) {
                     for(int d=0; d<bgroups.length; d++){
                         //Go over each button group (one for each narrow band capture, in order)
                         ButtonGroup grabSelection = bgroups[d]; 
@@ -783,7 +787,7 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfPcaMethods[2]="Open pregenerated images";
                 GenericDialog pseudoSources = new GenericDialog("Select Method for Pseudocolor");
                 pseudoSources.addMessage("Pseudocolor images require two source images (typically principal component images).");
-                pseudoSources.addRadioButtonGroup("Method: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
+                pseudoSources.addRadioButtonGroup("Select how to provide the source images: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
                 pseudoSources.setMaximumSize(bestFit);
                 pseudoSources.showDialog();
                 if(pseudoSources.wasCanceled()){
@@ -1025,7 +1029,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //logService.log().info("On hem capture "+i+" of "+listOfHemisphereCaptures.length);
                     //logService.log().info(listOfHemisphereCaptures[i].toString());
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
-                        logService.log().info("Checking against list of raking directions index "+(i)+" of "+listOfRakingDirections.size()+".");
+                        //logService.log().info("Checking against list of raking directions index "+(i)+" of "+listOfRakingDirections.size()+".");
                         if (listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imp.setTitle("Luminance");
