@@ -938,6 +938,8 @@ public class SpectralRTI_Toolkit implements Command {
                 WindowManager.getImage("Y").close(); //Don'e need this one.
                 ImagePlus cb = WindowManager.getImage("Cb");
                 ImagePlus cr = WindowManager.getImage("Cr");
+                cb.hide();
+                cr.hide();
                 logService.log().info("Set stack pieces...");
                 ImagePlus keptPieces = con.concatenate(cb, cr, true);
                 imp.close();
@@ -960,7 +962,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 //WindowManager.getImage("Luminance").setRoi(normX, normY, normWidth, normHeight);
                                 imp.setRoi(normX, normY, normWidth, normHeight);
                                 IJ.run(imp, "Enhance Contrast...", "saturated=0.4");//Enhances image contrast by using either histogram stretching or histogram equalization.  Affects entire stack
-                                IJ.run("Select None");//Deactivates the selection in the active image.
+                                //IJ.run("Select None");//Deactivates the selection in the active image.
                             } 
                             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                                 IJ.run(imp,"Multiply...", "value="+normalizationFixedValue+"");
@@ -971,13 +973,10 @@ public class SpectralRTI_Toolkit implements Command {
                         //This requires the images be showing.  Since this is in a loop, we really want to avoid this at all costs.
                         //imp.show();
                         //IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]"); //Concatenates multiple images or stacks. Images with mismatching type and dimensions are omitted
-                        logService.log().info("What is imp? "+imp.getTitle());
-                        logService.log().info("What is keptPiece size? "+keptPieces.getStackSize());
+
                         ImagePlus stack = con.concatenate(imp, keptPieces, true);
                         stack.setTitle("YCC");
-                        logService.log().info("What is stack size 1? "+stack.getStackSize());
                         IJ.run(stack, "YCbCr stack to RGB", ""); //Converts a two or three slice stack into an RGB image, assuming that the slices are in R, G, B order. The stack must be 8-bit or 16-bit grayscale
-                        logService.log().info("What is stack size 2? "+stack.getStackSize());
                         //Save as jpeg
                         ImagePlus stackRGB = WindowManager.getImage("YCC - RGB");
                         stackRGB.hide();
@@ -1088,6 +1087,7 @@ public class SpectralRTI_Toolkit implements Command {
                             cr.close(); //Can this be closed??
                             //imp.show();
                             ImagePlus stack = con.concatenate(imp, keptPieces, true);
+                            stack.setTitle("YCC");
                             stack.hide();
                             IJ.run(stack, "YCbCr stack to RGB", "");
                             ImagePlus stackRGB = WindowManager.getImage("YCC - RGB");
