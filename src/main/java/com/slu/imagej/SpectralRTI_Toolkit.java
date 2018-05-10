@@ -810,6 +810,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     //ImageJFunctions.show(imglib2_img, "Preview");
+                    imp.setTitle("Preview");
                     imp.show();
                     dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
                     dWait.show();
@@ -1452,11 +1453,11 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus flNarrowNoGammaStack;
                 ImagePlus narrowNoGamma;
                 ImagePlus narrowKeptPCA = new ImagePlus();
+                IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
+                narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                narrowNoGamma.hide();
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod.equals("Generate and select using defaults")){
-                    IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
-                    narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
-                    narrowNoGamma.hide();
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
                         flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
@@ -1474,8 +1475,8 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma"),"Slice Keeper", "first=2 last=3 increment=1");
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
                     narrowNoGamma.changes = false;
-                    narrowNoGamma.flush();
-                    narrowNoGamma.close();
+//                    narrowNoGamma.flush();
+//                    narrowNoGamma.close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").close();
                     ImagePlus keptNoGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack");
                     keptNoGammaPCA.hide();
@@ -1486,9 +1487,6 @@ public class SpectralRTI_Toolkit implements Command {
 		} 
                 else if (pcaMethod.equals("Generate and manually select two")) {
                     //option to create new ones and manually select (close all but two)
-                    IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
-                    narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
-                    narrowNoGamma.hide();
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
                         flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
@@ -1501,24 +1499,22 @@ public class SpectralRTI_Toolkit implements Command {
                     else{
                         // ?
                     }
-                    IJ.run("PCA ");
                     narrowNoGamma.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                     IJ.run(narrowNoGamma, "PCA ", "");
-                    IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma"),"Slice Keeper", "first=2 last=3 increment=1");
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
                     narrowNoGamma.changes = false;
-                    narrowNoGamma.flush();
-                    narrowNoGamma.close();
+                    //narrowNoGamma.flush();
+                    //narrowNoGamma.close();
                     //WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").close();
                     ImagePlus noGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma");
                     noGammaPCA.show();
                     dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
+                    dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
                         IJ.error("You must delete until there are two slices to continue!");
                         throw new Throwable("You must delete until there are two slices to continue!");
                     }
-                    dWait.show();
                     noGammaPCA.hide();
                     noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
                     noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
@@ -1554,7 +1550,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Process Part 2");
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-                    narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                    narrowNoGamma = WindowManager.getImage("Captures-Hemisphere-Gamma");
                     narrowNoGamma.hide();
                     IJ.run(narrowNoGamma, "Z Project...", "projection=Median");
                     narrowNoGamma.changes = false;
@@ -1615,6 +1611,7 @@ public class SpectralRTI_Toolkit implements Command {
                         Files.deleteIfExists(toDelete.toPath());
                         transRGB.flush();
                         transNarrowKeptStack.flush();
+                        transNarrowKeptStack.close();
                         transRGB.close();
                     }
 		}
@@ -1653,7 +1650,6 @@ public class SpectralRTI_Toolkit implements Command {
                         RGBImg.hide();
                         if (listOfRakingDirections.get(i)) { //Yikes double check on this.  I believe it conrtols whether or not a StaticRaking file is created but doesn't rely on psrakingDesired.
                             //IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
-                            IJ.run(enhancedNarrowKeptStack, "YCbCr stack to RGB", "");
                             enhancedNarrowKeptStack.flush();
                             enhancedNarrowKeptStack.close();
                             positionNumber = IJ.pad(i+1, 2).toString();                          
@@ -1675,7 +1671,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             noClobber(filePath+".jpg");
                             IJ.saveAs(RGBImg, "jpeg", filePath+".jpg");
-                            WindowManager.getImage(simpleImageName+".jpg").close();
+                            //WindowManager.getImage(simpleImageName+".jpg").close();
                         } 
                         else if (psRtiDesired) {
                             extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
@@ -1689,7 +1685,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             noClobber(filePath+".jpg");
                             IJ.saveAs(RGBImg, "jpeg", filePath+".jpg");
-                            WindowManager.getImage(simpleImageName+".jpg").close();
+                            //WindowManager.getImage(simpleImageName+".jpg").close();
                         }
                         enhancedLum.changes = false;
                         imp.changes = false;
