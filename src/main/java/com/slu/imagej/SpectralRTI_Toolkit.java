@@ -102,7 +102,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
-import java.util.Collections;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import org.apache.commons.io.comparator.NameFileComparator;
@@ -1449,44 +1448,70 @@ public class SpectralRTI_Toolkit implements Command {
             }
             if (psRtiDesired || psRakingDesired) {
                 File fluorescenceNoGamma = new File(projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator);
+                ImagePlus flNoGamma;
+                ImagePlus flNarrowNoGammaStack;
+                ImagePlus narrowNoGamma;
+                ImagePlus narrowKeptPCA = new ImagePlus();
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod.equals("Generate and select using defaults")){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
+                    narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                    narrowNoGamma.hide();
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                        IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
+                        flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
+                        flNoGamma.hide();
+                        flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
+                        narrowNoGamma.flush();
+                        narrowNoGamma = flNarrowNoGammaStack;
+                        //IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
                     }
                     else{
                         // ?
                     }
-                    WindowManager.getImage("Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                    IJ.run("PCA ");
+                    narrowNoGamma.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                    IJ.run(narrowNoGamma, "PCA ", "");
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma"),"Slice Keeper", "first=2 last=3 increment=1");
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
-                    WindowManager.getImage("Captures-Narrowband-NoGamma").changes = false;
-                    WindowManager.getImage("Captures-Narrowband-NoGamma").close();
+                    narrowNoGamma.changes = false;
+                    narrowNoGamma.flush();
+                    narrowNoGamma.close();
                     WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").close();
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setActivated();
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                    IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "Enhance Contrast...", "saturated=0.3 normalize update process_all");
-                    IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
+                    ImagePlus keptNoGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack");
+                    keptNoGammaPCA.hide();
+                    keptNoGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                    IJ.run(keptNoGammaPCA, "Enhance Contrast...", "saturated=0.3 normalize update process_all");
+                    IJ.run(keptNoGammaPCA, "8-bit", "");
+                    narrowKeptPCA = keptNoGammaPCA;
 		} 
                 else if (pcaMethod.equals("Generate and manually select two")) {
                     //option to create new ones and manually select (close all but two)
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
+                    narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                    narrowNoGamma.hide();
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                        IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
-                    } 
-                    else {
+                        flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
+                        flNoGamma.hide();
+                        flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
+                        narrowNoGamma.flush();
+                        narrowNoGamma = flNarrowNoGammaStack;
+                        //IJ.run("Concatenate...", "  title=Captures-Narrowband-NoGamma image1=Captures-Narrowband-NoGamma image2=Captures-Fluorescence-NoGamma image3=[-- None --]");
+                    }
+                    else{
                         // ?
                     }
                     IJ.run("PCA ");
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                    narrowNoGamma.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                    IJ.run(narrowNoGamma, "PCA ", "");
+                    IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma"),"Slice Keeper", "first=2 last=3 increment=1");
                     WindowManager.getImage("Eigenvalue spectrum of Captures-Narrowband-NoGamma").close();
-                    WindowManager.getImage("Captures-Narrowband-NoGamma").changes = false;
-                    WindowManager.getImage("Captures-Narrowband-NoGamma").close();
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setActivated();
+                    narrowNoGamma.changes = false;
+                    narrowNoGamma.flush();
+                    narrowNoGamma.close();
+                    //WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").close();
+                    ImagePlus noGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma");
+                    noGammaPCA.show();
                     dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
                     if(dWait.escPressed()){
                         //@userHitCancel
@@ -1494,9 +1519,11 @@ public class SpectralRTI_Toolkit implements Command {
                         throw new Throwable("You must delete until there are two slices to continue!");
                     }
                     dWait.show();
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma").setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
-                    WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                    IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
+                    noGammaPCA.hide();
+                    noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
+                    noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                    IJ.run(noGammaPCA, "8-bit", "");
+                    narrowKeptPCA = noGammaPCA;
 		/**
                  * @see option to use previously generated principal component images
                  */
@@ -1518,6 +1545,7 @@ public class SpectralRTI_Toolkit implements Command {
                         throw new Throwable("Open a pair of images or stack of two slices to continue!");
                     }
                     IJ.run(WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack"), "8-bit", "");
+                    narrowKeptPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack");
 		}
 		/**
                     * @see integrate pca pseudocolor with rti luminance
@@ -1526,51 +1554,68 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Process Part 2");
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-                    IJ.run("Z Project...", "projection=Median");
-                    WindowManager.getImage("MED_Captures-Hemisphere-Gamma").setTitle("Luminance");
-                    WindowManager.getImage("Captures-Hemisphere-Gamma").changes = false;
-                    WindowManager.getImage("Captures-Hemisphere-Gamma").close();   
-                    WindowManager.getImage("Luminance").setActivated();
+                    narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                    narrowNoGamma.hide();
+                    IJ.run(narrowNoGamma, "Z Project...", "projection=Median");
+                    narrowNoGamma.changes = false;
+                    narrowNoGamma.flush();
+                    narrowNoGamma.close();   
+                    ImagePlus luminance = WindowManager.getImage("MED_Captures-Hemisphere-Gamma");
+                    luminance.setTitle("Luminance");
+                    luminance.hide();
                     if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                         region = new RectangleOverlay();
-                        WindowManager.getImage("Luminance").setRoi(normX,normY,normWidth,normHeight); 
-                        IJ.run("Enhance Contrast...", "saturated=0.4");
-                        IJ.run("Select None");
+                        luminance.setRoi(normX,normY,normWidth,normHeight); 
+                        IJ.run(luminance, "Enhance Contrast...", "saturated=0.4");
+                        //IJ.run("Select None");
                     } 
                     else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                        IJ.run("Multiply...", "value="+normalizationFixedValue+"");
+                        IJ.run(luminance, "Multiply...", "value="+normalizationFixedValue+"");
                     }
-                    IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
-                    IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
-                    IJ.run("YCbCr stack to RGB");
+                    IJ.run(luminance, "8-bit", "");
+                    ImagePlus lumNarrowKeptStack = con.concatenate(luminance, narrowKeptPCA, true);
+                    lumNarrowKeptStack.setTitle("YCC");
+                    lumNarrowKeptStack.hide();
+                    //IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
+                    IJ.run(lumNarrowKeptStack, "YCbCr stack to RGB", "");
+                    ImagePlus lumRGB = WindowManager.getImage("YCC - RGB");
+                    lumRGB.hide();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
-                    IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
+                    IJ.save(lumRGB, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     createJp2(projectName+"_Ps_00", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     Files.deleteIfExists(toDelete.toPath());
-                    WindowManager.getImage("YCC - RGB").close();
-                    WindowManager.getImage("YCC").close();
-                    WindowManager.getImage("Luminance").changes = false;
-                    WindowManager.getImage("Luminance").close();
-                    
+                    lumRGB.flush();
+                    lumRGB.close();
+                    lumNarrowKeptStack.flush();
+                    lumNarrowKeptStack.close();
+                    luminance.changes = false;
+                    luminance.flush();
+                    luminance.close();
                     if (!transmissiveSource.equals("")) {
                         imp = opener.openImage( transmissiveSource );
                         // = ImagePlusAdapter.wrap( imp );
                         imp.setTitle("TransmissiveLuminance");
                         IJ.run(imp, "8-bit", "");
-                        imp.show();
-                        IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
-                        IJ.run("YCbCr stack to RGB");
+                        //imp.show();
+                        ImagePlus transNarrowKeptStack = con.concatenate(imp, narrowKeptPCA, true);
+                        transNarrowKeptStack.setTitle("YCC");
+                        transNarrowKeptStack.hide();
+                        //IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
+                        IJ.run(transNarrowKeptStack, "YCbCr stack to RGB", "");
+                        ImagePlus transRGB = WindowManager.getImage("YCC - RGB");
+                        transRGB.hide();
                         imp.changes = false;
                         imp.close();
                         imp.flush();
                         noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
-                        IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
+                        IJ.save(transRGB, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         createJp2(projectName+"_Ps_Tx", projectDirectory);
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         Files.deleteIfExists(toDelete.toPath());
-                        WindowManager.getImage("YCC - RGB").close();
-                        WindowManager.getImage("YCC").close();
+                        transRGB.flush();
+                        transNarrowKeptStack.flush();
+                        transRGB.close();
                     }
 		}
 		if (psRtiDesired) {
@@ -1587,33 +1632,38 @@ public class SpectralRTI_Toolkit implements Command {
                         imp.setTitle("Luminance");
                         int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                         IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
-                        WindowManager.getImage("EnhancedLuminance").setActivated();
+                        ImagePlus enhancedLum = WindowManager.getImage("EnhancedLuminance");
+                        enhancedLum.hide();
                         if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                            WindowManager.getImage("EnhancedLuminance").setRoi(normX,normY,normWidth,normHeight); 
-                            IJ.run(WindowManager.getImage("EnhancedLuminance"),"Enhance Contrast...", "saturated=0.4");
-                            IJ.run("Select None");
+                            enhancedLum.setRoi(normX,normY,normWidth,normHeight); 
+                            IJ.run(enhancedLum,"Enhance Contrast...", "saturated=0.4");
+                            //IJ.run("Select None");
                         } 
                         else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                            IJ.run(WindowManager.getImage("EnhancedLuminance"),"Multiply...", "value="+normalizationFixedValue+"");
+                            IJ.run(enhancedLum,"Multiply...", "value="+normalizationFixedValue+"");
                         }
                         IJ.run(imp, "8-bit", "");
-                        IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
+                        IJ.run(enhancedLum, "8-bit", "");
+                        ImagePlus enhancedNarrowKeptStack = con.concatenate(enhancedLum, narrowKeptPCA, true);
+                        enhancedNarrowKeptStack.setTitle("YCC");
+                        enhancedNarrowKeptStack.hide();
+                        IJ.run(enhancedNarrowKeptStack, "YCbCr stack to RGB", "");
+                        enhancedNarrowKeptStack.close();
+                        ImagePlus RGBImg = WindowManager.getImage("YCC - RGB");
+                        RGBImg.hide();
                         if (listOfRakingDirections.get(i)) { //Yikes double check on this.  I believe it conrtols whether or not a StaticRaking file is created but doesn't rely on psrakingDesired.
-                            IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
-                            IJ.run("YCbCr stack to RGB");
-                            WindowManager.getImage("YCC").close();
+                            //IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
+                            IJ.run(enhancedNarrowKeptStack, "YCbCr stack to RGB", "");
+                            enhancedNarrowKeptStack.flush();
+                            enhancedNarrowKeptStack.close();
                             positionNumber = IJ.pad(i+1, 2).toString();                          
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
-                            IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
-                            WindowManager.getImage("YCC - RGB").close();
+                            IJ.save(RGBImg, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ps_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             Files.deleteIfExists(toDelete.toPath());
                         }
                         if ((psRtiDesired)&&(brightnessAdjustApply.equals("RTI images also"))){ 
-                            IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
-                            IJ.run("YCbCr stack to RGB");
-                            WindowManager.getImage("YCC").close();
                             extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                             if (extensionIndex != -1)
                             {
@@ -1624,14 +1674,10 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
-                            IJ.saveAs("jpeg", filePath+".jpg");
+                            IJ.saveAs(RGBImg, "jpeg", filePath+".jpg");
                             WindowManager.getImage(simpleImageName+".jpg").close();
                         } 
                         else if (psRtiDesired) {
-                            //Was this supposed to be Enhanced Luminance or Luminance?
-                            IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=[PCA of Captures-Narrowband-NoGamma kept stack] image3=[-- None --]");
-                            IJ.run("YCbCr stack to RGB");
-                            WindowManager.getImage("YCC").close();
                             extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                             if (extensionIndex != -1)
                             {
@@ -1642,19 +1688,22 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
-                            IJ.saveAs("jpeg", filePath+".jpg");
+                            IJ.saveAs(RGBImg, "jpeg", filePath+".jpg");
                             WindowManager.getImage(simpleImageName+".jpg").close();
                         }
-                        WindowManager.getImage("EnhancedLuminance").changes = false;
+                        enhancedLum.changes = false;
                         imp.changes = false;
-                        WindowManager.getImage("EnhancedLuminance").close();
+                        enhancedLum.flush();
+                        enhancedLum.close();
                         imp.close();
                         imp.flush();
+                        RGBImg.flush();
+                        RGBImg.close();
                     }
 		}
-                WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").changes = false;
-                WindowManager.getImage("PCA of Captures-Narrowband-NoGamma kept stack").close();
-                System.gc();
+                narrowKeptPCA.changes = false;
+                narrowKeptPCA.flush();
+                narrowKeptPCA.close();
 		if (psRtiDesired) {
                     createLpFile("Pseudocolor", projectDirectory);
                     runFitter("Pseudocolor");
@@ -1666,6 +1715,8 @@ public class SpectralRTI_Toolkit implements Command {
 		String[] csParents = csSource.split(File.separator);
 		String csProcessName = csParents[csParents.length-2];
                 File csProcessFile = new File(projectDirectory+csProcessName+"RTI"+File.separator);
+                ImagePlus cb = new ImagePlus();
+                ImagePlus cr = new ImagePlus();
 		if (!csProcessFile.exists()) {
                     Files.createDirectory(csProcessFile.toPath());
                     logService.log().info("A directory has been created for "+csProcessName+" RTI at "+projectDirectory+csProcessName+"RTI"+File.separator);
@@ -1683,12 +1734,21 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.run(imp, "8-bit", "");
                     IJ.run(imp, "Duplicate...", "title=Cb");
                     IJ.run(imp, "Duplicate...", "title=Cr");
+                    cb = WindowManager.getImage("Cb");
+                    cr = WindowManager.getImage("Cr");
+                    cb.hide();
+                    cr.hide();
 		} 
                 else if (imp.getImageStackSize() == 2) {
                     IJ.run(imp, "8-bit", "");
                     IJ.run(imp, "Stack to Images", "");
-                    WindowManager.getImage(1).setTitle("Cb");
-                    WindowManager.getImage(2).setTitle("Cr");
+                    cb = WindowManager.getImage(1);
+                    cr = WindowManager.getImage(2);
+                    cb.setTitle("Cb");
+                    cr.setTitle("Cr");
+                    cb.hide();
+                    cr.hide();
+
 		} 
                 else if ((imp.getImageStackSize() > 2)||(imp.getBitDepth()==24)){
                     if (imp.getImageStackSize() > 3) {
@@ -1710,25 +1770,36 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.run("8-bit");
                     IJ.run("Stack to Images");
                     WindowManager.getImage("Y").close();
+                    cb = WindowManager.getImage("Cb");
+                    cr = WindowManager.getImage("Cr");
+                    cb.hide();
+                    cr.hide();
 		}
                 WindowManager.getImage("csSource").close();
 		if (!transmissiveSource.equals("")) {
                     imp = opener.openImage( transmissiveSource );
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     IJ.run(imp, "8-bit", "");
-                    imp.show();
-                    IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
-                    IJ.run("YCbCr stack to RGB");
+                    //imp.show();
+                    ImagePlus piece = con.concatenate(cb, cr, true);
+                    ImagePlus stack = con.concatenate(imp, piece, true);
+                    stack.setTitle("YCC");
+                    //IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
+                    IJ.run(stack, "YCbCr stack to RGB", "");
+                    ImagePlus RGBImage = WindowManager.getImage("YCC - RGB");
+                    RGBImage.hide();
                     imp.changes = false;
                     imp.close();
                     imp.flush();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
-                    IJ.save(WindowManager.getImage("YCC - RGB"), projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
+                    IJ.save(RGBImage, projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     createJp2(projectName+"_"+csProcessName+"_Tx", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     Files.deleteIfExists(toDelete.toPath());
-                    WindowManager.getImage("YCC - RGB").close();
-                    WindowManager.getImage("YCC").close();
+                    RGBImage.flush();
+                    RGBImage.close();
+                    stack.flush();
+                    stack.close();
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
@@ -1745,55 +1816,62 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = "CustomSource_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
-                            IJ.saveAs("jpeg", filePath+".jpg");
+                            IJ.saveAs(imp, "jpeg", filePath+".jpg");
                             IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
+                            ImagePlus enhancedLum = WindowManager.getImage("EnhancedLuminance");
+                            enhancedLum.hide();
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                                 region = new RectangleOverlay();
                                 imp.setRoi(normX,normY,normWidth,normHeight); 
-                                IJ.run(WindowManager.getImage("EnhancedLuminance"),"Enhance Contrast...", "saturated=0.4");
-                                IJ.run("Select None");
+                                IJ.run(enhancedLum,"Enhance Contrast...", "saturated=0.4");
+                                //IJ.run("Select None");
                             } else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                IJ.run(WindowManager.getImage("EnhancedLuminance"),"Multiply...", "value="+normalizationFixedValue+"");
+                                IJ.run(enhancedLum,"Multiply...", "value="+normalizationFixedValue+"");
                             }
-                            IJ.run(WindowManager.getImage("Luminance"), "8-bit", "");
-                            WindowManager.getWindow("EnhancedLuminance").toFront();
-                            IJ.run(WindowManager.getImage("EnhancedLuminance"), "8-bit", "");
+                            IJ.run(imp, "8-bit", "");
+                            IJ.run(enhancedLum, "8-bit", "");
+                            ImagePlus piece = con.concatenate(cb, cr, true);
+                            ImagePlus stack = con.concatenate(imp, piece, true);
+                            stack.setTitle("YCC");
+                            //IJ.run("Concatenate...", "  title=[YCC] keep image1=TransmissiveLuminance image2=Cb image3=Cr image4=[-- None --]");
+                            IJ.run(stack, "YCbCr stack to RGB", "");
+                            ImagePlus RGBImage = WindowManager.getImage("YCC - RGB");
+                            RGBImage.hide();
+                            //IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
+                            stack.flush();
+                            stack.close();
                             if (listOfRakingDirections.get(i)){
-                                IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
-                                IJ.run("YCbCr stack to RGB");
-                                WindowManager.getImage("YCC").close();
                                 positionNumber = IJ.pad(i+1, 2).toString();
                                 noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
-                                IJ.save(WindowManager.getImage("YCC - RGB"),projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
-                                WindowManager.getImage("YCC - RGB").close();
+                                IJ.save(RGBImage,projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
+                                RGBImage.flush();
+                                RGBImage.close();
                                 createJp2(projectName+"_"+csProcessName+"_"+positionNumber, projectDirectory);
                                 toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
                                 Files.deleteIfExists(toDelete.toPath());
                             }
                             if ((csRtiDesired)&&(brightnessAdjustApply.equals("RTI images also"))){
-                                IJ.run("Concatenate...", "  title=[YCC] keep image1=EnhancedLuminance image2=Cb image3=Cr image4=[-- None --]");
-                                IJ.run("YCbCr stack to RGB");
-                                WindowManager.getImage("YCC").close();
                                 noClobber(filePath+".jpg");
-                                IJ.saveAs("jpeg", filePath+".jpg");
+                                IJ.saveAs(RGBImage, "jpeg", filePath+".jpg");
                                 WindowManager.getImage(simpleImageName+".jpg").close();
                             } 
                             else if (csRtiDesired) {
-                                IJ.run("Concatenate...", "  title=[YCC] keep image1=Luminance image2=Cb image3=Cr image4=[-- None --]");
-                                IJ.run("YCbCr stack to RGB");
-                                WindowManager.getImage("YCC").close();
                                 noClobber(filePath+".jpg");
-                                IJ.saveAs("jpeg", filePath+".jpg");
+                                IJ.saveAs(RGBImage,"jpeg", filePath+".jpg");
                             }
-                            WindowManager.getImage("EnhancedLuminance").changes = false;
+                            enhancedLum.changes = false;
                             imp.changes = false;
-                            WindowManager.getImage("EnhancedLuminance").close();
+                            enhancedLum.flush();
+                            enhancedLum.close();
                             imp.flush();
+                            imp.close();
                         }
                     }
 		}
-                WindowManager.getImage("Cb").close();
-                WindowManager.getImage("Cr").close();
+                cb.flush();
+                cb.close();
+                cr.flush();
+                cr.close();
 		createLpFile(csProcessName, projectDirectory);
 		runFitter(csProcessName);
                 IJ.run("Collect Garbage");
