@@ -769,6 +769,7 @@ public class SpectralRTI_Toolkit implements Command {
                     nofldr.setMaximumSize(bestFit);
                     nofldr.showDialog();
                     Files.createDirectory(listOfPseudocolorSources_dir.toPath());
+                    logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA"+File.separator);
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
                     IJ.error("You must have 9 or more narrow band captures for PseudoColor!");
@@ -849,6 +850,7 @@ public class SpectralRTI_Toolkit implements Command {
                 imp.close();
                 for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")) {
+                        logService.log().info("On hem capture index "+i);
                         imp=opener.openImage(listOfHemisphereCaptures[i].toString());
                         //imglib2_img = ImagePlusAdapter.wrap( imp );
                         int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
@@ -894,9 +896,9 @@ public class SpectralRTI_Toolkit implements Command {
                     if (accurateColorSource == null) {
                         logService.log().info("Could not find a color source");
                         GenericDialog gd = new GenericDialog("Select Color Source");
-                        gd.addMessage("Select Color Source");
+                        //gd.addMessage("Select Color Source");
                         // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
-                        gd.addRadioButtonGroup("File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
+                        gd.addRadioButtonGroup("Choose File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
                         gd.showDialog();
                         if(gd.wasCanceled()){
                             //@userHitCancel
@@ -1060,6 +1062,7 @@ public class SpectralRTI_Toolkit implements Command {
 		//Luminance from hemisphere captures
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")){ //@@@ better to trim list at the beginning so that array.length can be used in lp file
+                        logService.log().info("On hem capture index "+i);
                         if (listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             imp.setTitle("Luminance");
@@ -1300,6 +1303,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++){
+                    logService.log().info("On hem capture index "+i);
                     if (xsRtiDesired) {
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         //imglib2_img = ImagePlusAdapter.wrap( imp );
@@ -1557,6 +1561,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
+                    logService.log().info("On hem capture index "+i);
                     if (psRtiDesired||listOfRakingDirections.get(i)){ //YIKES double check on this
                         imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                         //imglib2_img = ImagePlusAdapter.wrap( imp );
@@ -1731,6 +1736,7 @@ public class SpectralRTI_Toolkit implements Command {
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
+                        logService.log().info("On hem capture index "+i);
                         if ((csRtiDesired)|| listOfRakingDirections.get(i)) {
                             imp = opener.openImage( listOfHemisphereCaptures[i].toString() );
                             //imglib2_img = ImagePlusAdapter.wrap( imp );
@@ -2008,7 +2014,7 @@ public class SpectralRTI_Toolkit implements Command {
                  * This is a bit weird here.  It would be great if the number from the multiply window
                  * could be used so it doesn't ask twice.  
                  */
-                IJ.run(imp, "Multiply...", ""); 
+                IJ.run(imp, "Multiply...", ""); //I bet if we used the ij.plugin class to do this, we could get it all done is one window.
                 //GenericDialog gdMultiplier = (GenericDialog) WindowManager.getWindow("Multiply"); //No good, didn't seem to grab it.
                 GenericDialog gdMultiplier = new GenericDialog("Set Multiplier Value");
                 gdMultiplier.addNumericField("Enter selected multiplier: ", 1.30,2,4,"");
