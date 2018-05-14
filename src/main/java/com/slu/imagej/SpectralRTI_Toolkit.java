@@ -141,7 +141,7 @@ public class SpectralRTI_Toolkit implements Command {
 	private int normY;
 	private int normWidth;
 	private int normHeight;
-	private int normalizationFixedValue;
+	private double normalizationFixedValue;
 	private int pcaX = 0;
         private int pcaY = 0;
         private int pcaWidth = 0;
@@ -224,14 +224,14 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("Project directory is ...  "+projectDirectory+" ...");
             if(projectDirectory == null || projectDirectory.equals("")){
                 IJ.error("You must provide a project directory to continue.");
-                throw new Throwable("You must provide a project directory."); //DIE if now directory provided
+                throw new Throwable("You must provide a project directory."); //DIE if no directory provided
             }
             else{
                 projectDirectory = projectDirectory.replace("\\",File.separator);
             }
             /**
-             * consult with user about values stored in prefs file in base fiji folder.  We can move this around, say to the project directory since we know it by this point, if we want. 
-             * 
+             * consult with user about values stored in prefs file in base fiji folder.  
+             * We can move this around, say to the project directory since we know it by this point, if we want.  
              */
             if (spectralPrefsFile.exists()) { //If this exists, overwrite the labels and show a dialog with the settings
                 prefsDialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
@@ -433,7 +433,6 @@ public class SpectralRTI_Toolkit implements Command {
             }
             if (acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired){
                 if (brightnessAdjustOption.equals("")) promptBrightnessAdjust(listOfHemisphereCaptures);
-                logService.log().info("Back in main macro after brightness adjust prompt");
             }
             if (acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
                 if (!static_ranking_dir.exists()) {
@@ -540,13 +539,12 @@ public class SpectralRTI_Toolkit implements Command {
                         if(check.isSelected()){
                             atLeastOne = true;
                         }
-                    }
-                    logService.log().info("List of Raking directions (T/F):");
-                    logService.log().info(listOfRakingDirections);
+                    };
                 }
                 else {
                     //@userHitCancel
-                    //Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
+                    //YIKES Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
+                    listOfRakingDirections = new ArrayList<>();
                     for(JCheckBox check : positions){
                         listOfRakingDirections.add(Boolean.FALSE);
                     }
@@ -560,9 +558,10 @@ public class SpectralRTI_Toolkit implements Command {
             else { //We already have the list initiated, so do nothing
                 listOfRakingDirections = new ArrayList<>();
                 while(listOfRakingDirections.size() < listOfHemisphereCaptures.length) listOfRakingDirections.add(Boolean.FALSE);
-                logService.log().info("We already have the list initiated, so do nothing.  Raking is not desired.");
+                logService.log().info("Raking is not desired.");
             }
             logService.log().info("Gathered "+listOfRakingDirections.size()+" raking image selections.");
+            logService.log().info(listOfRakingDirections);
             if (xsRtiDesired || xsRakingDesired){ // only interaction here, processing later
 		/**
                  * Create a dialog suggesting and confirming which narrowband captures to use for R,G,and B
@@ -982,6 +981,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         
                         noClobber(filePath+".jpg");
+                        logService.log().info("Saving ACRTI source image "+filePath+".jpg");
                         IJ.saveAs(stackRGB, "jpeg", filePath+".jpg");
                        // stackRGB.flush();
                         stackRGB.close();
@@ -1046,9 +1046,11 @@ public class SpectralRTI_Toolkit implements Command {
                     ImagePlus stackRGB = WindowManager.getImage("YCC - RGB");
                     stackRGB.hide();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
+                    logService.log().info("Save ACRaking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     IJ.save(stackRGB,projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     createJp2(projectName+"_Ac_Tx", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
+                    logService.log().info("Remove ACRaking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     Files.deleteIfExists(toDelete.toPath());   
                     //stack.flush();
                     stack.close();
@@ -1088,9 +1090,11 @@ public class SpectralRTI_Toolkit implements Command {
                             //a 00 position number was saved at the beginning
                             positionNumber = IJ.pad(i+1, 2).toString();
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
+                            logService.log().info("Save ACRaking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             IJ.save(stackRGB, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ac_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
+                            logService.log().info("Remove ACRaking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             Files.deleteIfExists(toDelete.toPath());   
                             //stack.flush();
                             stack.close();
@@ -1119,7 +1123,6 @@ public class SpectralRTI_Toolkit implements Command {
 		}
                 //ImagePlus redStacker = FolderOpener.open(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator, "file=("+redStringList+") sort"); //This only opens the folder, cant pick and choose
 		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort"); //Opens a series of images in a chosen folder as a stack. Images may have different dimensions and can be of any format supported by ImageJ              
-
                 ImagePlus redStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 redStacker.setTitle("RedStack");
                 logService.log().info("There are "+redStacker.getStackSize()+" images in the RED STACK");
@@ -1241,9 +1244,11 @@ public class SpectralRTI_Toolkit implements Command {
 		//create extended spectrum static diffuse
 		if (xsRakingDesired){
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
+                    logService.log().info("Save XS static raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
                     IJ.save(stackRGB, projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
                     createJp2(projectName+"_Xs_00", projectDirectory); 
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
+                    logService.log().info("Remove XS static raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_00"+".tiff");
                     Files.deleteIfExists(toDelete.toPath());
 		}
 		IJ.run(stackRGB, "RGB to YCbCr stack", "");
@@ -1277,9 +1282,11 @@ public class SpectralRTI_Toolkit implements Command {
                     //imp.flush();
                     imp.close();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
+                    logService.log().info("Save XS static raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     IJ.save(stackRGB2, projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     createJp2(projectName+"_Xs_Tx", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
+                    logService.log().info("Remove XS static raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     Files.deleteIfExists(toDelete.toPath()); 
                     //stack2.flush();
                     stack2.close();
@@ -1323,6 +1330,7 @@ public class SpectralRTI_Toolkit implements Command {
                             simpleImageName = "ExtendedSpectrum_"+simpleName2+simpleName3;
                         }
                         noClobber(filePath+".jpg");
+                        logService.log().info("Save XS RTI source image "+filePath+".jpg");
                         IJ.saveAs(stackRGB2, "jpeg",filePath+".jpg");
                         //stack3.flush();
                         stack3.close();
@@ -1357,9 +1365,11 @@ public class SpectralRTI_Toolkit implements Command {
                             stackRGB3.hide();
                             positionNumber = IJ.pad(i+1, 2).toString();
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
+                            logService.log().info("Save XS Raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
                             IJ.save(stackRGB3, projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
                             createJp2(projectName+"_Xs_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
+                            logService.log().info("Remove XS Raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
                             Files.deleteIfExists(toDelete.toPath()); 
                             //stack4.flush();
                             stack4.close();
@@ -1499,9 +1509,11 @@ public class SpectralRTI_Toolkit implements Command {
                     ImagePlus lumRGB = WindowManager.getImage("YCC - RGB");
                     lumRGB.hide();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
+                    logService.log().info("Save PS Raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     IJ.save(lumRGB, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     createJp2(projectName+"_Ps_00", projectDirectory);
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
+                    logService.log().info("Remove PS Raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     Files.deleteIfExists(toDelete.toPath());
                     lumRGB.close();
                     //lumRGB.flush();
@@ -1525,9 +1537,11 @@ public class SpectralRTI_Toolkit implements Command {
                         //imp.flush();
                         imp.close();
                         noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
+                        logService.log().info("Save PS Raking source image "+ projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         IJ.save(transRGB, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         createJp2(projectName+"_Ps_Tx", projectDirectory);
                         toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
+                        logService.log().info("Remove PS Raking source image "+ projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         Files.deleteIfExists(toDelete.toPath());
                         transRGB.close();
                         transNarrowKeptStack.close();
@@ -1573,9 +1587,11 @@ public class SpectralRTI_Toolkit implements Command {
                             //enhancedNarrowKeptStack.flush();
                             positionNumber = IJ.pad(i+1, 2).toString();                          
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
+                            logService.log().info("Save PS Raking source image "+ projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             IJ.save(RGBImg, projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             createJp2(projectName+"_Ps_"+positionNumber, projectDirectory);
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
+                            logService.log().info("Remove PS Raking source image "+ projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             Files.deleteIfExists(toDelete.toPath());
                         }
                         if ((psRtiDesired)&&(brightnessAdjustApply.equals("RTI images also"))){ 
@@ -1589,6 +1605,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
+                            logService.log().info("Save PS RTI source image "+filePath+".jpg");
                             IJ.saveAs(RGBImg, "jpeg", filePath+".jpg");
                         } 
                         else if (psRtiDesired) {
@@ -1602,6 +1619,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
+                            logService.log().info("Save PS RTI source image "+filePath+".jpg");
                             IJ.saveAs(RGBImg, "jpeg", filePath+".jpg");
                         }
                         enhancedLum.changes = false;
@@ -1688,7 +1706,7 @@ public class SpectralRTI_Toolkit implements Command {
                     cr.hide();
 		}
                 WindowManager.getImage("csSource").close();
-		if (!transmissiveSource.equals("")) {
+		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource );
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     IJ.run(imp, "8-bit", "");
@@ -1830,7 +1848,7 @@ public class SpectralRTI_Toolkit implements Command {
         * @throws java.io.IOException
         */
         public String createJp2(String inFile, String projDir) throws IOException, InterruptedException {
-            logService.log().info("We are attempting to create jp2 file "+inFile);
+            
             String preferredCompress = theList.get("preferredCompress");
             String preferredJp2Args = theList.get("preferredJp2Args");
             preferredCompress = preferredCompress.replace("/", File.separator);
@@ -1838,7 +1856,7 @@ public class SpectralRTI_Toolkit implements Command {
             String compressString = "preferredCompress="+preferredCompress+System.lineSeparator();
             String preferredString = "preferredJp2Args="+preferredJp2Args+System.lineSeparator();
             OpenDialog dialog;  //For files
-            String returnString = "/created/JP2file";
+            String returnString = "/new/JP2file";
             if (preferredCompress.equals("")){
                 dialog = new OpenDialog("Locate kdu_compress or ojp_compress"); 
                 preferredCompress = dialog.getPath();
@@ -1878,6 +1896,7 @@ public class SpectralRTI_Toolkit implements Command {
             else{
                 p = Runtime.getRuntime().exec(commandString);
             }
+            logService.log().info("Created JP2 "+returnString);
             return returnString;
         }
         
@@ -1978,19 +1997,25 @@ public class SpectralRTI_Toolkit implements Command {
                 normWidth = bounds.width;
             } 
             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                dWait = new WaitForUserDialog("Use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered next." );
+                dWait = new WaitForUserDialog("ImageJ will use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered in the window that follows the preview." );
                 dWait.show();
                 if(dWait.escPressed()){
                     //@userHitCancel
                     IJ.error("You must supply a multiplier to continue!");
                     throw new Throwable("You must supply a multiplier to continue!");
                 }
-                IJ.run(imp, "Multiply...", "");
-                GenericDialog gdMultiplier = new GenericDialog("Enter selected multiplier");
+                /**
+                 * This is a bit weird here.  It would be great if the number from the multiply window
+                 * could be used so it doesn't ask twice.  
+                 */
+                IJ.run(imp, "Multiply...", ""); 
+                //GenericDialog gdMultiplier = (GenericDialog) WindowManager.getWindow("Multiply"); //No good, didn't seem to grab it.
+                GenericDialog gdMultiplier = new GenericDialog("Set Multiplier Value");
                 gdMultiplier.addNumericField("Enter selected multiplier: ", 1.30,2,4,"");
                 gdMultiplier.setMaximumSize(bestFit);
                 gdMultiplier.showDialog();
-                normalizationFixedValue = (int) gdMultiplier.getNumericFields().get(0);
+                normalizationFixedValue = gdMultiplier.getNextNumber();
+                logService.log().info("Set a fixed value.  It is "+normalizationFixedValue);
             }
             else{
                 logService.log().warn("Brightness not modified");
@@ -2116,7 +2141,7 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.error("Problem identifying type of RTI fitter.  Please provide the hshfitter or deferred batch file.");
                 throw new Throwable("Problem identifying type of RTI fitter");
             }
-            fitterNoticeFrame.setVisible(false);
+            fitterNoticeFrame.dispose();
         }
         
         /**
@@ -2285,7 +2310,7 @@ public class SpectralRTI_Toolkit implements Command {
                     Files.createFile(new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html").toPath());
                     Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
-                noticeFrame.setVisible(false);  
+                noticeFrame.dispose();  
             }
             else{ //webRTIDesired was false.  Give a message? 
                 
