@@ -314,8 +314,6 @@ public class SpectralRTI_Toolkit implements Command {
                  */
             }
             IJ.run("Input/Output...","jpeg="+jpegQuality);
-            
-            listOfHemisphereCaptures = getHemisphereCaptures(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
             Arrays.sort(listOfHemisphereCaptures, NameFileComparator.NAME_COMPARATOR);
             File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
             File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
@@ -338,9 +336,9 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                 hemi_gamma_dir = new File(createPath.toString());
             }
-            listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
+            listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
             while (listOfHemisphereCaptures.length < 30 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")){
-                listOfHemisphereCaptures = hemi_gamma_dir.listFiles();
+                listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
             }
             if(listOfHemisphereCaptures.length < 30){
                 IJ.error("There must be at least 30 images in the hemisphere caputres folder to continue.  Please populate for next time.");
@@ -441,21 +439,21 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info("A directory has been created for lossless static raking images at "+projectDirectory+"StaticRaking"+File.separator);
                 }
                 File[] listOfTransmissiveSources_dir = new File[0];
-                ArrayList<String> listOfTransmissiveSources_list = new ArrayList<String>();
-                ArrayList<String> listOfTransmissiveSources_short = new ArrayList<String>();
-                String[] listOfTransmissiveSources = new String[0];
+                List<String> listOfTransmissiveSources_list = new ArrayList<>();
+                List<String> listOfTransmissiveSources_short = new ArrayList<>();
+                String[] listOfTransmissiveSources;
                 if(transmissive_gamma_dir.exists()){
                     listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
-                    for (File f : listOfTransmissiveSources_dir) {
+                    for (File f : listOfTransmissiveSources_dir){
                         listOfTransmissiveSources_list.add(f.toString());
                         listOfTransmissiveSources_short.add("..."+f.getName());
                     }
                 }
                 if(shortName){
-                    listOfTransmissiveSources_short.toArray(listOfTransmissiveSources); 
+                    listOfTransmissiveSources = (String[]) listOfTransmissiveSources_short.toArray(); 
                 }
                 else{
-                   listOfTransmissiveSources_list.toArray(listOfTransmissiveSources); 
+                    listOfTransmissiveSources = (String[]) listOfTransmissiveSources_list.toArray(); 
                 }
                 if(listOfTransmissiveSources.length == 1){ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem
                     transmissiveSource = listOfTransmissiveSources[0];
@@ -763,6 +761,7 @@ public class SpectralRTI_Toolkit implements Command {
             if (psRtiDesired || psRakingDesired){
                 //identify 2 source images for pca pseudocolor
                 File listOfPseudocolorSources_dir = new File(projectDirectory+"PCA"+File.separator);
+                //This dir is never written to so it is always empty.  Not exactly sure what processed images should be saved into this directory. Yikes.
                 if(!listOfPseudocolorSources_dir.exists()){
                     GenericDialog nofldr = new GenericDialog("FYI");
                     nofldr.addMessage("A Pseudo Color folder has been created for you");
@@ -1031,8 +1030,8 @@ public class SpectralRTI_Toolkit implements Command {
                 cb.hide();
                 cr.hide();
 		//Luminance from transmissive
+                logService.log().info("What is transmissive source "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
-                    logService.log().info("Transmissive source has value "+transmissiveSource);
                     imp = opener.openImage( transmissiveSource ); 
                     imp.setTitle("TransmissiveLuminance");
                     IJ.run(imp, "8-bit", "");
@@ -1711,6 +1710,7 @@ public class SpectralRTI_Toolkit implements Command {
                     cr.hide();
 		}
                 WindowManager.getImage("csSource").close();
+                logService.log().info("What is transmissive source "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource );
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
