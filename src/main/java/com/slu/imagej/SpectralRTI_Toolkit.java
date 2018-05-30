@@ -765,10 +765,10 @@ public class SpectralRTI_Toolkit implements Command {
                 File listOfPseudocolorSources_dir = new File(projectDirectory+"PCA"+File.separator);
                 //This dir is never written to so it is always empty.  Not exactly sure what processed images should be saved into this directory. Yikes.
                 if(!listOfPseudocolorSources_dir.exists()){
-                    GenericDialog nofldr = new GenericDialog("FYI");
-                    nofldr.addMessage("A Pseudo Color folder has been created for you");
-                    nofldr.setMaximumSize(bestFit);
-                    nofldr.showDialog();
+                    //GenericDialog nofldr = new GenericDialog("FYI");
+                    //nofldr.addMessage("A Pseudo Color folder has been created for you");
+                    //nofldr.setMaximumSize(bestFit);
+                    //nofldr.showDialog();
                     Files.createDirectory(listOfPseudocolorSources_dir.toPath());
                     logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA"+File.separator);
                 }
