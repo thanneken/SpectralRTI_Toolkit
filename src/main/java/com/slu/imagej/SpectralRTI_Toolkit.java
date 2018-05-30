@@ -191,8 +191,7 @@ public class SpectralRTI_Toolkit implements Command {
         
         /* Use to test code bits.  switch out theMacro_test() with testCode() in main */
         private void testCode() throws IOException, Throwable{
-            webRtiDesired = true;
-            createWebRTIFiles("AccurateColor", "");
+            logService.log().info("TEST code");
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -448,12 +447,15 @@ public class SpectralRTI_Toolkit implements Command {
                         listOfTransmissiveSources_list.add(f.toString());
                         listOfTransmissiveSources_short.add("..."+f.getName());
                     }
-                }
-                if(shortName){
-                    listOfTransmissiveSources = (String[]) listOfTransmissiveSources_short.toArray(); 
+                    if(shortName){
+                        listOfTransmissiveSources = (String[]) listOfTransmissiveSources_short.toArray(); 
+                    }
+                    else{
+                        listOfTransmissiveSources = (String[]) listOfTransmissiveSources_list.toArray(); 
+                    }
                 }
                 else{
-                    listOfTransmissiveSources = (String[]) listOfTransmissiveSources_list.toArray(); 
+                    listOfTransmissiveSources = new String[0];
                 }
                 if(listOfTransmissiveSources.length == 1){ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem
                     transmissiveSource = listOfTransmissiveSources[0];
@@ -472,7 +474,7 @@ public class SpectralRTI_Toolkit implements Command {
                     else{
                         transmissiveSource = transSourceDialog.getNextRadioButton();
                     }
-                } 
+                }
                 else if (listOfTransmissiveSources.length == 0) {
                     transmissiveSource = "";
                 }
@@ -1646,17 +1648,23 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.run("Collect Garbage");
             }
             if (csRtiDesired || csRakingDesired) { //processing phase
+                logService.log().info("Pull custom information out of custom source for processing...");
 		csSource = csSource.replace("\\",File.separator);
-		String[] csParents = csSource.split(File.separator);
-		String csProcessName = csParents[csParents.length-2];
-                File csProcessFile = new File(projectDirectory+csProcessName+"RTI"+File.separator);
+                //Need to pull info out of csSource name.  Use File API to do this.
+                File csFile = new File(csSource);
+                File csProcessFile = new File(csFile.getParent());
+                String csProcessName = csProcessFile.getName();
+                logService.log().info("Process name is "+csProcessName);
+                logService.log().info("Assuming process file is "+projectDirectory+csProcessName+"RTI"+File.separator);
                 ImagePlus cb = new ImagePlus();
                 ImagePlus cr = new ImagePlus();
 		if (!csProcessFile.exists()) {
                     Files.createDirectory(csProcessFile.toPath());
                     logService.log().info("A directory has been created for "+csProcessName+" RTI at "+projectDirectory+csProcessName+"RTI"+File.separator);
 		}
+                logService.log().info("Open the custom source");
                 imp = opener.openImage(csSource);
+                logService.log().info("Process custom source");
                 //imglib2_img = ImagePlusAdapter.wrap( imp );
 		if ((imp.getImageStackSize() == 1)&&(imp.getBitDepth()<24)) {
                     if (csRakingDesired) {
@@ -1709,7 +1717,8 @@ public class SpectralRTI_Toolkit implements Command {
                     cb.hide();
                     cr.hide();
 		}
-                WindowManager.getImage("csSource").close();
+                //WindowManager.getImage("csSource").close();
+                imp.close();
                 logService.log().info("What is transmissive source "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource );
@@ -1746,8 +1755,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); 
                                 String simpleName2 = projectName + "_";
                                 String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                filePath = projectDirectory+"CustomSourceRTI"+File.separator+"CustomSource_"+simpleName2+simpleName3;
-                                simpleImageName = "CustomSource_"+simpleName2+simpleName3;
+                                filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName2+simpleName3;
+                                simpleImageName = csProcessName+"_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
                             IJ.saveAs(imp, "jpeg", filePath+".jpg");
@@ -1800,6 +1809,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                     }
 		}
+                logService.log().info("Custom source files created, create lp file and head off to the fitter");
                 cb.close();
                 //cb.flush();
                 cr.close();
@@ -1854,7 +1864,6 @@ public class SpectralRTI_Toolkit implements Command {
         * @throws java.io.IOException
         */
         public String createJp2(String inFile, String projDir) throws IOException, InterruptedException {
-            
             String preferredCompress = theList.get("preferredCompress");
             String preferredJp2Args = theList.get("preferredJp2Args");
             preferredCompress = preferredCompress.replace("/", File.separator);
@@ -1891,7 +1900,6 @@ public class SpectralRTI_Toolkit implements Command {
             File preferredCompressFile = new File(preferredCompress);
             String compressLocation = preferredCompressFile.getParent();
             Boolean noClob = noClobber(projDir+"StaticRaking"+File.separator+inFile+".jp2"); 
-            File checkFileForTesting = new File(projDir+"StaticRaking"+File.separator+inFile+".tiff");
             String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
             if(isWindows){
                 p = Runtime.getRuntime().exec(commandString, null, new File(compressLocation)); //compressLocation
@@ -1900,7 +1908,11 @@ public class SpectralRTI_Toolkit implements Command {
                 //preferred compress is kdu_compress.exe (or some other executable).  The args used are from those.  It should be platform independent
             }
             else{
+                logService.log().info("Non windows .jp2 creation.  Command below: ");
+                logService.log().info(commandString);
                 p = Runtime.getRuntime().exec(commandString);
+                p.waitFor();   
+                returnString = projDir+"StaticRaking"+File.separator+inFile+".jp2";
             }
             logService.log().info("Created JP2 "+returnString);
             return returnString;
@@ -2105,6 +2117,7 @@ public class SpectralRTI_Toolkit implements Command {
                 else{
                     String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     p = Runtime.getRuntime().exec(commandString);
+                    p.waitFor();
                     contentPane.removeAll();
                 }
                 //should if(webRTIDesired) be here??
@@ -2313,6 +2326,7 @@ public class SpectralRTI_Toolkit implements Command {
                 else{
                     String commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
                     p2 = Runtime.getRuntime().exec(commandString);
+                    p2.waitFor();
                     Files.createFile(new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html").toPath());
                     Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
