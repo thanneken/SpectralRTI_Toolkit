@@ -712,6 +712,7 @@ public class SpectralRTI_Toolkit implements Command {
                  * @Yikes
                  * Here is a sticky point.  ImageJ is requiring AT LEAST TWO selections for each visible range.  This is because it wants
                  * to treat it like a stack, and a stack is > 1 image.
+                 * @Fixed add a slice if we detected there was only one
                  */
                 if(!(atLeastOneR && atLeastOneG && atLeastOneB)){
                     String whichOnes = "You did not provide a selection of the visible range(s) ";
@@ -1116,12 +1117,6 @@ public class SpectralRTI_Toolkit implements Command {
             if (xsRtiDesired || xsRakingDesired) {
 		//Red
 		String redStringList = redNarrowbands[0].toString();  //might be an array to string function somewhere to do this more elegantly
-                if(redNarrowbands.length == 1){
-                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
-                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
-                    redNarrowbands_list.add(redNarrowbands[0].toString());
-                    redNarrowbands = redNarrowbands_list.toArray();
-                }
 		for (int i=1;i<redNarrowbands.length;i++) {
                     redStringList = redStringList+"|"+redNarrowbands[i].toString();
 		}
@@ -1131,6 +1126,11 @@ public class SpectralRTI_Toolkit implements Command {
                 redStacker.setTitle("RedStack");
                 logService.log().info("There are "+redStacker.getStackSize()+" images in the RED STACK");
                 redStacker.hide();
+                if(redNarrowbands.length == 1){
+                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
+                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
+                    IJ.run(redStacker, "Add Slice", "");
+                }
                 //YIKES
                 //What happens if these weren't set yet?  Do I need to get the width of height of the image?
                 //It should at least be set to the height or width of the image when grabbed above in the pcaHeight < 100 clause right?
@@ -1160,12 +1160,6 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(kept_pcaRedStacker, "8-bit", "");                
 		//Green
 		String greenStringList = greenNarrowbands[0].toString();  //might be an array to string function somewhere to do this more elegantly
-                if(greenNarrowbands.length == 1){
-                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
-                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
-                    greenNarrowbands_list.add(greenNarrowbands[0].toString());
-                    greenNarrowbands = greenNarrowbands_list.toArray();
-                }
 		for (int i=1;i<greenNarrowbands.length;i++) {
                     greenStringList = greenStringList+"|"+greenNarrowbands[i].toString();
 		}
@@ -1175,6 +1169,11 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus greenStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+greenStacker.getStackSize()+" images in the GREEN STACK");
                 greenStacker.hide();
+                if(greenNarrowbands.length == 1){
+                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
+                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
+                    IJ.run(greenStacker, "Add Slice", "");
+                }
                 greenStacker.setTitle("GreenStack");
                 greenStacker.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                 logService.log().info("Run PCA on the GREEN STACK");
@@ -1196,12 +1195,6 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(kept_pcaGreenStacker, "8-bit", "");              		
                 //Blue
 		String blueStringList = blueNarrowbands[0].toString();  
-                if(blueNarrowbands.length == 1){
-                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
-                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
-                    blueNarrowbands_list.add(blueNarrowbands[0].toString());
-                    blueNarrowbands = blueNarrowbands_list.toArray();
-                }
 		for (int i=1;i<blueNarrowbands.length;i++) {
                     blueStringList = blueStringList+"|"+blueNarrowbands[i].toString();
 		}
@@ -1211,6 +1204,11 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus blueStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+blueStacker.getStackSize()+" images in the BLUE STACK");
                 blueStacker.hide();
+                if(blueNarrowbands.length == 1){
+                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
+                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
+                    IJ.run(blueStacker, "Add Slice", "");
+                }
                 blueStacker.setTitle("BlueStack");
                 blueStacker.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                 logService.log().info("Run PCA on the BLUE STACK");
