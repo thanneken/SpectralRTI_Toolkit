@@ -1,7 +1,7 @@
 /*
 Title: Spectral RTI Toolkit
-Version: 0.1.20170711
-Date: July 11, 2017
+Version: 0.1.20180601
+Date: June 1, 2018 (small correction since April 24, 2017)
 Author: Todd R. Hanneken, thanneken@stmarytx.edu
 Description: A toolkit for processing Spectral RTI images
 About:
@@ -250,8 +250,8 @@ macro "Spectral RTI [n1]" {
 		print("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
 	}
 	listOfHemisphereCaptures = getFileList(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-	while (listOfHemisphereCaptures.length < 29) {
-		showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.");
+	while (listOfHemisphereCaptures.length < 1) { // changed from 29 to 1 6/1/2018
+		showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 1 image in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.");
 		listOfHemisphereCaptures = getFileList(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
 	}
 	lpDesired=true;
@@ -403,7 +403,7 @@ macro "Spectral RTI [n1]" {
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator);
 				if (!File.exists(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator)) File.makeDirectory(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports");
 				saveAs("jpeg",projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+File.nameWithoutExtension+".jpg");
-				selectWindow(File.nameWithoutExtension+".jpg");
+				selectWindow("LightPosition");
 				run("Close");
 			}
 		}
@@ -740,8 +740,7 @@ macro "Spectral RTI [n1]" {
 		run("Close");
 		selectWindow("Cr");
 		run("Close");
-		//run("Collect Garbage"); //Fiji only
-		//call("java.lang.System.gc"); //plain ImageJ only
+		run("Collect Garbage");
 		if (xsRtiDesired) {
 			createLpFile("ExtendedSpectrum");
 			runFitter("ExtendedSpectrum");
@@ -915,8 +914,7 @@ macro "Spectral RTI [n1]" {
 		}
 		selectWindow("PCA of Captures-Narrowband-NoGamma kept stack");
 		run("Close");
-		//run("Collect Garbage"); //Fiji only
-		//call("java.lang.System.gc"); //plain ImageJ only
+		run("Collect Garbage");
 		if (psRtiDesired) {
 			createLpFile("Pseudocolor");
 			runFitter("Pseudocolor");
