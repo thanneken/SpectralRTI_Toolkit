@@ -336,6 +336,7 @@ public class SpectralRTI_Toolkit implements Command {
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
+            
             while (listOfHemisphereCaptures.length < 30 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 30 images in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")){
                 listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
             }
@@ -343,6 +344,7 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.error("There must be at least 30 images in the hemisphere caputres folder to continue.  Please populate for next time.");
                 throw new Throwable("There must be at least 30 images in the hemisphere caputres folder to continue.  Please populate for next time.");
             }
+            
             if ( light_position_dir.exists() ){ 
                 lpDesired = false;
             }
@@ -583,10 +585,12 @@ public class SpectralRTI_Toolkit implements Command {
                 boolean atLeastOneR = false;
                 boolean atLeastOneG = false;
                 boolean atLeastOneB = false;
+
                 if (listOfNarrowbandCaptures.length<9) { 
                     IJ.error("You must have 9 or more narrow band captures for Extended Spectrum!");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
+                
                 /**
                  * UI for custom visible RGB range assignment window.
                 */
@@ -658,7 +662,6 @@ public class SpectralRTI_Toolkit implements Command {
                     float ind = (float) (i+1.0);
                     float len = (float) listOfNarrowbandCaptures.length;
                     defaultFraction = ind/len;
-                    logService.log().info(defaultFraction);
                     if (defaultFraction < 0.34){
                         //defaultRange = "B";
                         radioOptionB.setSelected(true);
@@ -781,10 +784,12 @@ public class SpectralRTI_Toolkit implements Command {
                     Files.createDirectory(listOfPseudocolorSources_dir.toPath());
                     logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA"+File.separator);
                 }
+                
                 if (listOfNarrowbandCaptures.length<9) { 
                     IJ.error("You must have 9 or more narrow band captures for PseudoColor!");
                     throw new Throwable("You must have 9 or more narrow band captures for PseudoColor!");
                 }
+                
                 File[] listOfPseudocolorSources = listOfPseudocolorSources_dir.listFiles();
                 String defaultPca = "";
                 if (listOfPseudocolorSources.length > 1) defaultPca = "Open pregenerated images" ;
@@ -948,7 +953,6 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus cr = WindowManager.getImage("Cr");
                 cb.hide();
                 cr.hide();
-                logService.log().info("Set stack pieces...");
                 ImagePlus keptPieces = con.concatenate(cb, cr, true);
                 //imp.flush();
                 imp.close();
@@ -1046,7 +1050,6 @@ public class SpectralRTI_Toolkit implements Command {
                     imp = opener.openImage( transmissiveSource ); 
                     imp.setTitle("TransmissiveLuminance");
                     IJ.run(imp, "8-bit", "");
-                    logService.log().info("Set stack pieces...");
                     ImagePlus keptPieces = con.concatenate(cb, cr, true);
                     ImagePlus stack = con.concatenate(imp, keptPieces, true);
                     stack.setTitle("YCC");
@@ -1084,7 +1087,6 @@ public class SpectralRTI_Toolkit implements Command {
                                 IJ.run(imp, "Multiply...", "value="+normalizationFixedValue+""); //Multiplies the image or selection by the specified real constant. With 8-bit images, results greater than 255 are set to 255
                             }
                             IJ.run(imp, "8-bit", "");
-                            logService.log().info("Set stack pieces...");
                             ImagePlus keptPieces = con.concatenate(cb, cr, true);
                             //cb.flush();
                             cb.close(); //Can this be closed??
@@ -1135,8 +1137,6 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("There are "+redStacker.getStackSize()+" images in the RED STACK");
                 redStacker.hide();
                 if(redNarrowbands.length == 1){
-                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
-                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
                     IJ.run(redStacker, "Add Slice", "");
                 }
                 //YIKES
@@ -1171,15 +1171,11 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int i=1;i<greenNarrowbands.length;i++) {
                     greenStringList = greenStringList+"|"+greenNarrowbands[i].toString();
 		}
-                logService.log().info("What is greenStringList");
-                logService.log().info(greenStringList);
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+greenStringList+") sort"); 
                 ImagePlus greenStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+greenStacker.getStackSize()+" images in the GREEN STACK");
                 greenStacker.hide();
                 if(greenNarrowbands.length == 1){
-                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
-                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
                     IJ.run(greenStacker, "Add Slice", "");
                 }
                 greenStacker.setTitle("GreenStack");
@@ -1206,15 +1202,11 @@ public class SpectralRTI_Toolkit implements Command {
 		for (int i=1;i<blueNarrowbands.length;i++) {
                     blueStringList = blueStringList+"|"+blueNarrowbands[i].toString();
 		}
-                logService.log().info("What is blueStringList");
-                logService.log().info(blueStringList);
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+blueStringList+") sort");
                 ImagePlus blueStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+blueStacker.getStackSize()+" images in the BLUE STACK");
                 blueStacker.hide();
                 if(blueNarrowbands.length == 1){
-                    //Yikes double check this doesnt break anything.  If it does, the user must provide at least 2 selections.  
-                    //add a duplicate in so ImageJ can use a stack.  Cannot have a stack of 1.
                     IJ.run(blueStacker, "Add Slice", "");
                 }
                 blueStacker.setTitle("BlueStack");
@@ -1282,7 +1274,6 @@ public class SpectralRTI_Toolkit implements Command {
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     imp.setTitle("TransmissiveLuminance");
                     IJ.run(imp, "8-bit", "");
-                    logService.log().info("Set stack pieces...");
                     ImagePlus stack2 = con.concatenate(imp, keptPieces, true);
                     stack2.setTitle("YCC");
                     IJ.run(stack2,"YCbCr stack to RGB","");
@@ -1655,7 +1646,6 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.run("Collect Garbage");
             }
             if (csRtiDesired || csRakingDesired) { //processing phase
-                logService.log().info("Pull custom information out of custom source for processing...");
 		csSource = csSource.replace("\\",File.separator);
                 //Need to pull info out of csSource name.  Use File API to do this.
                 File csFile = new File(csSource);
@@ -1663,11 +1653,12 @@ public class SpectralRTI_Toolkit implements Command {
                 String csProcessName = csProcessFile.getName();
                 logService.log().info("Process name is "+csProcessName);
                 logService.log().info("Assuming process file is "+projectDirectory+csProcessName+"RTI"+File.separator);
+                csProcessFile = new File(projectDirectory+csProcessName+"RTI"+File.separator);
                 ImagePlus cb = new ImagePlus();
                 ImagePlus cr = new ImagePlus();
 		if (!csProcessFile.exists()) {
                     Files.createDirectory(csProcessFile.toPath());
-                    logService.log().info("A directory has been created for "+csProcessName+" RTI at "+projectDirectory+csProcessName+"RTI"+File.separator);
+                    logService.log().info("A directory has been created for "+csProcessName+" RTI at "+csProcessFile.toString());
 		}
                 logService.log().info("Open the custom source");
                 imp = opener.openImage(csSource);
@@ -1762,7 +1753,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); 
                                 String simpleName2 = projectName + "_";
                                 String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName2+simpleName3;
+                                //filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName2+simpleName3;
+                                filePath = projectDirectory+csProcessName+"RTI"+File.separator+simpleName2+simpleName3;
                                 simpleImageName = csProcessName+"_"+simpleName2+simpleName3;
                             }
                             noClobber(filePath+".jpg");
@@ -2043,7 +2035,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Set a fixed value.  It is "+normalizationFixedValue);
             }
             else{
-                logService.log().warn("Brightness not modified");
+                logService.log().info("Brightness not modified");
             }
             //imp.flush();
             imp.close();
