@@ -317,7 +317,7 @@ public class SpectralRTI_Toolkit implements Command {
             File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
             File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
             File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
-            File pseudo_color_dir = new File(projectDirectory+"PseudocolorRTI"+File.separator);
+            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
             File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
             File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
             File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
@@ -1554,9 +1554,9 @@ public class SpectralRTI_Toolkit implements Command {
 		}
 		if (psRtiDesired) {
                     if (!pseudo_color_dir.exists()) {
-                        File createPseudo = new File(projectDirectory+"PseudocolorRTI"+File.separator);
+                        File createPseudo = new File(projectDirectory+"PseudoColorRTI"+File.separator);
                         Files.createDirectory(createPseudo.toPath());
-                        logService.log().info("A directory has been created for Pseudocolor RTI at "+projectDirectory+"PseudocolorRTI"+File.separator);
+                        logService.log().info("A directory has been created for Pseudocolor RTI at "+projectDirectory+"PseudoColorRTI"+File.separator);
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
