@@ -441,6 +441,9 @@ public class SpectralRTI_Toolkit implements Command {
                 List<String> listOfTransmissiveSources_list = new ArrayList<>();
                 List<String> listOfTransmissiveSources_short = new ArrayList<>();
                 String[] listOfTransmissiveSources;
+                String[] listOfTransmissiveSourcePaths;
+                listOfTransmissiveSources = new String[transmissive_gamma_dir.listFiles().length];
+                listOfTransmissiveSourcePaths = new String[transmissive_gamma_dir.listFiles().length];
                 if(transmissive_gamma_dir.exists() && transmissive_gamma_dir.length() > 0){
                     listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
                     for (File f : listOfTransmissiveSources_dir){
@@ -448,17 +451,20 @@ public class SpectralRTI_Toolkit implements Command {
                         listOfTransmissiveSources_short.add("..."+f.getName());
                     }
                     if(shortName){
-                        listOfTransmissiveSources = (String[]) listOfTransmissiveSources_short.toArray(); 
+                       listOfTransmissiveSources_short.toArray(listOfTransmissiveSources);
                     }
                     else{
-                        listOfTransmissiveSources = (String[]) listOfTransmissiveSources_list.toArray(); 
+                       listOfTransmissiveSources_list.toArray(listOfTransmissiveSources); 
                     }
+                    listOfTransmissiveSources_list.toArray(listOfTransmissiveSourcePaths);
                 }
                 else{
                     listOfTransmissiveSources = new String[0];
                 }
+                logService.log().info("List of transmissive sources");
+                logService.log().info(Arrays.toString(listOfTransmissiveSources));
                 if(listOfTransmissiveSources.length == 1){ // no opt out of creating a transmissive static if transmissive folder is populated, but not a problem
-                    transmissiveSource = listOfTransmissiveSources[0];
+                    transmissiveSource = listOfTransmissiveSourcePaths[0];
                 } 
                 else if (listOfTransmissiveSources.length > 1){
                     GenericDialog transSourceDialog = new GenericDialog("Select Transmissive Source");
@@ -469,10 +475,12 @@ public class SpectralRTI_Toolkit implements Command {
                     transSourceDialog.showDialog();
                     if(transSourceDialog.wasCanceled()){ 
                         //@userHitCancel is it OK to default to the first source?
-                        transmissiveSource = listOfTransmissiveSources[0];
+                        transmissiveSource = listOfTransmissiveSourcePaths[0];
                     }
                     else{
                         transmissiveSource = transSourceDialog.getNextRadioButton();
+                        //This needs to be the full file name, so call this replace() in case it is the short version.
+                        transmissiveSource = transmissiveSource.replace("...", transmissive_gamma_dir.toString()+File.separator);
                     }
                 }
                 else if (listOfTransmissiveSources.length == 0) {
@@ -1409,6 +1417,7 @@ public class SpectralRTI_Toolkit implements Command {
                         flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
                         narrowNoGamma.close();
                         narrowNoGamma = flNarrowNoGammaStack;
+                        narrowNoGamma.setTitle("Captures-Narrowband-NoGamma");
                     }
                     else{
                         // ?
@@ -1435,6 +1444,7 @@ public class SpectralRTI_Toolkit implements Command {
                         flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
                         narrowNoGamma.close();
                         narrowNoGamma = flNarrowNoGammaStack;
+                        narrowNoGamma.setTitle("Captures-Narrowband-NoGamma");
                     }
                     else{
                         // ?
@@ -1484,7 +1494,6 @@ public class SpectralRTI_Toolkit implements Command {
                     * @see integrate pca pseudocolor with rti luminance
                     * @see create static diffuse (not trivial... use median of all)
                 */
-                logService.log().info("Process Part 2");
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                     narrowNoGamma = WindowManager.getImage("Captures-Hemisphere-Gamma");
@@ -2159,6 +2168,7 @@ public class SpectralRTI_Toolkit implements Command {
                 IJ.error("Problem identifying type of RTI fitter.  Please provide the hshfitter or deferred batch file.");
                 throw new Throwable("Problem identifying type of RTI fitter");
             }
+            logService.log().info("End fitter process");
             fitterNoticeFrame.dispose();
         }
         
