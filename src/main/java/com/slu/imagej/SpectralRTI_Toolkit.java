@@ -441,7 +441,7 @@ public class SpectralRTI_Toolkit implements Command {
                 List<String> listOfTransmissiveSources_list = new ArrayList<>();
                 List<String> listOfTransmissiveSources_short = new ArrayList<>();
                 String[] listOfTransmissiveSources;
-                if(transmissive_gamma_dir.exists()){
+                if(transmissive_gamma_dir.exists() && transmissive_gamma_dir.length() > 0){
                     listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
                     for (File f : listOfTransmissiveSources_dir){
                         listOfTransmissiveSources_list.add(f.toString());
@@ -2079,6 +2079,7 @@ public class SpectralRTI_Toolkit implements Command {
                 prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), appendString); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
+            logService.log().info("Preferred fitter is "+preferredFitter);
             if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
                 int hshOrder = Integer.parseInt(theList.get("hshOrder"));
                 if (hshOrder < 2 ) hshOrder = 3;
@@ -2088,10 +2089,10 @@ public class SpectralRTI_Toolkit implements Command {
                 hshLocation = preferredHSH.getParent();
                 appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
                 Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
+                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")){
                     appendString += "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight+System.lineSeparator();
                     Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                } 
+                }
                 else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                     appendString += "Normalization fixed value: "+normalizationFixedValue+System.lineSeparator();
                     Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
