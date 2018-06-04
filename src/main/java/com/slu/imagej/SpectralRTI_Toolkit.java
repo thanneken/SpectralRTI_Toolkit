@@ -798,7 +798,7 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfPcaMethods[0]="Generate and select using defaults";
                 listOfPcaMethods[1]="Generate and manually select two";
                 listOfPcaMethods[2]="Open pregenerated images";
-                GenericDialog pseudoSources = new GenericDialog("Select Method for Pseudocolo");
+                GenericDialog pseudoSources = new GenericDialog("Select Method for Pseudocolor");
                 pseudoSources.addMessage("PseudoColor images require two source images (typically principal component images).");
                 pseudoSources.addRadioButtonGroup("Select how to provide the source images: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
                 pseudoSources.setMaximumSize(bestFit);
