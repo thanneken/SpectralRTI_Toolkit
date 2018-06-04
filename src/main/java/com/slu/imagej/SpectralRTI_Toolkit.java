@@ -414,7 +414,7 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("shotFileNames: "+shortName);
             /** END DEBUGGING **/
             //Maybe denote these as at least one required in the UI window. 
-            if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired)){
+            if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired)){
                 if(webRtiDesired){ 
                     /**
                      * If this is the only option selected, allow the user to tell us where the RTI image is for processing
@@ -867,22 +867,23 @@ public class SpectralRTI_Toolkit implements Command {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")) {
                         logService.log().info("On hem capture index "+i);
                         imp=opener.openImage(listOfHemisphereCaptures[i].toString());
+                        String imageName = listOfHemisphereCaptures[i].getName();
                         //imglib2_img = ImagePlusAdapter.wrap( imp );
                         int extensionIndex = listOfHemisphereCaptures[i].getName().indexOf(".");
                         if (extensionIndex != -1)
                         {
                             filePath = projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                         }
-                        imp.show();
+                        //imp.show();
                         //ImageJFunctions.show(imglib2_img, "LightPosition");
                         //WindowManager.getImage("LightPosition").setRoi(0,0,(int)imglib2_img.dimension(3), (int)imglib2_img.dimension(4));
-                        WindowManager.getImage("LightPosition").setRoi(bounds);
-                        IJ.run("Crop"); //Crops the image or stack based on the current rectangular selection.
+                        imp.setRoi(bounds);
+                        IJ.run(imp, "Crop", ""); //Crops the image or stack based on the current rectangular selection.
                         File jpegExportsFile = new File(projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator);
                         if (!light_position_dir.exists()) Files.createDirectory(light_position_dir.toPath());
                         if (!jpegExportsFile.exists()) Files.createDirectory(jpegExportsFile.toPath());
                         //Do we need to tell the users we created these directories?
-                        IJ.saveAs("jpeg",filePath+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or format
+                        IJ.saveAs(imp, "jpeg", filePath+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or format
                         //imp.flush();
                         imp.close();
                     }
@@ -2334,6 +2335,12 @@ public class SpectralRTI_Toolkit implements Command {
                     rtiImage = projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                 }
                 logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
+                File webRTIFolder = new File(projectDirectory+colorProcess+"RTI"+File.separator);
+                if (!webRTIFolder.exists()) {
+                    Path createPath = webRTIFolder.toPath();
+                    Files.createDirectory(createPath);
+                    logService.log().info("A directory has been created for the Web RTI file at "+projectDirectory+colorProcess+"RTI"+File.separator);
+                }
                 if(isWindows){
                     String commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
                     logService.log().info("Running the webRTICommand...");
