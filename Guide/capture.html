@@ -12,6 +12,7 @@
 	<li>What is Spectral RTI and do I need it? <a href="intro.html" class="small">(LINK)</a>
 		<ol style="list-style-type:lower-alpha;}">
 			<li>Cost/benefit of adding RTI <a href="intro.html#addrti" class="small">(LINK)</a></li>
+			<li>Cost/benefit of adding raking <a href="intro.html#addraking" class="small">(LINK)</a></li>
 			<li>Cost/benefit of adding spectral <a href="intro.html#addspectral" class="small">(LINK)</a></li>
 			<li>How does the integration work? <a href="intro.html#how" class="small">(LINK)</a></li>
 		</ol>
@@ -59,6 +60,14 @@
 	<li>Glossary <a href="glossary.html" class="small">(LINK)</a></li>
 </ol>
 
+<!--
+Ideas for images
+	----marble
+	codex with binding toward copy stand
+	copy stand shadow without and with flattening
+	image with and without gamma, caption explanation
+-->
+<a href="http://jubilees.stmarytx.edu/iiif/Kasotakis_20170202_6971.jp2/1968,1484,1336,1300/full/0/default.jpg" target="images"><img alt="Sphere" src="http://jubilees.stmarytx.edu/iiif/Kasotakis_20170202_6971.jp2/1968,1484,1336,1300/full/0/default.jpg"></a>
 <h2 id="#lpcalibration">Light position capture and calibration</h2>
 <p>A reflective sphere is used to calculate the light position for each of the hemisphere captures.
 The spheres can also be useful for recording and calculating the position of the lights for spectral imaging, and for identifying and locating stray light entering the image frame.</p>
@@ -103,6 +112,9 @@ For example, if some shadows are inevitable because of a copy stand, and some sh
 Simply rotate the binding such that the facing page is in the direction of (or resting on) the copy stand.
 The images can be rotated after capture to restore right side up.</p>
 
+<a href="staticimages/Ambrosiana_C73inf_115_RTI-F08_086.png" target="images"><img alt="flattened" src="staticimages/Ambrosiana_C73inf_115_RTI-F08_086.png" style="width:15%;"></a>
+<a href="staticimages/Ambrosiana_C73inf_115_RTI-F08_086-unflattened.png" target="images"><img alt="unflattened" src="staticimages/Ambrosiana_C73inf_115_RTI-F08_086-unflattened.png" style="width:15%;clear:none;"></a>
+
 <h2 id="preprocessing">Preprocessing typically done at capture</h2>
 <h3>Flattening</h3>
 <p>Flattening in this context means correcting for irregularities in the illumination.
@@ -133,6 +145,9 @@ However, the Accurate Color images created by PhotoShoot use a color space that 
 For this reason it is important to convert the color space to sRGB before processing with the SpectralRTI_Toolkit.
 For example, the relevant command using ImageMajick is <code>convert infile_PSC.tif -colorspace sRGB outfile_sRGB.tif</code>.</p>
 
+<a href="staticimages/Ambrosiana_C73inf_115_RTI-A05_045-gamma.png" target="images"><img alt="gamma" src="staticimages/Ambrosiana_C73inf_115_RTI-A05_045-gamma.png" style="width:15%;"></a>
+<a href="staticimages/Ambrosiana_C73inf_115_RTI-A05_045-nogamma.png" target="images"><img alt="no gamma" src="staticimages/Ambrosiana_C73inf_115_RTI-A05_045-nogamma.png" style="width:15%;clear:none;"></a>
+<div class="caption">Especially for the low, dark angles, the difference between images without (left) and with (right) gamma correction is significant.</div>
 <h3>Gamma correction for hemisphere captures</h3>
 <p>Gamma correction is appropriate when the final consumer of brightness is the human eye, that is for the hemisphere captures but not the narrowband captures.
 The silicon sensor in the camera captures the amount of light reaching the sensor on a linear scale.

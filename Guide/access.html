@@ -15,6 +15,7 @@
 	<li>What is Spectral RTI and do I need it? <a href="intro.html" class="small">(LINK)</a>
 		<ol style="list-style-type:lower-alpha;}">
 			<li>Cost/benefit of adding RTI <a href="intro.html#addrti" class="small">(LINK)</a></li>
+			<li>Cost/benefit of adding raking <a href="intro.html#addraking" class="small">(LINK)</a></li>
 			<li>Cost/benefit of adding spectral <a href="intro.html#addspectral" class="small">(LINK)</a></li>
 			<li>How does the integration work? <a href="intro.html#how" class="small">(LINK)</a></li>
 		</ol>
@@ -62,6 +63,7 @@
 	<li>Glossary <a href="glossary.html" class="small">(LINK)</a></li>
 </ol>
 
+<a href="staticimages/RTIViewer.png" target="images"><img alt="RTI Viewer" src="staticimages/RTIViewer.png"></a>
 <h2 id="rtifiles">RTI files</h2>
 <p>The Toolkit creates folders in the project directory that end in "RTI" (e.g., <code>AccurateColorRTI</code>). One RTI file (and 56 or so intermediate jpeg files) can be found in the folder for each color process (Accurate Color, Extended Spectrum, PCA Pseudocolor, Custom). The files can be distributed through external drives or the Internet, but they are large and require a specialized viewer to open, such as RTIViewer (<a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/View/">http://culturalheritageimaging.org/What_We_Offer/Downloads/View/</a>) or InscriptiFact Standalone Viewer (<a href="http://ruth.usc.edu/ISFStandaloneViewer/">http://ruth.usc.edu/ISFStandaloneViewer/</a>). </p>
 <p>Advantages</p>
@@ -76,6 +78,7 @@
 	<li>The RTI file has to download to the local machine and load into memory in its entirety before any of the image can be seen. The size of an RTI file can easily reach into the gigabyte range.</li>
 </ul>
 
+<a href="staticimages/WebRTI.png" target="images"><img alt="Web RTI" src="staticimages/WebRTI.png"></a>
 <h2 id="webrti">WebRTI</h2>
 <p>If WebRTI is selected from "Select Tasks" the folders ending in RTI contain an html file and sub-folder containing many small images files. For example: <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816_wrti.html</code> and <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816</code>. These files can be copied to a webserver, along with the JavaScript and stylesheets for WebRTI (<a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>), and viewed in any web browser.</p>
 <p>Advantages</p>
@@ -90,11 +93,15 @@
 	<li>A 50-megapixel image with default settings creates 9262 static image tiles for each color process. This slows down data management functions that occur on a per-file basis. Efforts to create the option of using IIIF for image tiles are underway.</li>
 </ul>
 
+<a href="staticimages/MiradorRaking.png" target="images"><img alt="Mirador Raking" src="staticimages/MiradorRaking.png"></a>
 <h2 id="iiif">Tiled and layered Jpeg2000 images for IIIF repositories</h2>
-<p>If Static Raking is selected from "Select Tasks" a folder named "StaticRaking" will be created in the project directory. The folder contains jpeg2000 (jp2) files for diffuse lighting (numbered 00) and for each light position selected. The color processes are abbreviated Ac for Accurate Color, Xs for Extended Spectrum, Ps for PCA Pseudocolor, and custom processes are unabbreviated. Once you have a IIIF Image server, it is a simple matter to copy the jp2 files to the appropriate directory.</p>
+<p>If Static Raking is selected from "Select Tasks" a folder named "StaticRaking" will be created in the project directory.
+The folder contains jpeg2000 (jp2) files for diffuse lighting (numbered 00) and for each light position selected.
+The color processes are abbreviated Ac for Accurate Color, Xs for Extended Spectrum, Ps for PCA Pseudocolor, and custom processes are unabbreviated.
+Once you have a IIIF Image server, it is a simple matter to copy the jp2 files to the appropriate directory.</p>
 <p>Advantages</p>
 <ul>
-	<li>The IIIF Image API makes it easy to access images in tiles for pan and zoom viewers.</li>
+	<li>The IIIF Image API makes it easy to access images in tiles for pan and zoom viewers such as Mirador.</li>
 	<li>The IIIF Image API means that an image is stored once and accessed according to any region and size required. It is no longer necessary to download an image, crop, resize, and upload a new file to use details elsewhere on the web.</li>
 	<li>The related IIIF Presentation API opens broad possibilities for situating an image in relationship to other images, pages, and collections and accessing the images through IIIF Presentation viewers such as Mirador.</li>
 </ul>

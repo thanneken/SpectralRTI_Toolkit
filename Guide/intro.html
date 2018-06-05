@@ -6,17 +6,33 @@
 <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
+<a href="staticimages/CoinAlexander.jpg" target="images"><img alt="Coin" src="staticimages/CoinAlexander.jpg""></a>
+<a href="staticimages/Cuneiform.jpg" target="images"><img alt="Cuneiform" src="staticimages/Cuneiform.jpg"></a>
+<a href="staticimages/InscriptionPalmyra.jpg" target="images"><img alt="Inscription" src="staticimages/InscriptionPalmyra.jpg"></a>
+<a href="staticimages/CorrosionInk.jpg" target="images"><img alt="Corrosion" src="staticimages/CorrosionInk.jpg"></a>
+<iframe style="display:block;float:right;clear:right;"
+		src="http://jubilees.stmarytx.edu/webrti/20140408-Sold-99-Xepn-04-50m-n.wrti.html"
+		width="30%" height="600" seamless=""></iframe>
+<div class="caption">Tap the light bulb to turn on interactive relighting.
+		Extended Spectrum color enhancement squeezes IR reflectance into the red range and UV reflectance into the blue range.
+		<a href="http://jubilees.stmarytx.edu/webrti/20140408-Sold-99-Xepn-04-50m-n.wrti.html">Full screen</a></div>
+
 <h1 class="title">Introduction: What is Spectral RTI and Do I Need It?</h1>
 <p>Spectral RTI is the integration of spectral imaging and Reflectance Transformation Imaging (RTI).
 If you are doing spectral imaging already, the question is whether the addition of RTI is worth the time.
 If you are doing RTI already, the question is whether the addition of spectral is worth the money.
-If you are doing both separately, there is no question that the integration will surpass the sum of the parts in quality, time efficiency, and cost effectiveness.</p>
+If you are doing both separately, there is no question that the integration will surpass the sum of the parts in quality, time efficiency, and cost effectiveness.
+Intermediate options cover a range of texture quality,
+	including a few raking angles (not interactive RTI),
+	minimal RTI (around 30 angles),
+	or high-resolution RTI (around 50 angles).</p>
 
 <h2>Contents</h2>
 <ol>
 	<li><b>What is Spectral RTI and do I need it?</b>
 		<ol style="list-style-type:lower-alpha;}">
 			<li>Cost/benefit of adding RTI <a href="intro.html#addrti" class="small">(LINK)</a></li>
+			<li>Cost/benefit of adding raking <a href="intro.html#addraking" class="small">(LINK)</a></li>
 			<li>Cost/benefit of adding spectral <a href="intro.html#addspectral" class="small">(LINK)</a></li>
 			<li>How does the integration work? <a href="intro.html#how" class="small">(LINK)</a></li>
 		</ol>
@@ -69,7 +85,7 @@ If you are doing both separately, there is no question that the integration will
 The importance of texture data is clearest for cultural heritage objects in which texture is the primary conveyor of meaning, such as cuneiform, inscriptions, and coins.
 Additionally, dry-point notation was the Medieval equivalent of using a pencil in a library book.
 By pressing with a sharp point without ink, scribes could make notes to themselves without defacing the manuscript.
-In each of these cases with homogenous materials, a diffuse image might be completely indecipherable.
+In each of these cases with homogenous materials, a diffusely illuminated image might be completely indecipherable.
 Texture can be important to recovery of text from parchment if the ink corroded the surface of the parchment, such that the outline of the letter can be read even if the ink is completely missing.
 Texture can also aid recovery of text by showing the scribal scoring lines (and hence where text should be) and the shrinkage, warp, and cockle that would affect the reading.
 Texture can also hold clues as to the brush strokes or even fingerprint of an artist.
@@ -91,6 +107,30 @@ A dome or arc could automate the sequence to take negligible effort.
 The primary time constraint is the time required to transfer the data, which for 56 images at 50 megapixels each is close to three minutes.
 An automated arc or dome for RTI capture could be expected to cost five to eight thousand dollars. </p>
 
+<h2 id="addraking">What are the benefits and costs of adding raking to spectral?</h2>
+<p>An intermediate step between diffuse-only captures and full-RTI captures is the addition of raking illumination,
+	which can be handled by the same software and techniques for Spectral RTI.
+Raking illumination shows texture by allowing light from only one low angle.
+RTI captures can be thought of as a complete set of raking illumination captures,
+	such that the capture team does not need to worry about the optimal angle,
+	and the user can experiment with different raking angles interactively.
+However, if expense in time and equipment prohibit a complete set of raking captures for RTI,
+	even a small set of captures from a few low angles can be greatly beneficial,
+	especially if care is taken at time of capture to pick the most beneficial angles.
+In the past, spectral raking images were created by moving a spectral LED bank to a low angle and repeating a complete capture set.
+With the software used for Spectral RTI (even if the data is not complete RTI), the chrominance information can be used from the diffuse captures,
+	and a single flash or white LED can be used to capture the luminance information for texture.
+This saves substantial time in moving and calibrating equipment, and avoids error from different wavelengths coming from slightly different angles. </p>
+
+<a href="http://jubilees.stmarytx.edu/leaflet/imagecubefrommanifestcoordinates.html?manifesturl=/iiifp/LatinMoses/manifest.json&sequence=0&canvas=82&images=0#3/-123.25/118.75">
+	<img alt="Ac_00" src="http://jubilees.stmarytx.edu/iiif/Ambrosiana_C73inf_110_Ac_00.jp2/132,296,5896,7016/270,/0/default.jpg" style="width:15%;">
+	<img alt="2011" src="http://jubilees.stmarytx.edu/iiif/Ambrosiana_C73inf_110_2011.jp2/full/270,/0/default.jpg" style="width:15%;clear:none;">
+	<img alt="KTK01_55" src="http://jubilees.stmarytx.edu/iiif/Ambrosiana_C73inf_110_KTK01_55.jp2/132,296,5896,7016/270,/0/default.jpg" style="width:15%;">
+	<img alt="Ac_55" src="http://jubilees.stmarytx.edu/iiif/Ambrosiana_C73inf_110_Ac_55.jp2/132,296,5896,7016/270,/0/default.jpg" style="width:15%;clear:none;">
+</a>
+<div class="caption">The Testament of Moses palimpsest (Ambrosiana C73inf, CC BY-NC-SA)
+	in conventional digitization (2011), spectral accurate color (2017), spectral accurate color with raking (2017), and spectral enhanced color with raking (KTK 2017).
+	Note that conventional digitization fails to provide color accuracy and texture information, let alone enhancements.</div>
 <h2 id="addspectral">What are the benefits and costs of adding spectral to RTI?</h2>
 <p>A note on terminology: terms are used loosely and inconsistently when it comes to spectral imaging.
 If one adopts the definitions used here, then the "spectral" of Spectral RTI is multi-spectral imaging.
@@ -101,7 +141,7 @@ The term "multi-spectral" is here used to refer to a number of discretely resolv
 The methods of multi-spectral imaging as of 2017 (narrowband LED illumination with a panchromatic sensor and apochromatic lens) effectively limit the number of discrete wavelengths of reflected light captured to about 20.
 The narrowband illuminators are not so narrow that many more wavelengths could be helpfully distinguished.
 A different capture approach entirely (line at a time capture with a diffraction grating) allows finer resolution of reflected wavelength, well into the hundreds of bands.
-Thus, an imaging system current to 2017 can be called "multi-spectral" if it resolves a number of wavelengths measured in two digits, and "hyper-spectral" if it resolves wavelengths measured in three or four digits.
+Thus, an imaging system current to 2017 can be called "multi-spectral" if it resolves a number of wavelengths expressed in two digits, and "hyper-spectral" if it resolves a number of wavelengths expressed in three or four digits.
 However, it is not necessary to agree on terminology.
 The current ability to combine spectral and RTI has been proven with the capture system that resolves double-digit numbers of reflected bands (in addition to transmitted and fluoresced bands).</p>
 <p>The most sensational benefit, which has driven spectral imaging from its earliest form in 1844 through the dawn of digital multi-spectral imaging with the Archimedes Palimpsest Project, has been the rediscovery of unreadable text.
@@ -123,24 +163,32 @@ One intriguing development as of 2017 is the use of multi-sensor cameras in phon
 Some, not all, dual-camera designs use a monochrome sensor for sharpness and a second sensor for color.
 In the near future, the cost of entry into decent-quality multi-spectral imaging for someone who already owns such a phone may be very low indeed.</p>
 
+<img alt="Cb" src="staticimages/LucyCb.png" style="width:15%;">
+<img alt="Y" src="staticimages/LucyY.png" style="width:15%;clear:none;">
+<img alt="RGB" src="staticimages/LucyRGB.png" style="width:15%;">
+<img alt="Cr" src="staticimages/LucyCr.png" style="width:15%;clear:none;">
 <h2 id="how">How does the integration of Spectral RTI work?</h2>
-<p>The 2013-2014 phase of the Jubilees Palimpsest Project <a href="http://jubilees.stmarytx.edu/integrating" class="small">(LINK)</a> tested two techniques for integrating spectral imaging and reflectance transformation imaging. 
-The simple technique used broadband visible (white) illumination from points around the hemisphere and a set of diffuse narrowband captures. 
-The elaborate technique used a different set of narrowband captures at each light position around the hemisphere. 
-The simple technique proved effective and in some ways superior. 
-In rare cases, it may still be worth considering using narrowband illuminators at all light positions, such as when bidirectional reflectance distribution function (BRDF) is required for interpretation of material properties. 
+<p>The 2013-2014 phase of the Jubilees Palimpsest Project <a href="http://jubilees.stmarytx.edu/integrating" class="small">(LINK)</a> tested two techniques for integrating spectral imaging and reflectance transformation imaging.
+The simple technique used broadband visible (white) illumination from points around the hemisphere and a set of diffuse narrowband captures.
+The elaborate technique used a different set of narrowband captures at each light position around the hemisphere.
+The simple technique proved effective and in some ways superior.
+In rare cases, it may still be worth considering using narrowband illuminators at all light positions, such as when bidirectional reflectance distribution function (BRDF) is required for interpretation of material properties.
 For more information and the techniques tested, see the technical white paper <a class="small" href="http://jubilees.stmarytx.edu/integrating/WhitePaper-20140630.pdf">(PDF)</a>.</p>
-<p>The simple technique works because texture (not BRDF) is not wavelength dependent and spectral imaging is not texture dependent. 
-Conventional RTI is concerned with texture and pays no more attention to color than the RGB channels of a DSLR camera. 
-Conventional spectral imaging is concerned with color (differences in reflectance properties across wavelengths) and uses diffuse illumination to prevent influence from texture. 
-RTI captures and renders the changes in highlights and shadows as a function of light position. 
-The highlights and shadows as functions of light position are properties of luminance, and the variation in reflectance with wavelength is a property of chrominance. 
-As of 2017, the simplest method of integration utilizes color spaces which distinguish luminance from chrominance, such as YCbCr. 
-The YCbCr color space uses three channels to record luminance (Y), blue chrominance (Cb), and red chrominance (Cr). 
+<p>The simple technique works because texture (not BRDF) is not wavelength dependent and spectral imaging is not texture dependent.
+Conventional RTI is concerned with texture and pays no more attention to color than the RGB channels of a DSLR camera.
+Conventional spectral imaging is concerned with color (differences in reflectance properties across wavelengths) and uses diffuse illumination to prevent influence from texture.
+RTI captures and renders the changes in highlights and shadows as a function of light position.
+The highlights and shadows as functions of light position are properties of luminance, and the variation in reflectance with wavelength is a property of chrominance.
+As of 2017, the simplest method of integration utilizes color spaces which distinguish luminance from chrominance, such as YCbCr.
+The YCbCr color space uses three channels to record luminance (Y), blue chrominance (Cb), and red chrominance (Cr).
 This color space can be easily converted to the RGB color space, which uses a channel for the brightness of each of three channels, red, green, and blue. </p>
-<p>The combination requires image registration (meaning each pixel represents the same spot on the object for all captures), which is required of spectral and RTI separately. 
-It would not be easily feasible to integrate spectral captures and RTI captures from different sessions or different cameras. 
-The combination also assumes that the spectral captures have diffuse illumination, which is typical anyway. 
-When it is difficult to capture images without glare or shine due to imperfectly diffuse illumination, a side benefit of Spectral RTI is the ability to create a perfectly diffuse monochrome image (by calculating the median luminance across all light positions).</p>
+<!--<img alt="Y" src="staticimages/LucyY.png" style="max-width:24%;float:none;">
+<img alt="Cb" src="staticimages/LucyCb.png" style="max-width:24%;float:none;">
+<img alt="Cr" src="staticimages/LucyCr.png" style="max-width:24%;float:none;">
+<img alt="RGB" src="staticimages/LucyRGB.png" style="max-width:24%;float:none;">-->
+<p>The combination requires image registration (meaning each pixel represents the same spot on the object for all captures), which is required of spectral and RTI separately.
+It would not be easily feasible to integrate spectral captures and RTI captures from different sessions or different cameras.
+The combination also assumes that the spectral captures have diffuse illumination, which is typical anyway.
+When it is difficult to capture images without glare or shine<!-- due to imperfectly diffuse illumination-->, a side benefit of Spectral RTI is the ability to create a perfectly diffuse monochrome image (by calculating the median luminance across all light positions).</p>
 </body>
 </html>
