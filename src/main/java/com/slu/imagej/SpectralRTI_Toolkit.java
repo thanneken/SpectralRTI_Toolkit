@@ -365,7 +365,7 @@ public class SpectralRTI_Toolkit implements Command {
             GenericDialog tasksDialog = new GenericDialog("Select tasks");
             tasksDialog.addMessage("Select the tasks you would like to complete");
             tasksDialog.addCheckbox("Light Position Data",lpDesired);
-            tasksDialog.addCheckbox("Accurate ColorRTI",acRtiDesired);
+            tasksDialog.addCheckbox("Accurate Color RTI",acRtiDesired);
             tasksDialog.addCheckbox("Accurate Color Static Raking",acRakingDesired);
             tasksDialog.addCheckbox("Extended Spectrum RTI",xsRtiDesired);
             tasksDialog.addCheckbox("Extended Spectrum Static Raking",xsRakingDesired);
@@ -1736,6 +1736,7 @@ public class SpectralRTI_Toolkit implements Command {
                             if (csRtiDesired) {
                                 if(brightnessAdjustApply.equals("RTI images also")){
                                     noClobber(filePath+".jpg");
+                                    logService.log().info("Saving custom source image "+filePath+".jpg");
                                     IJ.saveAs(RGBImage,"jpeg", filePath+".jpg");
                                 }
                                 else{
@@ -1748,6 +1749,7 @@ public class SpectralRTI_Toolkit implements Command {
                                     RGBImage.hide();
                                     stack.close();
                                     noClobber(filePath+".jpg");
+                                    logService.log().info("Saving custom source image "+filePath+".jpg");
                                     IJ.saveAs(RGBImage,"jpeg", filePath+".jpg");
                                 }
                                 RGBImage.close();
@@ -2068,6 +2070,7 @@ public class SpectralRTI_Toolkit implements Command {
                     p.waitFor();
                     contentPane.removeAll();
                 }
+                fitterNoticeFrame.dispose();
                 //should if(webRTIDesired) be here??
                 createWebRTIFiles(colorProcess, "");
             } 
@@ -2099,17 +2102,20 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(preferredFitter), commandString.getBytes(), StandardOpenOption.APPEND);
+                fitterNoticeFrame.dispose();
             } 
             else if (preferredFitter.endsWith("PTMfitter.exe")) { // use PTM fitter
+                fitterNoticeFrame.dispose();
                 IJ.error("Macro code to execute PTMfitter not yet complete. Try HSHfitter.");
                 throw new Throwable("Macro code to execute PTMfitter not yet complete. Try HSHfitter."); //@@@
             } 
             else {
+                fitterNoticeFrame.dispose();
                 IJ.error("Problem identifying type of RTI fitter.  Please provide the hshfitter or deferred batch file.");
                 throw new Throwable("Problem identifying type of RTI fitter");
             }
             logService.log().info("End fitter process");
-            fitterNoticeFrame.dispose();
+            
         }
         
         /**
@@ -2223,6 +2229,18 @@ public class SpectralRTI_Toolkit implements Command {
         
         private void createWebRTIFiles(String colorProcess, String rtiImage) throws IOException, InterruptedException{
             logService.log().info("Create WebRTI for color process "+colorProcess+"...");
+            if(!rtiImage.equals("")){
+                //The user has chosen to just create a webrti from an existing RTI Image, we do not know for what process.
+                //We need to pull out the location of the provided RTI file
+                File imgFile = new File(rtiImage);
+                String RTIDir = imgFile.getParent();
+                String dirName = new File(RTIDir).getName();
+                colorProcess = dirName;
+                logService.log().info("Do I have color process name? " + colorProcess);
+            }
+            else{
+                colorProcess += "RTI";
+            }
             String webRtiMaker = "";
             JFrame noticeFrame = new JFrame("WebRTI Maker Working...");
             contentPane = new JPanel();
@@ -2236,7 +2254,9 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.getContentPane().add(contentPane);
             noticeFrame.pack();
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
+            
             String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+            File webRTIFolder = new File(projectDirectory+colorProcess+File.separator);
             if (webRtiDesired) {
                 noticeFrame.setVisible(true);  
                 logService.log().info("I have found a desire for WebRTI...input");
@@ -2260,14 +2280,15 @@ public class SpectralRTI_Toolkit implements Command {
                  * if the user provided an RTI image location, use that.  Otherwise, use the one the fitter made. 
                  */
                 if(rtiImage.equals("")){
-                    rtiImage = projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                    rtiImage = projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+".rti";
                 }
                 logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
-                File webRTIFolder = new File(projectDirectory+colorProcess+"RTI"+File.separator);
-                if (!webRTIFolder.exists()) {
+                
+                if (!webRTIFolder.exists() && rtiImage.equals("")) {
+                    //If the user only chose to make WebRTI, then they will be using the default directory.  Don't make a new one here. 
                     Path createPath = webRTIFolder.toPath();
                     Files.createDirectory(createPath);
-                    logService.log().info("A directory has been created for the Web RTI file at "+projectDirectory+colorProcess+"RTI"+File.separator);
+                    logService.log().info("A directory has been created for the Web RTI file at "+projectDirectory+colorProcess+File.separator);
                 }
                 if(isWindows){
                     String commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
@@ -2275,15 +2296,15 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info(commandString);                        
                     p2 = Runtime.getRuntime().exec(commandString, null, new File(webRTIDir)); //hshLocation
                     p2.waitFor();
-                    Files.createFile(new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html").toPath());
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
+                    Files.createFile(new File(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
+                    Files.write(Paths.get(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
                 else{
                     String commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
                     p2 = Runtime.getRuntime().exec(commandString);
                     p2.waitFor();
-                    Files.createFile(new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html").toPath());
-                    Files.write(Paths.get(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
+                    Files.createFile(new File(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
+                    Files.write(Paths.get(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
                 noticeFrame.dispose();  
             }
