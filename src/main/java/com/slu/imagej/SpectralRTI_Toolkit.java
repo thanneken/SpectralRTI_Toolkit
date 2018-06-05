@@ -765,7 +765,6 @@ public class SpectralRTI_Toolkit implements Command {
                     pcaY = bounds.y;
                     pcaHeight = bounds.height;
                     pcaWidth = bounds.width;
-                    //imp.flush();
                     imp.close();
 		}
             }
@@ -834,7 +833,6 @@ public class SpectralRTI_Toolkit implements Command {
                     pcaY = bounds.y;
                     pcaHeight = bounds.height;
                     pcaWidth = bounds.width;
-                    //imp.flush();
                     imp.close();
                 }
             }
@@ -861,7 +859,6 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must draw a rectangle to continue!");
                 }
                 bounds = imp.getRoi().getBounds();
-                //imp.flush();
                 imp.close();
                 for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff") || listOfHemisphereCaptures[i].toString().endsWith("tif")) {
@@ -884,7 +881,6 @@ public class SpectralRTI_Toolkit implements Command {
                         if (!jpegExportsFile.exists()) Files.createDirectory(jpegExportsFile.toPath());
                         //Do we need to tell the users we created these directories?
                         IJ.saveAs(imp, "jpeg", filePath+".jpg"); //Use this submenu to save the active image in TIFF, GIF, JPEG, or format
-                        //imp.flush();
                         imp.close();
                     }
                 }
@@ -940,7 +936,6 @@ public class SpectralRTI_Toolkit implements Command {
                 //imglib2_img = ImagePlusAdapter.wrap( imp );
 		if (imp.getBitDepth() == 8) {
                     IJ.run(imp,"RGB Color","");
-                    //imp.flush();
                     imp.close();
                     imp = WindowManager.getCurrentImage();
                     imp.setTitle("RGBtiff");
@@ -948,14 +943,12 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(imp, "RGB to YCbCr stack", "");
 		IJ.run("Stack to Images");
                 //Stack to Images will automatically cause windows to open in the interim.  For processing, it is best if they are hidden.
-                //WindowManager.getImage("Y").flush(); //Don'e need this one.
                 WindowManager.getImage("Y").close(); //Don'e need this one.
                 ImagePlus cb = WindowManager.getImage("Cb");
                 ImagePlus cr = WindowManager.getImage("Cr");
                 cb.hide();
                 cr.hide();
                 ImagePlus keptPieces = con.concatenate(cb, cr, true);
-                //imp.flush();
                 imp.close();
 		/**
                  *Luminance from hemisphere captures
@@ -1000,20 +993,14 @@ public class SpectralRTI_Toolkit implements Command {
                         noClobber(filePath+".jpg");
                         logService.log().info("Saving ACRTI source image "+filePath+".jpg");
                         IJ.saveAs(stackRGB, "jpeg", filePath+".jpg");
-                       // stackRGB.flush();
                         stackRGB.close();
                         imp.changes=false;
-                        //imp.flush();
                         imp.close();   
-                        //stack.flush();
                         stack.close();
                     }
 		}
-                //cb.flush();
                 cb.close();
-                //cr.flush();
                 cr.close();
-                //keptPieces.flush();
                 keptPieces.close();
                 createLpFile("AccurateColor", projectDirectory); 
                 WindowManager.closeAllWindows(); // IS this needed?
@@ -1036,10 +1023,8 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.deleteIfExists(toDelete.toPath());
 		IJ.run(imp, "RGB to YCbCr stack", "");
 		IJ.run("Stack to Images"); //Converts the slices in the current stack to separate image windows.
-                //WindowManager.getImage("Y").flush();
                 WindowManager.getImage("Y").close();
                 imp.changes = false;
-                //imp.flush();
                 imp.close();
                 ImagePlus cb = WindowManager.getImage("Cb");
                 ImagePlus cr = WindowManager.getImage("Cr");
@@ -1056,7 +1041,6 @@ public class SpectralRTI_Toolkit implements Command {
                     stack.setTitle("YCC");
                     stack.hide();
                     imp.changes=false;
-                    //imp.flush();
                     imp.close();
                     IJ.run(stack, "YCbCr stack to RGB", "");
                     ImagePlus stackRGB = WindowManager.getImage("YCC - RGB");
@@ -1068,9 +1052,7 @@ public class SpectralRTI_Toolkit implements Command {
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     logService.log().info("Remove ACRaking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_Tx.tiff");
                     Files.deleteIfExists(toDelete.toPath());   
-                    //stack.flush();
                     stack.close();
-                    //stackRGB.flush();
                     stackRGB.close();
 		}
 		//Luminance from hemisphere captures
@@ -1089,9 +1071,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             IJ.run(imp, "8-bit", "");
                             ImagePlus keptPieces = con.concatenate(cb, cr, true);
-                            //cb.flush();
                             cb.close(); //Can this be closed??
-                            //cr.flush();
                             cr.close(); //Can this be closed??
                             ImagePlus stack = con.concatenate(imp, keptPieces, true);
                             stack.setTitle("YCC");
@@ -1100,7 +1080,6 @@ public class SpectralRTI_Toolkit implements Command {
                             ImagePlus stackRGB = WindowManager.getImage("YCC - RGB");
                             stackRGB.hide();
                             imp.changes = false;
-                            //imp.flush();
                             imp.close();
                             //logService.log().info("I am making position numbers for these images.  The position number for this static raking is "+(i));
                             //a 00 position number was saved at the beginning
@@ -1112,16 +1091,12 @@ public class SpectralRTI_Toolkit implements Command {
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             logService.log().info("Remove ACRaking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ac_"+positionNumber+".tiff");
                             Files.deleteIfExists(toDelete.toPath());   
-                            //stack.flush();
                             stack.close();
-                            //stackRGB.flush();
                             stackRGB.close();
                         }
                     }
 		}
-                //cb.flush();
                 cb.close();
-                //cr.flush();
                 cr.close();
             }
             IJ.run("Collect Garbage");
@@ -1157,9 +1132,7 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run( pca_redStacker,"Slice Keeper", "first=1 last=1 increment=1");      
                 WindowManager.getImage("Eigenvalue spectrum of RedStack").close();
                 redStacker.changes=false;
-                //redStacker.flush();
                 redStacker.close();
-                //pca_redStacker.flush();
                 pca_redStacker.close();
                 ImagePlus kept_pcaRedStacker = WindowManager.getImage("PCA of RedStack kept stack");
                 kept_pcaRedStacker.hide();
@@ -1188,9 +1161,7 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(pca_greenStacker,"Slice Keeper", "first=1 last=1 increment=1");
                 WindowManager.getImage("Eigenvalue spectrum of GreenStack").close();
                 greenStacker.changes=false;
-                //greenStacker.flush();
                 greenStacker.close();
-                //pca_greenStacker.flush();
                 pca_greenStacker.close();
                 ImagePlus kept_pcaGreenStacker = WindowManager.getImage("PCA of GreenStack kept stack");
                 kept_pcaGreenStacker.hide();
@@ -1219,9 +1190,7 @@ public class SpectralRTI_Toolkit implements Command {
 		IJ.run(pca_blueStacker,"Slice Keeper", "first=1 last=1 increment=1");
                 WindowManager.getImage("Eigenvalue spectrum of BlueStack").close();
                 blueStacker.changes = false;
-                //blueStacker.flush();
                 blueStacker.close();
-                //pca_blueStacker.flush();
                 pca_blueStacker.close();
                 ImagePlus kept_pcaBlueStacker =  WindowManager.getImage("PCA of BlueStack kept stack");
                 kept_pcaBlueStacker.hide();
@@ -1232,17 +1201,12 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus stack = Concatenator.run(kept_pcaRedStacker, kept_pcaBlueStacker, kept_pcaGreenStacker);
                 stack.setTitle("Stack");
                 stack.hide();
-                //kept_pcaRedStacker.flush();
                 kept_pcaRedStacker.close();
-                //kept_pcaBlueStacker.flush();
                 kept_pcaBlueStacker.close();
-                //kept_pcaGreenStacker.flush();
                 kept_pcaGreenStacker.close();
-                //RGB stack of black and white
 		IJ.run(stack, "Stack to RGB", "");
                 ImagePlus stackRGB = WindowManager.getImage("Stack (RGB)");
                 stackRGB.hide();
-                //stack.flush();
                 stack.close();
 		//create extended spectrum static diffuse
 		if (xsRakingDesired){
@@ -1255,12 +1219,10 @@ public class SpectralRTI_Toolkit implements Command {
                     Files.deleteIfExists(toDelete.toPath());
 		}
 		IJ.run(stackRGB, "RGB to YCbCr stack", "");
-                //stackRGB.flush();
                 stackRGB.close();
                 ImagePlus YcbCrStack = WindowManager.getImage("Stack - YCbCr");
                 YcbCrStack.hide();
 		IJ.run(YcbCrStack, "Stack to Images", "");
-                //YcbCrStack.flush();
                 YcbCrStack.close();
                 WindowManager.getImage("Y").close();
                 ImagePlus cb = WindowManager.getImage("Cb");
@@ -1281,7 +1243,6 @@ public class SpectralRTI_Toolkit implements Command {
                     ImagePlus stackRGB2 = WindowManager.getImage("YCC - RGB");
                     stackRGB2.hide();
                     imp.changes=false;
-                    //imp.flush();
                     imp.close();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     logService.log().info("Save XS static raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
@@ -1290,9 +1251,7 @@ public class SpectralRTI_Toolkit implements Command {
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     logService.log().info("Remove XS static raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_Tx.tiff");
                     Files.deleteIfExists(toDelete.toPath()); 
-                    //stack2.flush();
                     stack2.close();
-                    //stackRGB2.flush();
                     stackRGB2.close();
 		}
 		if (xsRtiDesired) {
@@ -1335,12 +1294,9 @@ public class SpectralRTI_Toolkit implements Command {
                         noClobber(filePath+".jpg");
                         logService.log().info("Save XS RTI source image "+filePath+".jpg");
                         IJ.saveAs(stackRGB2, "jpeg",filePath+".jpg");
-                        //stack3.flush();
                         stack3.close();
                         imp.changes = false;
-                        //imp.flush();
                         imp.close();
-                        //stackRGB2.flush();
                         stackRGB2.close();
                     }
                     if (xsRakingDesired) {
@@ -1361,7 +1317,6 @@ public class SpectralRTI_Toolkit implements Command {
                             stack4.setTitle("YCC");
                             stack4.hide();
                             imp.changes = false;
-                            //imp.flush();
                             imp.close();
                             IJ.run(stack4, "YCbCr stack to RGB", "");
                             ImagePlus stackRGB3 = WindowManager.getImage("YCC - RGB");
@@ -1374,16 +1329,12 @@ public class SpectralRTI_Toolkit implements Command {
                             toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
                             logService.log().info("Remove XS Raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Xs_"+positionNumber+".tiff");
                             Files.deleteIfExists(toDelete.toPath()); 
-                            //stack4.flush();
                             stack4.close();
-                            //stackRGB3.flush();
                             stackRGB3.close();
                         }
                     }
 		}
-               // cb.flush();
                 cb.close();
-                //cr.flush();
                 cr.close();
 		if (xsRtiDesired) {
                     createLpFile("ExtendedSpectrum", projectDirectory);
@@ -1520,12 +1471,9 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info("Remove PS Raking source image "+projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_00.tiff");
                     Files.deleteIfExists(toDelete.toPath());
                     lumRGB.close();
-                    //lumRGB.flush();
                     lumNarrowKeptStack.close();
-                    //lumNarrowKeptStack.flush();
                     luminance.changes = false;
                     luminance.close();
-                   // luminance.flush();
                     if (!transmissiveSource.equals("")) {
                         imp = opener.openImage( transmissiveSource );
                         // = ImagePlusAdapter.wrap( imp );
@@ -1538,7 +1486,6 @@ public class SpectralRTI_Toolkit implements Command {
                         ImagePlus transRGB = WindowManager.getImage("YCC - RGB");
                         transRGB.hide();
                         imp.changes = false;
-                        //imp.flush();
                         imp.close();
                         noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
                         logService.log().info("Save PS Raking source image "+ projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_Tx.tiff");
@@ -1549,8 +1496,6 @@ public class SpectralRTI_Toolkit implements Command {
                         Files.deleteIfExists(toDelete.toPath());
                         transRGB.close();
                         transNarrowKeptStack.close();
-                        //transNarrowKeptStack.flush();
-                        //transRGB.flush();
                     }
 		}
 		if (psRtiDesired) {
@@ -1584,12 +1529,10 @@ public class SpectralRTI_Toolkit implements Command {
                         enhancedNarrowKeptStack.setTitle("YCC");
                         enhancedNarrowKeptStack.hide();
                         IJ.run(enhancedNarrowKeptStack, "YCbCr stack to RGB", "");
-                        //enhancedNarrowKeptStack.flush();
                         ImagePlus RGBImg = WindowManager.getImage("YCC - RGB");
                         RGBImg.hide();
                         if (listOfRakingDirections.get(i)) { 
                             enhancedNarrowKeptStack.close();
-                            //enhancedNarrowKeptStack.flush();
                             positionNumber = IJ.pad(i+1, 2).toString();                          
                             noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
                             logService.log().info("Save PS Raking source image "+ projectDirectory+"StaticRaking"+File.separator+projectName+"_Ps_"+positionNumber+".tiff");
@@ -1639,16 +1582,12 @@ public class SpectralRTI_Toolkit implements Command {
                         enhancedLum.changes = false;
                         imp.changes = false;
                         enhancedLum.close();
-                        //enhancedLum.flush();
-                        //imp.flush();
                         imp.close();
                         RGBImg.close();
-                       // RGBImg.flush();
                     }
 		}
                 narrowKeptPCA.changes = false;
                 narrowKeptPCA.close();
-                //narrowKeptPCA.flush();
 		if (psRtiDesired) {
                     createLpFile("PseudoColor", projectDirectory);
                     runFitter("PseudoColor");
@@ -1739,7 +1678,6 @@ public class SpectralRTI_Toolkit implements Command {
                     ImagePlus RGBImage = WindowManager.getImage("YCC - RGB");
                     RGBImage.hide();
                     imp.changes = false;
-                    //imp.flush();
                     imp.close();
                     noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     IJ.save(RGBImage, projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
@@ -1747,9 +1685,7 @@ public class SpectralRTI_Toolkit implements Command {
                     toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_Tx.tiff");
                     Files.deleteIfExists(toDelete.toPath());
                     RGBImage.close();
-                    //RGBImage.flush();
                     stack.close();
-                    //stack.flush();
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
                     if (listOfHemisphereCaptures[i].toString().endsWith("tiff")|| listOfHemisphereCaptures[i].toString().endsWith("tif")) {
@@ -1767,11 +1703,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 //filePath = projectDirectory+csProcessName+"RTI"+File.separator+simpleName2+simpleName3;
                                 simpleImageName = csProcessName+"_"+simpleName2+simpleName3;
                             }
-                            //noClobber(filePath+".jpg");
-                            //IJ.saveAs(imp, "jpeg", filePath+".jpg");
                             IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
                             ImagePlus enhancedLum = WindowManager.getImage("EnhancedLuminance");
-                            enhancedLum.hide();
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                                 region = new RectangleOverlay();
                                 enhancedLum.setRoi(normX,normY,normWidth,normHeight); 
@@ -1781,7 +1714,8 @@ public class SpectralRTI_Toolkit implements Command {
                             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                                 IJ.run(enhancedLum,"Multiply...", "value="+normalizationFixedValue+"");
                             }
-                            //IJ.run(imp, "8-bit", "");
+                            enhancedLum.hide();
+                            IJ.run(imp, "8-bit", "");
                             IJ.run(enhancedLum, "8-bit", "");
                             ImagePlus piece = con.concatenate(cb, cr, true);
                             ImagePlus stack = con.concatenate(enhancedLum, piece, true);
@@ -1790,49 +1724,44 @@ public class SpectralRTI_Toolkit implements Command {
                             ImagePlus RGBImage = WindowManager.getImage("YCC - RGB");
                             RGBImage.hide();
                             stack.close();
-                            //stack.flush();
                             if (listOfRakingDirections.get(i)){
                                 positionNumber = IJ.pad(i+1, 2).toString();
                                 noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
                                 IJ.save(RGBImage,projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
                                 RGBImage.close();
-                                //RGBImage.flush();
                                 createJp2(projectName+"_"+csProcessName+"_"+positionNumber, projectDirectory);
                                 toDelete = new File(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_"+positionNumber+".tiff");
                                 Files.deleteIfExists(toDelete.toPath());
                             }
-                            if ((csRtiDesired)&&(brightnessAdjustApply.equals("RTI images also"))){
-                                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                                    region = new RectangleOverlay();
-                                    enhancedLum.setRoi(normX,normY,normWidth,normHeight); 
-                                    IJ.run(RGBImage,"Enhance Contrast...", "saturated=0.4");
-                                    //IJ.run("Select None");
-                                } 
-                                else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                                    IJ.run(RGBImage,"Multiply...", "value="+normalizationFixedValue+"");
+                            if (csRtiDesired) {
+                                if(brightnessAdjustApply.equals("RTI images also")){
+                                    noClobber(filePath+".jpg");
+                                    IJ.saveAs(RGBImage,"jpeg", filePath+".jpg");
                                 }
-                                noClobber(filePath+".jpg");
-                                IJ.saveAs(RGBImage, "jpeg", filePath+".jpg");
-                                //WindowManager.getImage(simpleImageName+".jpg").flush();
-                            } 
-                            else if (csRtiDesired) {
-                                noClobber(filePath+".jpg");
-                                IJ.saveAs(imp,"jpeg", filePath+".jpg");
+                                else{
+                                    RGBImage.close();
+                                    piece = con.concatenate(cb, cr, true);
+                                    stack = con.concatenate(imp, piece, true);
+                                    stack.setTitle("YCC");
+                                    IJ.run(stack, "YCbCr stack to RGB", "");
+                                    RGBImage = WindowManager.getImage("YCC - RGB");
+                                    RGBImage.hide();
+                                    stack.close();
+                                    noClobber(filePath+".jpg");
+                                    IJ.saveAs(RGBImage,"jpeg", filePath+".jpg");
+                                }
+                                RGBImage.close();
                             }
                             enhancedLum.changes = false;
                             imp.changes = false;
                             enhancedLum.close();
-                            //enhancedLum.flush();
                             imp.close();
-                            //imp.flush();
                         }
                     }
 		}
-                logService.log().info("Custom source files created, create lp file and head off to the fitter");
+                logService.log().info("Custom source files created, create lp file and run the fitter");
                 cb.close();
-                //cb.flush();
                 cr.close();
-                //cr.flush();
 		createLpFile(csProcessName, projectDirectory);
 		runFitter(csProcessName);
                 IJ.run("Collect Garbage");
@@ -2057,7 +1986,6 @@ public class SpectralRTI_Toolkit implements Command {
             else{
                 logService.log().info("Brightness not modified");
             }
-            //imp.flush();
             imp.close();
         } 
         
@@ -2226,7 +2154,7 @@ public class SpectralRTI_Toolkit implements Command {
 
                         } 
                         else if (list[i].getName().endsWith("lp")) {
-                            listOfLpFiles_list.add(projectDirectory+"LightPositionData"+File.separator+"assembly-files"+File.separator+list[i].toString());
+                            listOfLpFiles_list.add(list[i].toString());
                         }
                     }
                 }             
