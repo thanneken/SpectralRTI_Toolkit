@@ -442,24 +442,27 @@ public class SpectralRTI_Toolkit implements Command {
                 List<String> listOfTransmissiveSources_short = new ArrayList<>();
                 String[] listOfTransmissiveSources;
                 String[] listOfTransmissiveSourcePaths;
-                listOfTransmissiveSources = new String[transmissive_gamma_dir.listFiles().length];
-                listOfTransmissiveSourcePaths = new String[transmissive_gamma_dir.listFiles().length];
-                if(transmissive_gamma_dir.exists() && transmissive_gamma_dir.length() > 0){
-                    listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
-                    for (File f : listOfTransmissiveSources_dir){
-                        listOfTransmissiveSources_list.add(f.toString());
-                        listOfTransmissiveSources_short.add("..."+f.getName());
+                if(transmissive_gamma_dir.exists()){
+                    listOfTransmissiveSources = new String[transmissive_gamma_dir.listFiles().length];
+                    listOfTransmissiveSourcePaths = new String[transmissive_gamma_dir.listFiles().length];
+                    if (transmissive_gamma_dir.length() > 0){
+                        listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
+                        for (File f : listOfTransmissiveSources_dir){
+                            listOfTransmissiveSources_list.add(f.toString());
+                            listOfTransmissiveSources_short.add("..."+f.getName());
+                        }
+                        if(shortName){
+                           listOfTransmissiveSources_short.toArray(listOfTransmissiveSources);
+                        }
+                        else{
+                           listOfTransmissiveSources_list.toArray(listOfTransmissiveSources); 
+                        }
+                        listOfTransmissiveSources_list.toArray(listOfTransmissiveSourcePaths);
                     }
-                    if(shortName){
-                       listOfTransmissiveSources_short.toArray(listOfTransmissiveSources);
-                    }
-                    else{
-                       listOfTransmissiveSources_list.toArray(listOfTransmissiveSources); 
-                    }
-                    listOfTransmissiveSources_list.toArray(listOfTransmissiveSourcePaths);
                 }
                 else{
                     listOfTransmissiveSources = new String[0];
+                    listOfTransmissiveSourcePaths = new String[0];
                 }
                 Arrays.sort(listOfTransmissiveSourcePaths);
                 Arrays.sort(listOfTransmissiveSources);
@@ -871,6 +874,10 @@ public class SpectralRTI_Toolkit implements Command {
                         {
                             filePath = projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                         }
+                        else{
+                            IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+imageName);
+                            throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+imageName); 
+                        }
                         //imp.show();
                         //ImageJFunctions.show(imglib2_img, "LightPosition");
                         //WindowManager.getImage("LightPosition").setRoi(0,0,(int)imglib2_img.dimension(3), (int)imglib2_img.dimension(4));
@@ -984,10 +991,16 @@ public class SpectralRTI_Toolkit implements Command {
                         if (extensionIndex != -1)
                         {
                             String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
-                            String simpleName2 = projectName + "_";
-                            String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                            filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
-                            simpleImageName = "AccurateColor_"+simpleName2+simpleName3;
+                            //String simpleName2 = projectName + "_";
+                            //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
+                            //filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
+                            //simpleImageName = "AccurateColor_"+simpleName2+simpleName3;
+                            filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName1;
+                            simpleImageName = "AccurateColor_"+simpleName1;
+                        }
+                        else{
+                            IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName());
+                            throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                         }
                         
                         noClobber(filePath+".jpg");
@@ -1286,10 +1299,14 @@ public class SpectralRTI_Toolkit implements Command {
                         if (extensionIndex != -1)
                         {
                             String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
-                            String simpleName2 = projectName + "_";
-                            String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                            filePath = projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+simpleName2+simpleName3;
-                            simpleImageName = "ExtendedSpectrum_"+simpleName2+simpleName3;
+                            //String simpleName2 = projectName + "_";
+                            //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
+                            filePath = projectDirectory+"ExtendedSpectrumRTI"+File.separator+"ExtendedSpectrum_"+simpleName1;
+                            simpleImageName = "ExtendedSpectrum_"+simpleName1;
+                        }
+                        else{
+                            IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName());
+                            throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                         }
                         noClobber(filePath+".jpg");
                         logService.log().info("Save XS RTI source image "+filePath+".jpg");
@@ -1547,10 +1564,14 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                                String simpleName2 = projectName + "_";
-                                String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
-                                simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
+                                //String simpleName2 = projectName + "_";
+                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
+                                filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName1;
+                                simpleImageName = "PseudoColor_"+simpleName1;
+                            }
+                            else{
+                                IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName());
+                                throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
                             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                                 region = new RectangleOverlay();
@@ -1570,10 +1591,14 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                                String simpleName2 = projectName + "_";
-                                String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName2+simpleName3;
-                                simpleImageName = "PseudoColor_"+simpleName2+simpleName3;
+                                //String simpleName2 = projectName + "_";
+                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
+                                filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName1;
+                                simpleImageName = "PseudoColor_"+simpleName1;
+                            }
+                            else{
+                                IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName());
+                                throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
                             noClobber(filePath+".jpg");
                             logService.log().info("Save PS RTI source image "+filePath+".jpg");
@@ -1697,11 +1722,15 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); 
-                                String simpleName2 = projectName + "_";
-                                String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                                filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName2+simpleName3;
+                                //String simpleName2 = projectName + "_";
+                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
+                                filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName1;
                                 //filePath = projectDirectory+csProcessName+"RTI"+File.separator+simpleName2+simpleName3;
-                                simpleImageName = csProcessName+"_"+simpleName2+simpleName3;
+                                simpleImageName = csProcessName+"_"+simpleName1;
+                            }
+                            else{
+                                IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName());
+                                throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
                             IJ.run(imp, "Duplicate...", "title=EnhancedLuminance");
                             ImagePlus enhancedLum = WindowManager.getImage("EnhancedLuminance");
