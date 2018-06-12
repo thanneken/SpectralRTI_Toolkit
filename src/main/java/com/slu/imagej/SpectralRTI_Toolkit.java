@@ -445,7 +445,7 @@ public class SpectralRTI_Toolkit implements Command {
                 if(transmissive_gamma_dir.exists()){
                     listOfTransmissiveSources = new String[transmissive_gamma_dir.listFiles().length];
                     listOfTransmissiveSourcePaths = new String[transmissive_gamma_dir.listFiles().length];
-                    if (transmissive_gamma_dir.length() > 0){
+                    if (transmissive_gamma_dir.listFiles().length > 0){
                         listOfTransmissiveSources_dir=transmissive_gamma_dir.listFiles();
                         for (File f : listOfTransmissiveSources_dir){
                             listOfTransmissiveSources_list.add(f.toString());
