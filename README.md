@@ -1,50 +1,23 @@
 # SpectralRTI_Toolkit
 Process Spectral RTI Images in ImageJ
 
-The toolkit processes the data from a Spectral RTI capture session. This data includes diffuse narrowband spectral images, monochrome RTI captures from 35 or more light positions, and an accurate color image. The toolkit guides processing of the light position (lp) file, and outputs to HSH RTI, PTM, and WebRTI formats. The base color processing options are Accurate Color, Extended Spectrum, and PCA Pseudocolor. The Toolkit is intended to be usable by general users without requiring any editing of text files, command line arguments, or regular expressions. For more information about Spectral RTI see [http://palimpsest.stmarytx.edu/integrating] (http://palimpsest.stmarytx.edu/integrating). 
+Spectral RTI is a technique that combines color information from spectral imaging with texture information from RTI or raking images.
+The SpectralRTI_Toolkit for ImageJ processes the data from a Spectral RTI capture session and creates raking, RTI, and WebRTI images ready for publication.
+Specifically the toolkit accepts data from diffuse narrowband spectral images (reflectance, optionally transmissive and fluorescence) and texture broadband images (a virtual dome for RTI, or fewer for raking).
+The toolkit accepts accurate color images from the spectral system and has built-in color processing for Extended Spectrum and PCA Pseudocolor.
+Additional custom color processes can also be used.
 
-##Version History 
-Version 0.1 is an ImageJ Macro.  
+Documentation for the complete process is available in the `Guide` directory and at [http://jubilees.stmarytx.edu/spectralrtiguide/](http://jubilees.stmarytx.edu/spectralrtiguide/).
 
-##Roadmap
-The major development goals are: 
+Examples of Spectral RTI images can be viewed in Mirador at [http://jubilees.stmarytx.edu/mirador/](http://jubilees.stmarytx.edu/mirador/).
 
-1. Rewrite as Java Plugin for ImageJ2, optimize for speed
-2. Create documentation for basic users 
+Further information is available from the project website at [http://jubilees.stmarytx.edu/](http://jubilees.stmarytx.edu/).
 
-Additional plans include: 
-* More helpful error messages (check dependencies, instructions for fixing errors)
+The development of the software and documentation is generously supported by a grant from the National Endowment for the Humanities (2016-2019).
 
-Features added in the October 28, 2016 update:
-
-* create jp2 files for IIIF repository
-* option to create selectively static raking files directly to jp2 without jpeg compression 
-* create WebRTI files
-* consolidate prompts at beginning
-* option to defer HSHfitter to batch command file
-* human readable time stamps when renaming rather than overwriting files
-* timestamp set once for entire sequence
-
-Features added in the November 16, 2016 update:
-
-* Better support for raking light options distinct from RTI
-* Option to use transmissive light with each color process
-* Option to use custom image (or stack) for chrominance
-* Consult users about options stored in preferences file 
-* Clears some variables between runs to facilitate continous use without restarting ImageJ
-
-Features added in the December 19, 2016 update: 
-
-* Enhanced support for transmissive and florescence captures
-* Revised expected directory structure
-* Adds companion macro to curate files exported by Photoshoot
-
-Minor changes January 2, 2017:
-
-* Jpeg quality maximized until final distribution
-* Fix to curation macro for rotation from exif metadata xml
-* Option to createLpFile from canonical version
-
-Minor changes January 24, 2017:
-
-* Optimizations for workflow in Milan
+## History
+* The SpectralRTI_Toolkit debuted in 2016 as an ImageJ macro.
+* The SpectralRTI_Toolkit was developed into a Java plugin for ImageJ2 by the Walter J. Ong S.J. Center for Digital Humanities at Saint Louis University.
+* The Java plugin surpassed the macro in performance and functionality in June 2018 and is now the master branch.
+* The macro remains available in the macro folder and its own branch of the repository, but is not being actively developed.
+* NEH-supported development continues through 2019.
