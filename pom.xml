@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>16.1.0</version>
+		<relativePath />
+	</parent>
+
+	<groupId>slu.edu</groupId>
+	<artifactId>SpectralRTI_Toolkit</artifactId>
+	<version>0.0.1</version>
+
+	<name>SpectralRTI</name>
+	<description>Do Spectral Imaging on RTI images.</description>
+	<url>https://www.slu.edu</url>
+	<inceptionYear>2017</inceptionYear>
+	<organization>
+		<name>SLU</name>
+		<url>http://www.slu.edu</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>CC0 1.0 Universal License</name>
+			<url>http://creativecommons.org/publicdomain/zero/1.0/</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>thehabes</id>
+			<name>Bryan Haberberger</name>
+			<url>https://github.com/thehabes</url>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>None</name>
+		</contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>ImageJ Forum</name>
+			<archive>http://forum.imagej.net/</archive>
+		</mailingList>
+	</mailingLists>
+
+	<scm>
+		<connection>scm:git:git://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit</connection>
+		<developerConnection>scm:git:git@github.com:CenterForDigitalHumanities</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>http://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>None</system>
+	</ciManagement>
+
+	<properties>
+		<main-class>HelloWorld</main-class>
+		<license.licenseName>cc0</license.licenseName>
+		<license.copyrightOwners>N/A</license.copyrightOwners>
+		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>imagej.public</id>
+			<url>http://maven.imagej.net/content/groups/public</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+            <dependency>
+                <groupId>net.imagej</groupId>
+                <artifactId>imagej</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>net.imglib2</groupId>
+                <artifactId>imglib2-ij</artifactId>
+                <version>2.0.0-beta-37</version>
+            </dependency>
+            <dependency>
+               <groupId>org.scijava</groupId>
+               <artifactId>scijava-common</artifactId>
+               <version>2.64.0</version>
+            </dependency>
+	 <dependency>
+	  <groupId>io.scif</groupId>
+	  <artifactId>scifio</artifactId>
+	  <version>0.32.0</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>io.scif</groupId>
+	  <artifactId>scifio-jai-imageio</artifactId>
+	  <version>1.1.1</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imagej</groupId>
+	  <artifactId>imagej-common</artifactId>
+	  <version>0.24.4</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imagej</groupId>
+	  <artifactId>imagej-notebook</artifactId>
+	  <version>0.2.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imagej</groupId>
+	  <artifactId>imagej-ops</artifactId>
+	  <version>0.38.0</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imagej</groupId>
+	  <artifactId>imagej-updater</artifactId>
+	  <version>0.8.3</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imglib2</groupId>
+	  <artifactId>imglib2</artifactId>
+	  <version>4.2.1</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imglib2</groupId>
+	  <artifactId>imglib2-algorithm</artifactId>
+	  <version>0.8.0</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imglib2</groupId>
+	  <artifactId>imglib2-algorithm-fft</artifactId>
+	  <version>0.1.4</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imglib2</groupId>
+	  <artifactId>imglib2-realtransform</artifactId>
+	  <version>2.0.0-beta-37</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>net.imglib2</groupId>
+	  <artifactId>imglib2-roi</artifactId>
+	  <version>0.4.6</version>
+	 </dependency>
+	 <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+	</dependencies>
+</project>
