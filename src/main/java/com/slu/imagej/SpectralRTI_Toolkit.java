@@ -219,21 +219,11 @@ public class SpectralRTI_Toolkit implements Command {
             boolean swapBack = false;     
             Concatenator con = new Concatenator();
             
-            /*
-            file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
-            projectDirectory = file_dialog.getDirectory();
-            logService.log().info("Project directory is ...  "+projectDirectory+" ...");
-            if(projectDirectory == null || projectDirectory.equals("")){
-                IJ.error("You must provide a project directory to continue.");
-                throw new Throwable("You must provide a project directory."); //DIE if no directory provided
-            }
-            else{
-                projectDirectory = projectDirectory.replace("\\",File.separator);
-            }
-            */
-            while(projectDirectory == null || projectDirectory.equals("")){
+            File projectFile = null;
+            while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
                 file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
                 projectDirectory = file_dialog.getDirectory();
+                projectFile = new File(projectDirectory);
             }
             if(projectDirectory == null || projectDirectory.equals("")){
                 IJ.error("You must provide a project directory to continue.");
@@ -241,12 +231,13 @@ public class SpectralRTI_Toolkit implements Command {
             }
             else{
                 projectDirectory = projectDirectory.replace("\\",File.separator);
+                projectName = projectFile.getName();
             }
             /**
              * consult with user about values stored in prefs file in base fiji folder.  
              * We can move this around, say to the project directory since we know it by this point, if we want.  
              */
-            if (spectralPrefsFile.exists()) { //If this exists, overwrite the labels and show a dialog with the settings
+            if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
                 prefsDialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
                 prefs = prefsFileAsText.split(System.lineSeparator());
@@ -334,14 +325,7 @@ public class SpectralRTI_Toolkit implements Command {
             File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
             File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
             File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
-            File projectFile = new File(projectDirectory);
-            if(!projectFile.exists()){
-                IJ.error("Problem with the project directory.  I do not think it exists...");
-                throw new Throwable("Problem with the project directory.  I do not think it exists...");
-            }
-            projectName = projectFile.getName();
             File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-
             if (!hemi_gamma_dir.exists()) {
                 Path createPath = hemi_gamma_dir.toPath();
                 Files.createDirectory(createPath);
@@ -375,23 +359,22 @@ public class SpectralRTI_Toolkit implements Command {
             }
             if (pseudo_color_dir.exists()) psRtiDesired = false;
             if (extended_spectrum_dir.exists()) xsRtiDesired = false;
-            
-            GenericDialog tasksDialog = new GenericDialog("Select tasks");
-            tasksDialog.addMessage("Select the tasks you would like to complete");
-            tasksDialog.addCheckbox("Light Position Data",lpDesired);
-            tasksDialog.addCheckbox("Accurate Color RTI",acRtiDesired);
-            tasksDialog.addCheckbox("Accurate Color Static Raking",acRakingDesired);
-            tasksDialog.addCheckbox("Extended Spectrum RTI",xsRtiDesired);
-            tasksDialog.addCheckbox("Extended Spectrum Static Raking",xsRakingDesired);
-            tasksDialog.addCheckbox("PseudoColor RTI",psRtiDesired);
-            tasksDialog.addCheckbox("PseudoColor Static Raking",psRakingDesired);
-            tasksDialog.addCheckbox("Custom RTI",false);
-            tasksDialog.addCheckbox("Custom Static Raking",false);
-            tasksDialog.addCheckbox("WebRTI",false);
-            tasksDialog.addMessage("Set your file name appearance preference below");
-            tasksDialog.addCheckbox("Short File Names", shortName);
-            
+
             while(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
+                GenericDialog tasksDialog = new GenericDialog("Select tasks");
+                tasksDialog.addMessage("Select the tasks you would like to complete");
+                tasksDialog.addCheckbox("Light Position Data",lpDesired);
+                tasksDialog.addCheckbox("Accurate Color RTI",acRtiDesired);
+                tasksDialog.addCheckbox("Accurate Color Static Raking",acRakingDesired);
+                tasksDialog.addCheckbox("Extended Spectrum RTI",xsRtiDesired);
+                tasksDialog.addCheckbox("Extended Spectrum Static Raking",xsRakingDesired);
+                tasksDialog.addCheckbox("PseudoColor RTI",psRtiDesired);
+                tasksDialog.addCheckbox("PseudoColor Static Raking",psRakingDesired);
+                tasksDialog.addCheckbox("Custom RTI",false);
+                tasksDialog.addCheckbox("Custom Static Raking",false);
+                tasksDialog.addCheckbox("WebRTI",false);
+                tasksDialog.addMessage("Set your file name appearance preference below");
+                tasksDialog.addCheckbox("Short File Names", shortName);
                 tasksDialog.showDialog();
                 lpDesired = tasksDialog.getNextBoolean();
                 acRtiDesired = tasksDialog.getNextBoolean();
@@ -403,13 +386,14 @@ public class SpectralRTI_Toolkit implements Command {
                 csRtiDesired = tasksDialog.getNextBoolean();
                 csRakingDesired = tasksDialog.getNextBoolean();
                 webRtiDesired = tasksDialog.getNextBoolean();
+                shortName = tasksDialog.getNextBoolean(); //This is a preference, must write to prefs file
                 if(tasksDialog.wasCanceled()) {
                     //@userHitCancel
                     IJ.error("You must provide a task set to continue.");
                     throw new Throwable("You must provide a task set to continue.");
                 }
             }
-            shortName = tasksDialog.getNextBoolean(); //This is a preference, must write to prefs file
+            
             prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
             String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
             prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
@@ -561,28 +545,29 @@ public class SpectralRTI_Toolkit implements Command {
                 /**
                  * Gather and process user selected raking images
                 */
-                int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
                 boolean atLeastOne = false;
-                if (result == JOptionPane.OK_OPTION){
-                    for(JCheckBox check : positions){
-                        listOfRakingDirections.add(check.isSelected());
-                        if(check.isSelected()){
-                            atLeastOne = true;
+                while(!atLeastOne){
+                    int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+                    if (result == JOptionPane.OK_OPTION){
+                        for(JCheckBox check : positions){
+                            listOfRakingDirections.add(check.isSelected());
+                            if(check.isSelected()){
+                                atLeastOne = true;
+                            }
                         }
-                    };
-                }
-                else {
-                    //@userHitCancel
-                    //YIKES Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
-                    listOfRakingDirections = new ArrayList<>();
-                    for(JCheckBox check : positions){
-                        listOfRakingDirections.add(Boolean.FALSE);
                     }
-                }
-                if(!atLeastOne){
-                    //Does the user have to make at least one selection?
-                    IJ.error("You must make at least one selection to continue!");
-                    throw new Throwable("You must make at least one selection to continue!");
+                    else {
+                        //@userHitCancel
+                        //YIKES Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
+                        /*
+                        listOfRakingDirections = new ArrayList<>();
+                        for(JCheckBox check : positions){
+                            listOfRakingDirections.add(Boolean.FALSE);
+                        }
+                        */
+                        IJ.error("You must make at least one selection to continue!");
+                        throw new Throwable("You must make at least one selection to continue!");
+                    }
                 }
             }
             else { //We already have the list initiated, so do nothing
@@ -789,8 +774,8 @@ public class SpectralRTI_Toolkit implements Command {
                     imp.setTitle("Preview");
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.show();
-                    dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
                     while(imp.getRoi() == null){
+                        dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
@@ -887,8 +872,9 @@ public class SpectralRTI_Toolkit implements Command {
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.setTitle("Preview");
                     imp.show();
-                    dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
+                    
                     while(imp.getRoi() == null){
+                        dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
@@ -919,8 +905,9 @@ public class SpectralRTI_Toolkit implements Command {
                 //ImageJFunctions.show(imglib2_img, "Preview");   
                 imp.setTitle("Preview");
                 imp.show();
-                dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
+                
                 while(imp.getRoi() == null){
+                    dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
@@ -2064,12 +2051,14 @@ public class SpectralRTI_Toolkit implements Command {
             }
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
-                dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
-                dWait.show();
-                if(dWait.escPressed() || imp.getRoi() == null){
-                    //@userHitCancel
-                    IJ.error("You must draw a rectangle to continue!");
-                    throw new Throwable("You must draw a rectangle to continue!");
+                while(imp.getRoi() == null){
+                    dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
+                    dWait.show();
+                    if(dWait.escPressed()){
+                        //@userHitCancel
+                        IJ.error("You must draw a rectangle to continue!");
+                        throw new Throwable("You must draw a rectangle to continue!");
+                    }
                 }
                 bounds = imp.getRoi().getBounds();
                 region = new RectangleOverlay();
