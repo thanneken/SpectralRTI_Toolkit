@@ -119,12 +119,12 @@ public class SpectralRTI_Toolkit implements Command {
         protected ImagePlus imp;
         /** The global ImgLib2 compatible Img type object to be used throughout.  Used with the ImgLib2 library. */
         //protected Img< FloatType > imglib2_img;      
-        private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //screenSize dimensions for sizing custom windows
+        private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //screenSize dimensions for sizing custom windows
         //private Dimension minSize = new Dimension(200, 200);
         int prefW = (int) (screenSize.width*.85); //Use 85% of the screen for appropriate windows. 
         int prefH = (int) (screenSize.height*.85);//Use 85% of the screen for appropriate windows. 
-        private Dimension preferredSize = new Dimension(prefW, prefH); //Use 85% of the screen for appropriate windows. 
-        private Dimension bestFit = new Dimension(screenSize.width-20, screenSize.height-20); //Best fit for full screen sized windows.
+        private final Dimension preferredSize = new Dimension(prefW, prefH); //Use 85% of the screen for appropriate windows. 
+        private final Dimension bestFit = new Dimension(screenSize.width-20, screenSize.height-20); //Best fit for full screen sized windows.
         /** The logger for the given application, in this case ImageJ */
         @Parameter
         private LogService logService;
