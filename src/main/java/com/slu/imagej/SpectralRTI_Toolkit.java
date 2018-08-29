@@ -202,7 +202,6 @@ public class SpectralRTI_Toolkit implements Command {
             
             //@NotOK
             GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
-            
             String[] prefs = null;
             DirectoryChooser file_dialog;
             Boolean lpDesired=false;
