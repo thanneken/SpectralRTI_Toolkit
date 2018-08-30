@@ -105,6 +105,7 @@ import javax.swing.SwingUtilities;
 import java.awt.Dialog;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JTextField;
 import org.apache.commons.io.comparator.NameFileComparator;
 
 /**
@@ -199,9 +200,11 @@ public class SpectralRTI_Toolkit implements Command {
             //want these variables to be accessible across functions and to reset each time the macro is run
             startTime = timestamp();
             File accurateColorSource = null;
-            
+            //Default options to pass in when OK and Cancel are not appropriate
+            Object[] options = {"Finish",
+                    "Cancel"};
             //@NotOK
-            GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
+            //GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
             String[] prefs = null;
             DirectoryChooser file_dialog;
             Boolean lpDesired=false;
@@ -246,10 +249,19 @@ public class SpectralRTI_Toolkit implements Command {
              * We can move this around, say to the project directory since we know it by this point, if we want.  
              */
             if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
-                prefsDialog.addMessage("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
+                contentPane = new JPanel();
+                JPanel scrollGrid = new JPanel();
+                scrollGrid.setLayout(new GridLayout(0, 2, 0, 0));
+                //display label and text area side by side in two columns for as many prefs exist
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel selectLightPositions = new JLabel("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
+                labelPanel.add(selectLightPositions);
+                contentPane.add(labelPanel);
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
                 prefs = prefsFileAsText.split(System.lineSeparator());
                 logService.log().info(Arrays.toString(prefs));
+                JTextField[] fields = new JTextField[prefs.length];
                 for (int i=0;i<prefs.length;i++){
                     //Swap the labels out for presentation
                     String key = prefs[i].substring(0, prefs[i].indexOf("="));
@@ -261,14 +273,49 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("hshThreads","HSH Threads");
                     key = key.replace("webRtiMaker","Web RTI Maker");
                     key = key.replace("shortFileNames","Short File Names");
+                    
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
-                    prefsDialog.addStringField(key, value1, 80);
+                    JLabel fieldLabel = new JLabel(key);
+                    JTextField fieldToAdd = new JTextField(value1);
+                    fields[i] = fieldToAdd;
+                    scrollGrid.add(fieldLabel);
+                    scrollGrid.add(fieldToAdd);
                 }
-                prefsDialog.setMaximumSize(bestFit);
-                //prefsDialog.setSize(preferredSize);
-                prefsDialog.showDialog();
+                JScrollPane spanel = new JScrollPane(scrollGrid);
+                //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                //spanel.setPreferredSize(preferredSize);     
+                contentPane.add(spanel);
                 
-                swapBack = true;
+                //Gather new values from the dialog, reset the labels and update the new values.
+                int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                if (result2 == JOptionPane.OK_OPTION){
+                    for (int j=0; j<prefs.length;j++) {
+                            //Swap the labels back for processing
+                            String key = prefs[j].substring(0, prefs[j].indexOf("="));
+                            key = key.replace("JP2 Compressor","preferredCompress");
+                            key = key.replace("JP2 Arguments","preferredJp2Args");
+                            key = key.replace("HSH Fitter","preferredFitter");
+                            key = key.replace("JPEG Quality","jpegQuality");
+                            key = key.replace("HSH Order","hshOrder");
+                            key = key.replace("HSH Threads","hshThreads");
+                            key = key.replace("Web RTI Maker","webRtiMaker");
+                            key = key.replace("Short File Names","shortFileNames");
+                            //How can I do this from the result2 JOptionPane?
+                            String value2 = fields[j].getText(); //Gather new information
+                            if(key.equals("shortFileNames")){
+                                shortName = (value2.equals("true") || value2.equals("yes"));
+                            }
+                            theList.put(key,value2);
+                            prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
+                    }
+                }
+                else {
+                     //@userHitCancel
+//                    IJ.error("You must make at least one selection to continue!  Exiting...");
+//                    throw new Throwable("You must make at least one selection to continue!");
+                }
+                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
             else{
                 GenericDialog noPrefs = new GenericDialog("No preference file found");
@@ -289,31 +336,6 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-            }
-            //Gather new values from the dialog, reset the labels and update the new values.
-            if(swapBack){
-                for (int j=0; j<prefs.length;j++) {
-                    //Swap the labels back for processing
-                    String key = prefs[j].substring(0, prefs[j].indexOf("="));
-                    key = key.replace("JP2 Compressor","preferredCompress");
-                    key = key.replace("JP2 Arguments","preferredJp2Args");
-                    key = key.replace("HSH Fitter","preferredFitter");
-                    key = key.replace("JPEG Quality","jpegQuality");
-                    key = key.replace("HSH Order","hshOrder");
-                    key = key.replace("HSH Threads","hshThreads");
-                    key = key.replace("Web RTI Maker","webRtiMaker");
-                    key = key.replace("Short File Names","shortFileNames");
-                    String value2 = prefsDialog.getNextString(); //Gather new information
-                    if(key.equals("shortFileNames")){
-                        shortName = (value2.equals("true") || value2.equals("yes"));
-                    }
-                    theList.put(key,value2);
-                    prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
-                }
-                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-            }
-            else{
-                logService.log().info("A prefs file was just created.");
             }
             jpegQuality = ij.plugin.JpegWriter.getQuality();
             int jpq = Integer.parseInt(theList.get("jpegQuality"));
@@ -365,47 +387,89 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfNarrowbandCaptures = narrow_band_dir.listFiles();
             }
 
+            JCheckBox[] tasks = new JCheckBox[11];
+            JCheckBox ch1 = new JCheckBox("Light Position Data");
+            JCheckBox ch2 = new JCheckBox("Accurate Color RTI");
+            JCheckBox ch12 = new JCheckBox("Accurate Color Static Raking");
+            JCheckBox ch3 = new JCheckBox("Extended Spectrum RTI");
+            JCheckBox ch4 = new JCheckBox("Extended Spectrum Static Raking");
+            JCheckBox ch5 = new JCheckBox("PseudoColor RTI");
+            JCheckBox ch6 = new JCheckBox("PseudoColor Static Raking");
+            JCheckBox ch7 = new JCheckBox("Custom RTI");
+            JCheckBox ch8 = new JCheckBox("Custom Static Raking");
+            JCheckBox ch9 = new JCheckBox("WebRTI");
+            JLabel snL = new JLabel("Check below to use names instead of paths.");
+            JCheckBox ch10 = new JCheckBox("Short File Names");
+            tasks[0] = ch1;
+            tasks[1] = ch2;
+            tasks[2] = ch12;
+            tasks[3] = ch3;
+            tasks[4] = ch4;
+            tasks[5] = ch5;
+            tasks[6] = ch6;
+            tasks[7] = ch7;
+            tasks[8] = ch8;
+            tasks[9] = ch9;
+            tasks[10] = ch10;
             
             while(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
-                //@NotOK
-                GenericDialog tasksDialog = new GenericDialog("Select tasks");
-                tasksDialog.addMessage("Select the tasks you would like to complete.  You must select at least one.");
-                tasksDialog.addCheckbox("Light Position Data",lpDesired);
-                tasksDialog.addCheckbox("Accurate Color RTI",acRtiDesired);
-                tasksDialog.addCheckbox("Accurate Color Static Raking",acRakingDesired);
-                tasksDialog.addCheckbox("Extended Spectrum RTI",xsRtiDesired);
-                tasksDialog.addCheckbox("Extended Spectrum Static Raking",xsRakingDesired);
-                tasksDialog.addCheckbox("PseudoColor RTI",psRtiDesired);
-                tasksDialog.addCheckbox("PseudoColor Static Raking",psRakingDesired);
-                tasksDialog.addCheckbox("Custom RTI",false);
-                tasksDialog.addCheckbox("Custom Static Raking",false);
-                tasksDialog.addCheckbox("WebRTI",false);
-                tasksDialog.addMessage("Set your file name appearance preference below");
-                tasksDialog.addCheckbox("Short File Names", shortName);
-                tasksDialog.showDialog();
-                lpDesired = tasksDialog.getNextBoolean();
-                acRtiDesired = tasksDialog.getNextBoolean();
-                acRakingDesired = tasksDialog.getNextBoolean();
-                xsRtiDesired = tasksDialog.getNextBoolean();
-                xsRakingDesired = tasksDialog.getNextBoolean();
-                psRtiDesired = tasksDialog.getNextBoolean();
-                psRakingDesired = tasksDialog.getNextBoolean();
-                csRtiDesired = tasksDialog.getNextBoolean();
-                csRakingDesired = tasksDialog.getNextBoolean();
-                webRtiDesired = tasksDialog.getNextBoolean();
-                shortName = tasksDialog.getNextBoolean(); //This is a preference, must write to prefs file
-                if(tasksDialog.wasCanceled()) {
-                    //@userHitCancel
+                contentPane = new JPanel();
+                JPanel scrollGrid = new JPanel();
+                scrollGrid.setLayout(new GridLayout(20, 0, 0, 0));
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel taskDirection = new JLabel("Select the tasks you would like to complete.  You must select at least one.");
+                labelPanel.add(taskDirection);
+                contentPane.add(labelPanel);
+                /**
+                 * UI for creating the checkbox selections.  
+                 * @see shortName
+                */
+                scrollGrid.add(tasks[0]);
+                scrollGrid.add(tasks[1]);
+                scrollGrid.add(tasks[2]);
+                scrollGrid.add(tasks[3]);
+                scrollGrid.add(tasks[4]);
+                scrollGrid.add(tasks[5]);
+                scrollGrid.add(tasks[6]);
+                scrollGrid.add(tasks[7]);
+                scrollGrid.add(tasks[8]);
+                scrollGrid.add(tasks[9]);
+                scrollGrid.add(snL);
+                scrollGrid.add(tasks[10]);
+                JScrollPane spanel = new JScrollPane(scrollGrid);
+                //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                //spanel.setPreferredSize(preferredSize);     
+                contentPane.add(spanel);
+                int result3 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                /**
+                 * Gather and process user selected tasks
+                */
+                if (result3 == JOptionPane.OK_OPTION){
+                    lpDesired = tasks[0].isSelected();
+                    acRtiDesired = tasks[1].isSelected();
+                    acRakingDesired = tasks[2].isSelected();
+                    xsRtiDesired = tasks[3].isSelected();
+                    xsRakingDesired = tasks[4].isSelected();
+                    psRtiDesired = tasks[5].isSelected();
+                    psRakingDesired = tasks[6].isSelected();
+                    csRtiDesired = tasks[7].isSelected();
+                    csRakingDesired = tasks[8].isSelected();
+                    webRtiDesired = tasks[9].isSelected();
+                    shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
+                    prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+                    String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
+                    prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
+                    Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
+                }
+                else {
+                     //@userHitCancel
                     IJ.error("You must provide a task set to continue.  Exiting...");
                     throw new Throwable("You must provide a task set to continue.");
                 }
+
             }
-            
-            prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-            String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
-            prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
-            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
-            
             /** DEBUGGING **/
             logService.log().info("Variable States listed below!");
             logService.log().info("lpDesired: "+lpDesired);
@@ -420,8 +484,7 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("webRtiDesired: "+webRtiDesired);
             logService.log().info("shotFileNames: "+shortName);
             /** END DEBUGGING **/
-            //Maybe denote these as at least one required in the UI window. 
-            //The while above should ensure we hit this point with at least on teask, but we can double check and throw still because it is still a failing scenario here. 
+ 
             if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired)){
                 if(webRtiDesired){ 
                     /**
@@ -519,7 +582,7 @@ public class SpectralRTI_Toolkit implements Command {
                 JLabel selectLightPositions = new JLabel("Select light positions for lossless static raking images");
                 labelPanel.add(selectLightPositions);
                 contentPane.add(labelPanel);
-                //Make JOptionPane's scrollable when feeding in panel.
+                //Make JOptionPane's resizeable when feeding in panel.
                 contentPane.addHierarchyListener(new HierarchyListener() {
                     public void hierarchyChanged(HierarchyEvent e) {
                      //when the hierarchy changes get the ancestor for the message
@@ -633,7 +696,7 @@ public class SpectralRTI_Toolkit implements Command {
                 JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.  You must provide at least one selection for each visible range R, G and B.");
                 labelPanel.add(assignNarrowband);
                 contentPane.add(labelPanel);                
-                //Make JOptionPane's scrollable when feeding in panel.
+                //Make JOptionPane's resizable when feeding in panel.
                 contentPane.addHierarchyListener(new HierarchyListener() {
                     public void hierarchyChanged(HierarchyEvent e) {
                      //when the hierarchy changes get the ancestor for the message
@@ -722,7 +785,8 @@ public class SpectralRTI_Toolkit implements Command {
                  */
                 //Make sure this doesn't show infinite confirm dialogs.  
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
-                    int result = JOptionPane.showConfirmDialog(null, spanel, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION);
+                    
+                    int result = JOptionPane.showOptionDialog(null, spanel, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
                     if ( result==JOptionPane.OK_OPTION) {
                         for(int d=0; d<bgroups.length; d++){
                             //Go over each button group (one for each narrow band capture, in order)
