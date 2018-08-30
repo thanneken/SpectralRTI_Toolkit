@@ -62,6 +62,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.log.LogService;
 import net.imglib2.img.Img;
 import io.scif.img.ImgIOException;
+import java.awt.BorderLayout;
 import java.awt.Button;
 import net.imglib2.img.ImagePlusAdapter; //Wraps ij.ImagePlus into an ImgLib2 image (ImgPlus but acts like ImagePlus)
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -106,7 +107,10 @@ import java.awt.Dialog;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+import javax.swing.SpringLayout;
+import javax.swing.border.EmptyBorder;
 import org.apache.commons.io.comparator.NameFileComparator;
+import ui.SpringUtilities;
 
 /**
  * @author bhaberbe
@@ -218,13 +222,10 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean xsRakingDesired = false;
             Boolean shortName = false; 
             File[] listOfAccurateColorSources = new File[0];
-            File[] listOfAccurateColorFiles = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
             File[] listOfHemisphereCaptures = new File[0];
             String csSource = "";
-            boolean swapBack = false;     
             Concatenator con = new Concatenator();
-            
             File projectFile = null;
             while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
                 file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
@@ -251,13 +252,17 @@ public class SpectralRTI_Toolkit implements Command {
             if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
                 contentPane = new JPanel();
                 JPanel scrollGrid = new JPanel();
-                scrollGrid.setLayout(new GridLayout(0, 2, 0, 0));
+                scrollGrid.setLayout(new SpringLayout());
                 //display label and text area side by side in two columns for as many prefs exist
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
-                JLabel selectLightPositions = new JLabel("The following settings are remembered from the configuration file or a previous run.\nEdit or clear as desired.");
-                labelPanel.add(selectLightPositions);
+                JPanel labelPanel2 = new JPanel();
+                JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
+                JLabel prefsLabel2 = new JLabel("Edit or clear as desired.");
+                labelPanel.add(prefsLabel);
+                labelPanel2.add(prefsLabel2);
                 contentPane.add(labelPanel);
+                contentPane.add(labelPanel2);
                 prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
                 prefs = prefsFileAsText.split(System.lineSeparator());
                 logService.log().info(Arrays.toString(prefs));
@@ -275,20 +280,24 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("shortFileNames","Short File Names");
                     
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
-                    JLabel fieldLabel = new JLabel(key);
-                    JTextField fieldToAdd = new JTextField(value1);
-                    fields[i] = fieldToAdd;
+                    JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
                     scrollGrid.add(fieldLabel);
+                    JTextField fieldToAdd = new JTextField(value1, 50);
+                    fields[i] = fieldToAdd;
+                    fieldLabel.setLabelFor(fieldToAdd);
                     scrollGrid.add(fieldToAdd);
                 }
+                SpringUtilities.makeCompactGrid(scrollGrid,
+                                8, 2, //rows, cols
+                                6, 6,        //initX, initY
+                                6, 6);       //xPad, yPad
                 JScrollPane spanel = new JScrollPane(scrollGrid);
-                //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-                //spanel.setPreferredSize(preferredSize);     
                 contentPane.add(spanel);
                 
                 //Gather new values from the dialog, reset the labels and update the new values.
-                int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                Object[] prefBtnLabels = {"Update",
+                    "Skip"};
+                int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
                 if (result2 == JOptionPane.OK_OPTION){
                     for (int j=0; j<prefs.length;j++) {
                             //Swap the labels back for processing
@@ -387,6 +396,7 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfNarrowbandCaptures = narrow_band_dir.listFiles();
             }
 
+            //Hmm this feels like it should be some kind of defined private array or something somwhere, not just defined all willy nilly here.  
             JCheckBox[] tasks = new JCheckBox[11];
             JCheckBox ch1 = new JCheckBox("Light Position Data");
             JCheckBox ch2 = new JCheckBox("Accurate Color RTI");
@@ -399,6 +409,7 @@ public class SpectralRTI_Toolkit implements Command {
             JCheckBox ch8 = new JCheckBox("Custom Static Raking");
             JCheckBox ch9 = new JCheckBox("WebRTI");
             JLabel snL = new JLabel("Check below to use names instead of paths.");
+            snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
             JCheckBox ch10 = new JCheckBox("Short File Names");
             tasks[0] = ch1;
             tasks[1] = ch2;
@@ -411,11 +422,10 @@ public class SpectralRTI_Toolkit implements Command {
             tasks[8] = ch8;
             tasks[9] = ch9;
             tasks[10] = ch10;
-            
             while(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
                 contentPane = new JPanel();
                 JPanel scrollGrid = new JPanel();
-                scrollGrid.setLayout(new GridLayout(20, 0, 0, 0));
+                scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
                 JLabel taskDirection = new JLabel("Select the tasks you would like to complete.  You must select at least one.");
@@ -442,7 +452,9 @@ public class SpectralRTI_Toolkit implements Command {
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 //spanel.setPreferredSize(preferredSize);     
                 contentPane.add(spanel);
-                int result3 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                Object[] taskBtnLabels = {"Confirm",
+                    "Quit"};
+                int result3 = JOptionPane.showOptionDialog(null, contentPane, "Choose Desired Tasks", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, taskBtnLabels, taskBtnLabels[0]);
                 /**
                  * Gather and process user selected tasks
                 */
@@ -551,22 +563,61 @@ public class SpectralRTI_Toolkit implements Command {
                     transmissiveSource = listOfTransmissiveSourcePaths[0];
                 } 
                 else if (listOfTransmissiveSources.length > 1){
-                    //@NotOK
-                    GenericDialog transSourceDialog = new GenericDialog("Select Transmissive Source");
-                    transSourceDialog.addMessage("Select Transmissive Source. ");
-                    // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
-                    transSourceDialog.addRadioButtonGroup("File: ", listOfTransmissiveSources, listOfTransmissiveSources.length, 1, listOfTransmissiveSources[0]);
-                    transSourceDialog.setMaximumSize(bestFit);
-                    transSourceDialog.showDialog();
-                    if(transSourceDialog.wasCanceled()){ 
+                    contentPane = new JPanel();
+                    JPanel scrollGrid = new JPanel();
+                    scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+                    contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                    JPanel labelPanel = new JPanel();
+                    JLabel taskDirection = new JLabel("Select the tasks you would like to complete.  You must select at least one.");
+                    labelPanel.add(taskDirection);
+                    contentPane.add(labelPanel);
+                    /**
+                     * UI for creating the checkbox selections.  
+                     * @see shortName
+                    */
+                    //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
+                    JRadioButton[] radios = new JRadioButton[listOfTransmissiveSources.length];
+                    ButtonGroup capture_radios = new ButtonGroup();
+                    for (int i=0; i<listOfTransmissiveSources.length; i++) {
+                        //Create a new button group for this capture
+                        //String defaultRange;
+                        JRadioButton radioOption = new JRadioButton(listOfTransmissiveSources[i]);
+                        radioOption.setActionCommand(listOfTransmissiveSources[i]);
+                        if(i==0){
+                            radioOption.setSelected(true);
+                        }
+                        capture_radios.add(radioOption);
+                        radios[i] = radioOption;
+                        //Add the button group panel to the overall content container
+                        scrollGrid.add(radioOption);                   
+                    } 
+                    JScrollPane spanel = new JScrollPane(scrollGrid);
+                    //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                    //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    spanel.setMaximumSize(bestFit);    
+                    contentPane.add(spanel);
+                    Object[] transmissiveSourcesBtnLabels = {"Confirm",
+                        "Quit"};
+                    int result4 = JOptionPane.showOptionDialog(null, contentPane, "Select Transmissive Source", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
+                    if (result4 == JOptionPane.OK_OPTION){
+                        //Is there an easier way to get the selected btton from a buttonGroup?
+                        for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
+                            AbstractButton button = buttons.nextElement();
+                            //Loop each button and see if it is selected
+                            if (button.isSelected()) {
+                                //If it is selected, it will have "R", "G", "B". or "None" as its text.  Designate to the appropriate list based on this text.
+                               transmissiveSource = button.getText();
+                               break;
+                            }
+                        }
+                    }
+                    else{ 
                         //@userHitCancel is it OK to default to the first source?
                         transmissiveSource = listOfTransmissiveSourcePaths[0];
+                        IJ.error("You must select one transmissive source to continue.  Exiting...");
+                        throw new Throwable("You must select one transmissive source.");
                     }
-                    else{
-                        transmissiveSource = transSourceDialog.getNextRadioButton();
-                        //This needs to be the full file name, so call this replace() in case it is the short version.
-                        transmissiveSource = transmissiveSource.replace("...", transmissive_gamma_dir.toString()+File.separator);
-                    }
+
                 }
                 else if (listOfTransmissiveSources.length == 0) {
                     transmissiveSource = "";
@@ -715,7 +766,6 @@ public class SpectralRTI_Toolkit implements Command {
                 //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
                 for (int i=0; i<listOfNarrowbandCaptures.length; i++) {
                     //Create a new button group for this capture
-                    //String defaultRange;
                     ButtonGroup capture_radios = new ButtonGroup();
                     JRadioButton radioOptionR = new JRadioButton("R");
                     radioOptionR.setActionCommand("R");
@@ -785,7 +835,6 @@ public class SpectralRTI_Toolkit implements Command {
                  */
                 //Make sure this doesn't show infinite confirm dialogs.  
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
-                    
                     int result = JOptionPane.showOptionDialog(null, spanel, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
                     if ( result==JOptionPane.OK_OPTION) {
                         for(int d=0; d<bgroups.length; d++){
