@@ -207,7 +207,6 @@ public class SpectralRTI_Toolkit implements Command {
             //Default options to pass in when OK and Cancel are not appropriate
             Object[] options = {"Finish",
                     "Cancel"};
-            //@NotOK
             //GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
             String[] prefs = null;
             DirectoryChooser file_dialog;
@@ -576,7 +575,6 @@ public class SpectralRTI_Toolkit implements Command {
                      * @see shortName
                     */
                     //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
-                    JRadioButton[] radios = new JRadioButton[listOfTransmissiveSources.length];
                     ButtonGroup capture_radios = new ButtonGroup();
                     for (int i=0; i<listOfTransmissiveSources.length; i++) {
                         //Create a new button group for this capture
@@ -587,7 +585,6 @@ public class SpectralRTI_Toolkit implements Command {
                             radioOption.setSelected(true);
                         }
                         capture_radios.add(radioOption);
-                        radios[i] = radioOption;
                         //Add the button group panel to the overall content container
                         scrollGrid.add(radioOption);                   
                     } 
@@ -700,7 +697,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
             }
-            else { //We already have the list initiated, so do nothing
+            else { //We already have the list initiated, fill it with false.
                 listOfRakingDirections = new ArrayList<>();
                 while(listOfRakingDirections.size() < listOfHemisphereCaptures.length) listOfRakingDirections.add(Boolean.FALSE);
                 logService.log().info("Raking is not desired.");
@@ -721,23 +718,28 @@ public class SpectralRTI_Toolkit implements Command {
                 boolean atLeastOneG = false;
                 boolean atLeastOneB = false;
                 while(listOfNarrowbandCaptures.length<9){
-                    //@NotOK?
-                    GenericDialog provideSources = new GenericDialog("Source Dataset Too Small");
-                    provideSources.addMessage("You must have 9 or more narrow band captures for Extended Spectrum.  Please add them at this time then click OK or click Cancel to add them later.");
-                    provideSources.setMaximumSize(bestFit);
-                    provideSources.showDialog();
-                    if(provideSources.wasCanceled()){
-                        //@userHitCancel
+                    contentPane = new JPanel();
+                    contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                    JPanel labelPanel = new JPanel();
+                    JLabel directions = new JLabel("You must have 9 or more narrow band captures for Extended Spectrum.  Please add them at this time or quit to add them later.");
+                    labelPanel.add(directions);
+                    contentPane.add(labelPanel);
+                    Object[] btns = {"Confirm",
+                        "Quit"};
+                    int result4 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (result4 == JOptionPane.OK_OPTION){
+                        listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                    }
+                    else {
+                         //@userHitCancel
                         IJ.error("You must have 9 or more narrow band captures for Extended Spectrum.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
                     }
-                    listOfNarrowbandCaptures = narrow_band_dir.listFiles();
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
                     IJ.error("You must have 9 or more narrow band captures for Extended Spectrum!  Exiting...");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
-                
                 /**
                  * UI for custom visible RGB range assignment window.
                 */
@@ -942,23 +944,28 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA"+File.separator);
                 }
                 while(listOfNarrowbandCaptures.length<9){
-                    //@NotOK?
-                    GenericDialog provideSources = new GenericDialog("Source Dataset Too Small");
-                    provideSources.addMessage("You must have 9 or more narrow band captures for Extended Spectrum.  Please add them at this time then click OK or click cancel and add them later.");
-                    provideSources.setMaximumSize(bestFit);
-                    provideSources.showDialog();
-                    if(provideSources.wasCanceled()){
-                        //@userHitCancel
-                        IJ.error("You must have 9 or more narrow band captures for PseudoColor.  Exiting...");
-                        throw new Throwable("You must have 9 or more narrow band captures for PseudoColor.");
+                    contentPane = new JPanel();
+                    contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                    JPanel labelPanel = new JPanel();
+                    JLabel directions = new JLabel("You must have 9 or more narrow band captures for Pseudocolor.  Please add them at this time or quit to add them later.");
+                    labelPanel.add(directions);
+                    contentPane.add(labelPanel);
+                    Object[] btns = {"Confirm",
+                        "Quit"};
+                    int result5 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (result5 == JOptionPane.OK_OPTION){
+                        listOfNarrowbandCaptures = narrow_band_dir.listFiles();
                     }
-                    listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                    else {
+                         //@userHitCancel
+                        IJ.error("You must have 9 or more narrow band captures for Pseudocolor.  Exiting...");
+                        throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
+                    }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
-                    IJ.error("You must have 9 or more narrow band captures for PseudoColor!  Exiting...");
-                    throw new Throwable("You must have 9 or more narrow band captures for PseudoColor!");
+                    IJ.error("You must have 9 or more narrow band captures for Pseudocolor!  Exiting...");
+                    throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
-              
                 File[] listOfPseudoColorSources = listOfPseudoColorSources_dir.listFiles();
                 String defaultPca = "";
                 if (listOfPseudoColorSources.length > 1) defaultPca = "Open pregenerated images" ;
@@ -967,40 +974,86 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfPcaMethods[0]="Generate and select using defaults";
                 listOfPcaMethods[1]="Generate and manually select two";
                 listOfPcaMethods[2]="Open pregenerated images";
-                //@NotOK
-                GenericDialog pseudoSources = new GenericDialog("Select Method for Pseudocolor");
-                pseudoSources.addMessage("PseudoColor images require two source images (typically principal component images).");
-                pseudoSources.addRadioButtonGroup("Select how to provide the source images: ",listOfPcaMethods,listOfPcaMethods.length,1,defaultPca);
-                pseudoSources.setMaximumSize(bestFit);
-                pseudoSources.showDialog();
-                if(pseudoSources.wasCanceled()){
-                    //@userHitCancel
-                    IJ.error("You must provide which method to use to continue!  Exiting...");
-                    throw new Throwable("You must provide which method to use to continue!");
+                contentPane = new JPanel();
+                JPanel scrollGrid = new JPanel();
+                scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel directions = new JLabel("PseudoColor images require two source images (typically principal component images).");
+                labelPanel.add(directions);
+                contentPane.add(labelPanel);
+                /**
+                 * UI for creating the checkbox selections.  
+                 * @see shortName
+                */
+                //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
+                ButtonGroup capture_radios = new ButtonGroup();
+                for (int i=0; i<listOfPcaMethods.length; i++) {
+                    //Create a new button group for this capture
+                    //String defaultRange;
+                    JRadioButton radioOption = new JRadioButton(listOfPcaMethods[i]);
+                    radioOption.setActionCommand(listOfPcaMethods[i]);
+                    if(i==0){
+                        radioOption.setSelected(true);
+                    }
+                    capture_radios.add(radioOption);
+                    //Add the button group panel to the overall content container
+                    scrollGrid.add(radioOption);                   
+                } 
+                JScrollPane spanel = new JScrollPane(scrollGrid);
+                //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                spanel.setMaximumSize(bestFit);    
+                contentPane.add(spanel);
+                Object[] psuedoMethodBtnLabels = {"Confirm",
+                    "Quit"};
+                int result6 = JOptionPane.showOptionDialog(null, contentPane, "Select Method for Pseudocolor", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, psuedoMethodBtnLabels, psuedoMethodBtnLabels[0]);
+                if (result6 == JOptionPane.OK_OPTION){
+                    //Is there an easier way to get the selected btton from a buttonGroup?
+                    for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
+                        AbstractButton button = buttons.nextElement();
+                        //Loop each button and see if it is selected
+                        if (button.isSelected()) {
+                           pcaMethod = button.getText();
+                           break;
+                        }
+                    }
                 }
-                pcaMethod = pseudoSources.getNextRadioButton();
+                else{ 
+                    //@userHitCancel is it OK to default to the first source?
+                    pcaMethod = listOfPcaMethods[0];
+                    IJ.error("You must select one Psuedocolor method to continue.  Exiting...");
+                    throw new Throwable("You must select one Psuedocolor method.");
+                }
                 logService.log().info("Got PCA method: "+pcaMethod);
                 if (pcaHeight < 100) { 
                     while(listOfNarrowbandCaptures.length < 1){
-                        //@NotOK?
-                        GenericDialog provideSources = new GenericDialog("Source Dataset Too Small");
-                        provideSources.addMessage("There needs to be at least one image in the narrowband nogamma captures folder.  Please add them at this time then click OK or click cancel and add them later.");
-                        provideSources.setMaximumSize(bestFit);
-                        provideSources.showDialog();
-                        if(provideSources.wasCanceled()){
-                            //@userHitCancel
-                            IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.   Exiting...");
-                            throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder.");
+                        contentPane = new JPanel();
+                        contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        labelPanel = new JPanel();
+                        directions = new JLabel("There needs to be at least one image in the narrowband nogamma captures folder.  Please add them at this time or quit and add them later.");
+                        labelPanel.add(directions);
+                        contentPane.add(labelPanel);
+                        Object[] btns = {"Confirm",
+                            "Quit"};
+                        int result7 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (result7 == JOptionPane.OK_OPTION){
+                            listOfNarrowbandCaptures = narrow_band_dir.listFiles();
                         }
-                        listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                        else {
+                             //@userHitCancel
+                            IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
+                            throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
+                        }
                     }
-                    if(listOfNarrowbandCaptures.length >= 1){
-                        imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
-                    }  
-                    else{ 
+                    if (listOfNarrowbandCaptures.length < 1){
                         IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
                         throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
                     }
+                    else{
+                        imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
+                    }  
+
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.setTitle("Preview");
@@ -1091,17 +1144,27 @@ public class SpectralRTI_Toolkit implements Command {
                 ArrayList<String>  listOfAccurateColorSources_list = new ArrayList<String>();
                 ArrayList<String>  listOfAccurateColorSources_short = new ArrayList<String>();
                 while(listOfAccurateColorSources.length<1){
-                    //@NotOK
-                    GenericDialog provideSources = new GenericDialog("Source Dataset Too Small");
-                    provideSources.addMessage("You must have at least 1 accurate color image for the Accurate Color process.  Please add them at this time or quit (hit cancel) and add them later.");
-                    provideSources.setMaximumSize(bestFit);
-                    provideSources.showDialog();
-                    if(provideSources.wasCanceled()){
-                        //@userHitCancel
+                    contentPane = new JPanel();
+                    contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                    JPanel labelPanel = new JPanel();
+                    JLabel directions = new JLabel("You must have at least 1 accurate color image for the Accurate Color process.  Please add them at this time or quit to add them later.");
+                    labelPanel.add(directions);
+                    contentPane.add(labelPanel);
+                    Object[] btns = {"Confirm",
+                        "Quit"};
+                    int result8 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (result8 == JOptionPane.OK_OPTION){
+                        listOfAccurateColorSources = accurate_color_dir.listFiles();
+                    }
+                    else {
+                         //@userHitCancel
                         IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                         throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     }
-                    listOfAccurateColorSources = accurate_color_dir.listFiles();
+                }
+                if (listOfAccurateColorSources.length<1){
+                    IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
+                    throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
                 }
                 String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
                 for (File f : listOfAccurateColorSources) {
@@ -1113,25 +1176,55 @@ public class SpectralRTI_Toolkit implements Command {
 		if (listOfAccurateColorSources.length == 1) { //There was only one source, so auto select it
                     accurateColorSource = listOfAccurateColorSources[0];
 		} 
-                else if (listOfAccurateColorSources.length == 0) { //There were no sources, this is an error.
-                    IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
-                    throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator); 
-		} 
                 else { //There were multiple sources, let the user pick the one they want to use.
-                    if (accurateColorSource == null) {
-                        logService.log().info("Could not find a color source");
-                        //@NotOK
-                        GenericDialog gd = new GenericDialog("Select Color Source");
-                        //gd.addMessage("Select Color Source");
-                        // Yikes how could I set tooltips on these to reveal full names in cases of shortName preference?
-                        gd.addRadioButtonGroup("Choose File: ", listOfAccurateColorSources_string, listOfAccurateColorSources.length, 1, listOfAccurateColorSources[0].toString());
-                        gd.showDialog();
-                        if(gd.wasCanceled()){
-                            //@userHitCancel
+                    while(null == accurateColorSource || !accurateColorSource.exists()) {
+                        contentPane = new JPanel();
+                        JPanel scrollGrid = new JPanel();
+                        scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+                        contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        JPanel labelPanel = new JPanel();
+                        JLabel directions = new JLabel("Choose the Accurate Color source to use.");
+                        labelPanel.add(directions);
+                        contentPane.add(labelPanel);
+                        /**
+                         * UI for creating the checkbox selections.  
+                         * @see shortName
+                        */
+                        ButtonGroup capture_radios = new ButtonGroup();
+                        for (int i=0; i<listOfAccurateColorSources.length; i++) {
+                            JRadioButton radioOption = new JRadioButton(listOfAccurateColorSources_string[i]);
+                            radioOption.setActionCommand(listOfAccurateColorSources_string[i]);
+                            if(i==0){
+                                radioOption.setSelected(true);
+                            }
+                            capture_radios.add(radioOption);
+                            //Add the button group panel to the overall content container
+                            scrollGrid.add(radioOption);                   
+                        } 
+                        JScrollPane spanel = new JScrollPane(scrollGrid);
+                        //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                        //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                        spanel.setMaximumSize(bestFit);    
+                        contentPane.add(spanel);
+                        Object[] btns = {"Confirm",
+                            "Quit"};
+                        int result9 = JOptionPane.showOptionDialog(null, contentPane, "Select Color Source", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (result9 == JOptionPane.OK_OPTION){
+                            //Is there an easier way to get the selected btton from a buttonGroup?
+                            for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
+                                AbstractButton button = buttons.nextElement();
+                                //Loop each button and see if it is selected
+                                if (button.isSelected()) {
+                                   accurateColorSource = new File(button.getText());
+                                   break;
+                                }
+                            }
+                        }
+                        else{ 
+                            //@userHitCancel is it OK to default to the first source?
                             IJ.error("You must provide a color source to continue!  Exiting...");
                             throw new Throwable("You must provide a color source to continue!");
                         }
-                        accurateColorSource = new File(gd.getNextRadioButton());
                     }
 		}
             }
@@ -2078,21 +2171,29 @@ public class SpectralRTI_Toolkit implements Command {
             System.out.println("Compress String: "+compressString); 
             prefsFileAsText = prefsFileAsText.replaceFirst("preferredCompress=.*\\"+System.lineSeparator(), compressString); //replace the prefs var
             theList.put("preferredCompress", preferredCompress);
-            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-            
+            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file           
             while(preferredJp2Args.equals("")){
-                //@NotOK
-                GenericDialog gd = new GenericDialog("Approve arguments for Jpeg 2000 compression");
+                contentPane = new JPanel();
+                //display label and text area side by side in two columns for as many prefs exist
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel prefsLabel = new JLabel("You may edit the arguments as desired.");
+                labelPanel.add(prefsLabel);
+                contentPane.add(labelPanel);
                 String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible=no Clevels=5 Stiles={1024,1024} Cblk={64,64} Cuse_sop=yes Cuse_eph=yes Corder=RPCL ORGgen_plt=yes ORGtparts=R Cmodes=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
-                gd.addStringField("Arguments:",arguments,80);
-                gd.setMaximumSize(bestFit);
-                gd.showDialog();
-                if(gd.wasCanceled()){
-                    //@userHitCancel
+                //Gather new values from the dialog, reset the labels and update the new values.
+                Object[] btns = {"Approve",
+                    "Quit"};
+                int result10 = JOptionPane.showOptionDialog(null, contentPane, "Approve arguments for Jpeg 2000 compression", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                JTextField args = new JTextField(arguments, 100);
+                if (result10 == JOptionPane.OK_OPTION){
+                   preferredJp2Args = args.getText();
+                }
+                else {
+                     //@userHitCancel
                     IJ.error("You must provide JP2 arguments to continue.  Exiting...");
                     throw new Throwable("You must provide JP2 arguments to continue!");
                 }
-                preferredJp2Args = gd.getNextString();
             }
             preferredJp2Args =preferredJp2Args.replace("\\", "/");
             preferredString = "preferredJp2Args="+preferredJp2Args+System.lineSeparator();
@@ -2191,18 +2292,79 @@ public class SpectralRTI_Toolkit implements Command {
             String[] brightnessAdjustApplies = new String[2];
             brightnessAdjustApplies[0] = "Static raking images only (recommended)";
             brightnessAdjustApplies[1] = "RTI images also";
-            //@NotOK
-            GenericDialog gd = new GenericDialog("Adjust brightness of hemisphere captures?");
-            gd.addRadioButtonGroup("Adjust brightness of hemisphere captures? ", brightnessAdjustOptions, brightnessAdjustOptions.length, 1, brightnessAdjustOptions[1]);
-            gd.addRadioButtonGroup("Apply adjustment to which output images? ",brightnessAdjustApplies,brightnessAdjustApplies.length,1,brightnessAdjustApplies[0]);
-            gd.setMaximumSize(bestFit);
-            gd.showDialog();
-            brightnessAdjustOption = gd.getNextRadioButton();
-            brightnessAdjustApply = gd.getNextRadioButton();
-            if(gd.wasCanceled()){
-                //@userHitCancel
+
+            contentPane = new JPanel();
+            JPanel scrollGrid = new JPanel();
+            JPanel scrollGrid2 = new JPanel();
+            scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel labelPanel = new JPanel();
+            JLabel directions = new JLabel("Adjust brightness of hemisphere captures?");
+            JLabel directions2 = new JLabel("Apply adjustment to which output images?");
+            labelPanel.add(directions);
+            scrollGrid.add(directions);
+            scrollGrid2.add(directions2);
+            /**
+             * UI for creating the checkbox selections.  
+             * @see shortName
+            */
+            //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
+            ButtonGroup adjust_radios = new ButtonGroup();
+            ButtonGroup apply_radios = new ButtonGroup();
+            for (int i=0; i<brightnessAdjustOptions.length; i++) {
+                //Create a new button group for this capture
+                //String defaultRange;
+                JRadioButton radioOption = new JRadioButton(brightnessAdjustOptions[i]);
+                radioOption.setActionCommand(brightnessAdjustOptions[i]);
+                if(i==0){
+                    radioOption.setSelected(true);
+                }
+                adjust_radios.add(radioOption);
+                scrollGrid.add(radioOption);
+                //Add the button group panel to the overall content container
+            } 
+            for (int j=0; j<brightnessAdjustApplies.length; j++) {
+                //Create a new button group for this capture
+                //String defaultRange;
+                JRadioButton radioOption2 = new JRadioButton(brightnessAdjustApplies[j]);
+                radioOption2.setActionCommand(brightnessAdjustApplies[j]);
+                if(j==0){
+                    radioOption2.setSelected(true);
+                }
+                apply_radios.add(radioOption2);
+                scrollGrid2.add(radioOption2);
+                //Add the button group panel to the overall content container
+            }    
+            contentPane.add(scrollGrid);
+            contentPane.add(scrollGrid2);
+            Object[] transmissiveSourcesBtnLabels = {"Confirm",
+                "Quit"};
+            int result11 = JOptionPane.showOptionDialog(null, contentPane, "Adjust brightness of hemisphere captures?", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
+            if (result11 == JOptionPane.OK_OPTION){
+                //Is there an easier way to get the selected btton from a buttonGroup?
+                for (Enumeration<AbstractButton> buttons = adjust_radios.getElements(); buttons.hasMoreElements();) {
+                    AbstractButton button = buttons.nextElement();
+                    //Loop each button and see if it is selected
+                    if (button.isSelected()) {
+                        //If it is selected, it will have "R", "G", "B". or "None" as its text.  Designate to the appropriate list based on this text.
+                       brightnessAdjustOption = button.getText();
+                       break;
+                    }
+                }
+                for (Enumeration<AbstractButton> buttons = apply_radios.getElements(); buttons.hasMoreElements();) {
+                    AbstractButton button = buttons.nextElement();
+                    //Loop each button and see if it is selected
+                    if (button.isSelected()) {
+                        //If it is selected, it will have "R", "G", "B". or "None" as its text.  Designate to the appropriate list based on this text.
+                       brightnessAdjustApply = button.getText();
+                       break;
+                    }
+                }
+            }
+            else{ 
                 brightnessAdjustOption = "No";
             }
+
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
                 while(imp.getRoi() == null){
@@ -2461,21 +2623,53 @@ public class SpectralRTI_Toolkit implements Command {
                         lpSource = dialog.getPath();
                     }
                     else{
-                        //@NotOK
-                        GenericDialog dialog = new GenericDialog("Select Light Position Source File"); 
-                        dialog.addMessage("We found light position files in your project directory.  Please choose the source file to use from below.");
-                        dialog.addRadioButtonGroup("File: ", listOfLpFiles, listOfLpFiles_list.size(), 1, listOfLpFiles_list.get(0));
-                        dialog.setMaximumSize(bestFit);
-                        dialog.showDialog();
-                        if(dialog.wasCanceled()){
-//                            GenericDialog lpFileFailure = new GenericDialog("Provide Light Position Source Data");
-//                            lpFileFailure.addMessage("You must provide light position source data to continue.");
-//                            lpFileFailure.setMaximumSize(bestFit);
-//                            lpFileFailure.showDialog();
+                        contentPane = new JPanel();
+                        JPanel scrollGrid = new JPanel();
+                        scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+                        contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        JPanel labelPanel = new JPanel();
+                        JLabel directions = new JLabel("Choose light position file.");
+                        labelPanel.add(directions);
+                        contentPane.add(labelPanel);
+                        /**
+                         * UI for creating the checkbox selections.  
+                         * @see shortName
+                        */
+                        ButtonGroup capture_radios = new ButtonGroup();
+                        for (int i=0; i<listOfLpFiles.length; i++) {
+                            JRadioButton radioOption = new JRadioButton(listOfLpFiles[i]);
+                            radioOption.setActionCommand(listOfLpFiles[i]);
+                            if(i==0){
+                                radioOption.setSelected(true);
+                            }
+                            capture_radios.add(radioOption);
+                            //Add the button group panel to the overall content container
+                            scrollGrid.add(radioOption);                   
+                        } 
+                        JScrollPane spanel = new JScrollPane(scrollGrid);
+                        //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                        //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                        spanel.setMaximumSize(bestFit);    
+                        contentPane.add(spanel);
+                        Object[] btns = {"Confirm",
+                            "Quit"};
+                        int result12 = JOptionPane.showOptionDialog(null, contentPane, "Select Light Position Source File", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (result12 == JOptionPane.OK_OPTION){
+                            //Is there an easier way to get the selected btton from a buttonGroup?
+                            for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
+                                AbstractButton button = buttons.nextElement();
+                                //Loop each button and see if it is selected
+                                if (button.isSelected()) {
+                                   lpSource = button.getText();
+                                   break;
+                                }
+                            }
+                        }
+                        else{ 
+                            //@userHitCancel is it OK to default to the first source?
                             IJ.error("You must make a selection for which light position file to use.  Exiting...");
                             throw new Throwable("You must make a selection for which light position file to use.");
                         }
-                        lpSource = dialog.getNextRadioButton();
                     }
                     lpFile = new File(lpSource);
                 }
