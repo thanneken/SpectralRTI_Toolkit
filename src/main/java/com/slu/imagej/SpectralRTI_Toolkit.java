@@ -567,7 +567,7 @@ public class SpectralRTI_Toolkit implements Command {
                     scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                     JPanel labelPanel = new JPanel();
-                    JLabel taskDirection = new JLabel("Select the tasks you would like to complete.  You must select at least one.");
+                    JLabel taskDirection = new JLabel("Make a selection from available transmissive sources.");
                     labelPanel.add(taskDirection);
                     contentPane.add(labelPanel);
                     /**
@@ -746,9 +746,13 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane = new JPanel();
                 contentPane.setLayout(new GridLayout(0, 1, 1, 1)); //Just want one column, as tall as it needs to be (scroll vertical)
                 JPanel labelPanel = new JPanel();
-                JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.  You must provide at least one selection for each visible range R, G and B.");
+                JPanel labelPanel2 = new JPanel();
+                JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.");
+                JLabel assignNarrowband2 = new JLabel("You must provide at least one selection for each visible range R, G and B.");
                 labelPanel.add(assignNarrowband);
-                contentPane.add(labelPanel);                
+                labelPanel2.add(assignNarrowband2);
+                contentPane.add(labelPanel);        
+                contentPane.add(labelPanel2);
                 //Make JOptionPane's resizable when feeding in panel.
                 contentPane.addHierarchyListener(new HierarchyListener() {
                     public void hierarchyChanged(HierarchyEvent e) {
