@@ -64,6 +64,7 @@ import net.imglib2.img.Img;
 import io.scif.img.ImgIOException;
 import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.Component;
 import net.imglib2.img.ImagePlusAdapter; //Wraps ij.ImagePlus into an ImgLib2 image (ImgPlus but acts like ImagePlus)
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.real.FloatType;
@@ -104,6 +105,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -203,6 +205,7 @@ public class SpectralRTI_Toolkit implements Command {
         private void theMacro_tested() throws IOException, Throwable{
             //want these variables to be accessible across functions and to reset each time the macro is run
             startTime = timestamp();
+            logService.log().warn("Starting SpectralRTI Plugin at "+startTime);
             File accurateColorSource = null;
             //Default options to pass in when OK and Cancel are not appropriate
             Object[] options = {"Finish",
@@ -291,6 +294,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 6, 6,        //initX, initY
                                 6, 6);       //xPad, yPad
                 JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel.setBorder(BorderFactory.createEmptyBorder());
                 contentPane.add(spanel);
                 
                 //Gather new values from the dialog, reset the labels and update the new values.
@@ -325,11 +329,8 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
-            else{
-                GenericDialog noPrefs = new GenericDialog("No preference file found");
-                noPrefs.addMessage("A prefs file will be created for you to store your choices in later sessions.");
-                noPrefs.setMaximumSize(bestFit);
-                noPrefs.showDialog();
+            else{             
+                JOptionPane.showMessageDialog(null, "No Preference File Found", "A prefs file will be created for you in the ImageJ directory to store your choices in later sessions.", JOptionPane.PLAIN_MESSAGE);
                 logService.log().warn("We are making a new prefs file with the empty defaults.");
                 /**
                     *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
@@ -368,11 +369,12 @@ public class SpectralRTI_Toolkit implements Command {
             if (!hemi_gamma_dir.exists()) {
                 Path createPath = hemi_gamma_dir.toPath();
                 Files.createDirectory(createPath);
+                //JOptionPane.showMessageDialog(null, "Hemisphere Captures Directory Not Found", "A Hemisphere Captures folder has been created for you in your project directory.", JOptionPane.PLAIN_MESSAGE);
                 logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
-            while (listOfHemisphereCaptures.length < 1 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 1 image in HemisphereCaptures folder.\nPlease populate the folder and press Ok to continue, or cancel.")){
+            while (listOfHemisphereCaptures.length < 1 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 1 image in HemisphereCaptures folder.\nPlease populate the folder then press Ok to continue, or cancel.")){
                 listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
             }
             if(listOfHemisphereCaptures.length < 1){
@@ -410,6 +412,7 @@ public class SpectralRTI_Toolkit implements Command {
             JLabel snL = new JLabel("Check below to use names instead of paths.");
             snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
             JCheckBox ch10 = new JCheckBox("Short File Names");
+            ch10.setSelected(shortName);
             tasks[0] = ch1;
             tasks[1] = ch2;
             tasks[2] = ch12;
@@ -447,6 +450,7 @@ public class SpectralRTI_Toolkit implements Command {
                 scrollGrid.add(snL);
                 scrollGrid.add(tasks[10]);
                 JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel.setBorder(BorderFactory.createEmptyBorder());
                 //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 //spanel.setPreferredSize(preferredSize);     
@@ -502,8 +506,8 @@ public class SpectralRTI_Toolkit implements Command {
                      * If this is the only option selected, allow the user to tell us where the RTI image is for processing
                      */
                     String rtiImageToUse = "";
-                    while(null == rtiImageToUse || rtiImageToUse.equals("")){
-                        OpenDialog rti_image = new OpenDialog("Locate RTI image to make into WebRTI.");
+                    while(null == rtiImageToUse || rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti") ){
+                        OpenDialog rti_image = new OpenDialog("Locate the RTI image (.rti extension) to make into WebRTI.");
                         if(null== rti_image.getPath()){
                             //@UserHitCanvel
                             IJ.error("You must provide an RTI Image for processing to continue.  Exiting...");
@@ -589,6 +593,7 @@ public class SpectralRTI_Toolkit implements Command {
                         scrollGrid.add(radioOption);                   
                     } 
                     JScrollPane spanel = new JScrollPane(scrollGrid);
+                    spanel.setBorder(BorderFactory.createEmptyBorder());
                     //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                     //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                     spanel.setMaximumSize(bestFit);    
@@ -664,6 +669,7 @@ public class SpectralRTI_Toolkit implements Command {
                     scrollGrid.add(ch);
                 }
                 JScrollPane spanel = new JScrollPane(scrollGrid);
+                //spanel.setBorder(BorderFactory.createEmptyBorder());
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 spanel.setPreferredSize(preferredSize);     
@@ -744,11 +750,15 @@ public class SpectralRTI_Toolkit implements Command {
                  * UI for custom visible RGB range assignment window.
                 */
                 contentPane = new JPanel();
-                contentPane.setLayout(new GridLayout(0, 1, 1, 1)); //Just want one column, as tall as it needs to be (scroll vertical)
+                JPanel scrollPanel = new JPanel();
+                scrollPanel.setLayout(new GridLayout(0, 1, 1, 0));
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                //contentPane.setLayout(new GridLayout(0, 1, 1, 1)); //Just want one column, as tall as it needs to be (scroll vertical)
                 JPanel labelPanel = new JPanel();
                 JPanel labelPanel2 = new JPanel();
                 JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.");
                 JLabel assignNarrowband2 = new JLabel("You must provide at least one selection for each visible range R, G and B.");
+                assignNarrowband2.setBorder(new EmptyBorder(0,0,15,0));
                 labelPanel.add(assignNarrowband);
                 labelPanel2.add(assignNarrowband2);
                 contentPane.add(labelPanel);        
@@ -782,6 +792,10 @@ public class SpectralRTI_Toolkit implements Command {
                     JRadioButton radioOptionNone = new JRadioButton("None");
                     radioOptionR.setActionCommand("None");
                     capture_radios.add(radioOptionR);
+                    radioOptionR.setBorder(new EmptyBorder(0,10,0,20));
+                    radioOptionG.setBorder(new EmptyBorder(0,0,0,20));
+                    radioOptionB.setBorder(new EmptyBorder(0,0,0,20));
+                    radioOptionNone.setBorder(new EmptyBorder(0,0,0,0));
                     capture_radios.add(radioOptionG);
                     capture_radios.add(radioOptionB);
                     capture_radios.add(radioOptionNone);
@@ -797,9 +811,10 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     JLabel jlabel = new JLabel(narrowCapture);
                     jlabel.setToolTipText(listOfNarrowbandCaptures[i].toString());
-                    contentPane.add(jlabel);
+                    jlabel.setBorder(new EmptyBorder(0,10,0,0));
+                    scrollPanel.add(jlabel);
                     JPanel contentGroup = new JPanel();
-                    contentGroup.setLayout(new GridLayout(1,1,1,1)); // Want radio options in one row, should only need a single column.
+                    contentGroup.setLayout(new BoxLayout(contentGroup,BoxLayout.LINE_AXIS)); // Want radio options in one row, should only need a single column.
                     //Add the button group it its own panel
                     contentGroup.setName(narrowCapture);
                     contentGroup.add(radioOptionR);
@@ -827,21 +842,23 @@ public class SpectralRTI_Toolkit implements Command {
                         radioOptionG.setSelected(true);
                     }
                     //Add the button group panel to the overall content container
-                    contentPane.add(contentGroup);                   
+                    scrollPanel.add(contentGroup);                   
 		} 
-
-                JScrollPane spanel = new JScrollPane(contentPane);
+                JScrollPane spanel = new JScrollPane(scrollPanel);
+                //spanel.setBorder(BorderFactory.createEmptyBorder());
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 Dimension prefSize = new Dimension(800, preferredSize.height);
-                spanel.setPreferredSize(prefSize);           
-                
+                spanel.setPreferredSize(prefSize);      
+                contentPane.add(spanel);
                 /**
                  * Gather user visible range selections.
                  */
                 //Make sure this doesn't show infinite confirm dialogs.  
+                Object[] btns = {"Finish",
+                    "Cancel"};
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
-                    int result = JOptionPane.showOptionDialog(null, spanel, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                    int result = JOptionPane.showOptionDialog(null, contentPane, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if ( result==JOptionPane.OK_OPTION) {
                         for(int d=0; d<bgroups.length; d++){
                             //Go over each button group (one for each narrow band capture, in order)
@@ -911,7 +928,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.show();
                     while(imp.getRoi() == null){
-                        dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
+                        dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller).  Press 'Esc' to quit.");
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
@@ -940,10 +957,7 @@ public class SpectralRTI_Toolkit implements Command {
                 File listOfPseudoColorSources_dir = new File(projectDirectory+"PCA"+File.separator);
                 //This dir is never written to so it is always empty.  Not exactly sure what processed images should be saved into this directory. Yikes.
                 if(!listOfPseudoColorSources_dir.exists()){
-                    //GenericDialog nofldr = new GenericDialog("FYI");
-                    //nofldr.addMessage("A Pseudo Color folder has been created for you");
-                    //nofldr.setMaximumSize(bestFit);
-                    //nofldr.showDialog();
+                    //JOptionPane.showMessageDialog(null, "PseudoColor Directory Not Found", "A Pseudo Color folder has been created for you in your project directory.", JOptionPane.PLAIN_MESSAGE);
                     Files.createDirectory(listOfPseudoColorSources_dir.toPath());
                     logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA"+File.separator);
                 }
@@ -1005,6 +1019,7 @@ public class SpectralRTI_Toolkit implements Command {
                     scrollGrid.add(radioOption);                   
                 } 
                 JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel.setBorder(BorderFactory.createEmptyBorder());
                 //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 spanel.setMaximumSize(bestFit);    
@@ -1063,7 +1078,7 @@ public class SpectralRTI_Toolkit implements Command {
                     imp.setTitle("Preview");
                     imp.show();
                     while(imp.getRoi() == null){
-                        dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller)");
+                        dWait = new WaitForUserDialog("Select area", "Draw a rectangle containing the colors of interest for PCA then click OK\n(hint: limit to object or smaller).  Press 'Esc' to quit.");
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
@@ -1102,7 +1117,7 @@ public class SpectralRTI_Toolkit implements Command {
                 imp.setTitle("Preview");
                 imp.show();
                 while(imp.getRoi() == null){
-                    dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere and press Ok");
+                    dWait = new WaitForUserDialog("Select ROI", "Draw a rectangle loosely around a reflective hemisphere then press Ok.  Press 'Esc' to quit.");
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
@@ -1206,6 +1221,7 @@ public class SpectralRTI_Toolkit implements Command {
                             scrollGrid.add(radioOption);                   
                         } 
                         JScrollPane spanel = new JScrollPane(scrollGrid);
+                        spanel.setBorder(BorderFactory.createEmptyBorder());
                         //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                         spanel.setMaximumSize(bestFit);    
@@ -1720,7 +1736,7 @@ public class SpectralRTI_Toolkit implements Command {
                     ImagePlus noGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma");
                     noGammaPCA.show();
                     /**@Yikes this whole process needs improving to wrap in a while scenario.  While slices>2... */
-                    dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok");
+                    dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok.  Press 'Esc' to quit.");
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
@@ -1737,8 +1753,8 @@ public class SpectralRTI_Toolkit implements Command {
                  */
 		}
                 else if (pcaMethod.equals("Open pregenerated images")) {
-                    dWait = new WaitForUserDialog("Designated Images", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok");
                     while(WindowManager.getImageCount() != 2){
+                        dWait = new WaitForUserDialog("Designated Images", "Open a pair of images or stack of two slices.\nEnhance contrast as desired\nThen press Ok.  Press 'Esc' to quit.");
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
@@ -2102,8 +2118,10 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Custom source files created, create lp file and run the fitter");
                 cb.close();
                 cr.close();
-		createLpFile(csProcessName, projectDirectory);
-		runFitter(csProcessName);
+                if (csRtiDesired) {
+                    createLpFile(csProcessName, projectDirectory);
+                    runFitter(csProcessName);
+		}
                 IJ.run("Collect Garbage");
             }
             IJ.beep();
@@ -2112,7 +2130,7 @@ public class SpectralRTI_Toolkit implements Command {
             end.addMessage("Processing Complete at "+timestamp());
             end.setMaximumSize(bestFit);
             end.showDialog();
-            logService.log().warn("END OF TESTED MACRO PIECE");
+            logService.log().warn("End of SpectralRTI Plugin.");
         }
         	
         /**
@@ -2179,17 +2197,34 @@ public class SpectralRTI_Toolkit implements Command {
             while(preferredJp2Args.equals("")){
                 contentPane = new JPanel();
                 //display label and text area side by side in two columns for as many prefs exist
+                //Make this resiable.
+                contentPane.addHierarchyListener(new HierarchyListener() {
+                    public void hierarchyChanged(HierarchyEvent e) {
+                     //when the hierarchy changes get the ancestor for the message
+                    Window window = SwingUtilities.getWindowAncestor(contentPane);
+                     //check to see if the ancestor is an instance of Dialog and isn't resizable
+                        if (window instanceof Dialog) {
+                            Dialog dialog = (Dialog)window;
+                            if (!dialog.isResizable()) {
+                            //set resizable to true
+                                dialog.setResizable(true);
+                            }
+                        }
+                    }
+                }); 
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
                 JLabel prefsLabel = new JLabel("You may edit the arguments as desired.");
                 labelPanel.add(prefsLabel);
                 contentPane.add(labelPanel);
                 String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible=no Clevels=5 Stiles={1024,1024} Cblk={64,64} Cuse_sop=yes Cuse_eph=yes Corder=RPCL ORGgen_plt=yes ORGtparts=R Cmodes=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
+                JTextField args = new JTextField(arguments, 85);
+                contentPane.add(args);
                 //Gather new values from the dialog, reset the labels and update the new values.
                 Object[] btns = {"Approve",
                     "Quit"};
-                int result10 = JOptionPane.showOptionDialog(null, contentPane, "Approve arguments for Jpeg 2000 compression", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                JTextField args = new JTextField(arguments, 100);
+                int result10 = JOptionPane.showOptionDialog(null, contentPane, "Approve JP2 Arguments", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                
                 if (result10 == JOptionPane.OK_OPTION){
                    preferredJp2Args = args.getText();
                 }
@@ -2301,11 +2336,15 @@ public class SpectralRTI_Toolkit implements Command {
             JPanel scrollGrid = new JPanel();
             JPanel scrollGrid2 = new JPanel();
             scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+            scrollGrid2.setLayout(new BoxLayout(scrollGrid2,BoxLayout.PAGE_AXIS));
             contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
             JPanel labelPanel = new JPanel();
+            JPanel labelPanel2 = new JPanel();
             JLabel directions = new JLabel("Adjust brightness of hemisphere captures?");
             JLabel directions2 = new JLabel("Apply adjustment to which output images?");
-            labelPanel.add(directions);
+            directions2.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
+            //labelPanel.add(directions);
+            //labelPanel2.add(directions2);
             scrollGrid.add(directions);
             scrollGrid2.add(directions2);
             /**
@@ -2339,11 +2378,14 @@ public class SpectralRTI_Toolkit implements Command {
                 scrollGrid2.add(radioOption2);
                 //Add the button group panel to the overall content container
             }    
+            JPanel choices = new JPanel();
+            choices.add(scrollGrid);
+            choices.add(scrollGrid2);
             contentPane.add(scrollGrid);
             contentPane.add(scrollGrid2);
             Object[] transmissiveSourcesBtnLabels = {"Confirm",
-                "Quit"};
-            int result11 = JOptionPane.showOptionDialog(null, contentPane, "Adjust brightness of hemisphere captures?", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
+                "Ignore"};
+            int result11 = JOptionPane.showOptionDialog(null, contentPane, "Adjust Brightness", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
             if (result11 == JOptionPane.OK_OPTION){
                 //Is there an easier way to get the selected btton from a buttonGroup?
                 for (Enumeration<AbstractButton> buttons = adjust_radios.getElements(); buttons.hasMoreElements();) {
@@ -2372,7 +2414,7 @@ public class SpectralRTI_Toolkit implements Command {
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
                 while(imp.getRoi() == null){
-                    dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare)" );
+                    dWait = new WaitForUserDialog("Select Area","Draw a rectangle containing the brighest white and darkest black desired then press OK\n(hint: use a large area including spectralon and the object, excluding glare).  Press 'Esc' to quit." );
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
@@ -2389,7 +2431,7 @@ public class SpectralRTI_Toolkit implements Command {
             } 
             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
                 /**@Yikes this process needs to be improved to wrap it all into one window under a while !normalizationFixedValue */
-                dWait = new WaitForUserDialog("ImageJ will use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered in the window that follows the preview." );
+                dWait = new WaitForUserDialog("ImageJ will use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered in the window that follows the preview.  Press 'Esc' to quit." );
                 dWait.show();
                 if(dWait.escPressed()){
                     //@userHitCancel
@@ -2572,7 +2614,6 @@ public class SpectralRTI_Toolkit implements Command {
             String[] lpLines;
             File[] list;
             File folder;
-            GenericDialog noLpData = new GenericDialog("Light Position data not found.");
             File lpFile = null;
             if (lpSource.equals("")) { //Then we need to find and set it
                 //Check LightPositionData folder
@@ -2587,10 +2628,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 else{
-                    noLpData.addMessage("Please provide LP data in a LightPositionData directory in your project directory.  A LightPositionData directory was created for you.");
-                    noLpData.setMaximumSize(bestFit);
-                    noLpData.showDialog();
-                    //throw new Throwable("You need to have light position data to continue.");
+                    JOptionPane.showMessageDialog(null, "Light Position Data Not Found", "Please provide LP data in a LightPositionData directory in your project directory.  A Light Position directory was created for you.", JOptionPane.PLAIN_MESSAGE);
                     Files.createDirectory(folder.toPath());
                 }    
                 //Check assembly-files folder inside LightPositionData folder
@@ -2651,6 +2689,7 @@ public class SpectralRTI_Toolkit implements Command {
                             scrollGrid.add(radioOption);                   
                         } 
                         JScrollPane spanel = new JScrollPane(scrollGrid);
+                        spanel.setBorder(BorderFactory.createEmptyBorder());
                         //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                         spanel.setMaximumSize(bestFit);    
@@ -2707,18 +2746,22 @@ public class SpectralRTI_Toolkit implements Command {
         
         private void createWebRTIFiles(String colorProcess, String rtiImage) throws IOException, InterruptedException, Throwable{
             logService.log().info("Create WebRTI for color process "+colorProcess+"...");
+            File webRTIFolder;
             if(!rtiImage.equals("")){
                 //The user has chosen to just create a webrti from an existing RTI Image, we do not know for what process.
                 //We need to pull out the location of the provided RTI file
                 File imgFile = new File(rtiImage);
                 String RTIDir = imgFile.getParent();
-                String dirName = new File(RTIDir).getName();
-                colorProcess = dirName;
-                logService.log().info("Do I have color process name? " + colorProcess);
+                logService.log().info("RTI DIR: "+RTIDir);
+                //String dirName = new File(RTIDir).getName();
+                colorProcess = RTIDir;
+                webRTIFolder = new File(RTIDir);
             }
             else{
                 colorProcess += "RTI";
+                webRTIFolder = new File(projectDirectory+colorProcess+File.separator);
             }
+            logService.log().info("Do I have color process name? " + colorProcess);
             String webRtiMaker = "";
             JFrame noticeFrame = new JFrame("WebRTI Maker Working...");
             contentPane = new JPanel();
@@ -2733,7 +2776,7 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.pack();
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
             String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
-            File webRTIFolder = new File(projectDirectory+colorProcess+File.separator);
+            
             if (webRtiDesired) {
                 noticeFrame.setVisible(true);  
                 logService.log().info("I have found a desire for WebRTI...input");
@@ -2768,7 +2811,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //If the user only chose to make WebRTI, then they will be using the default directory.  Don't make a new one here. 
                     Path createPath = webRTIFolder.toPath();
                     Files.createDirectory(createPath);
-                    logService.log().info("A directory has been created for the Web RTI file at "+projectDirectory+colorProcess+File.separator);
+                    logService.log().info("A directory has been created for the Web RTI file at "+webRTIFolder.toString());
                 }
                 if(isWindows){
                     String commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
@@ -2776,15 +2819,15 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info(commandString);                        
                     p2 = Runtime.getRuntime().exec(commandString, null, new File(webRTIDir)); //hshLocation
                     p2.waitFor();
-                    Files.createFile(new File(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
-                    Files.write(Paths.get(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
+                    Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
+                    Files.write(Paths.get(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
                 else{
                     String commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
                     p2 = Runtime.getRuntime().exec(commandString);
                     p2.waitFor();
-                    Files.createFile(new File(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
-                    Files.write(Paths.get(projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
+                    Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
+                    Files.write(Paths.get(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
                 noticeFrame.dispose();  
             }
