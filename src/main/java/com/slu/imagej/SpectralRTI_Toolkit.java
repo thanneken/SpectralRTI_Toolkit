@@ -189,6 +189,7 @@ public class SpectralRTI_Toolkit implements Command {
             theList.put("hshOrder", "0");
             theList.put("hshThreads", "0");
             theList.put("webRtiMaker", "");
+            theList.put("shortFileNames", "false");
         }
         private JPanel contentPane = new JPanel();
         final ImageJ ij2 = new ImageJ();
@@ -317,6 +318,7 @@ public class SpectralRTI_Toolkit implements Command {
                             String value2 = fields[j].getText(); //Gather new information
                             if(key.equals("shortFileNames")){
                                 shortName = (value2.equals("true") || value2.equals("yes"));
+                                value2 = ""+shortName;
                             }
                             theList.put(key,value2);
                             prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
@@ -369,7 +371,8 @@ public class SpectralRTI_Toolkit implements Command {
             if (!hemi_gamma_dir.exists()) {
                 Path createPath = hemi_gamma_dir.toPath();
                 Files.createDirectory(createPath);
-                //JOptionPane.showMessageDialog(null, "Hemisphere Captures Directory Not Found", "A Hemisphere Captures folder has been created for you in your project directory.", JOptionPane.PLAIN_MESSAGE);
+                //We will alert users that this did not exist because it is so important
+                JOptionPane.showMessageDialog(null, "Hemisphere Captures Directory Not Found", "A Hemisphere Captures folder has been created for you in your project directory.  You will need captures to use this plugin.", JOptionPane.PLAIN_MESSAGE);
                 logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                 hemi_gamma_dir = new File(createPath.toString());
             }
@@ -383,12 +386,19 @@ public class SpectralRTI_Toolkit implements Command {
             }
             Arrays.sort(listOfHemisphereCaptures, NameFileComparator.NAME_COMPARATOR);
             
-            
+            /**
+            * These aren't always necessary and therefore aren't technically required.  We will create them automatically, but we do not need to tell the user.
+            * Consequently, this controls building the full required project folder structure automatically or not.  Whether we choose to do it or not does not 
+            * affect functionality.  
+            */
             if (!light_position_dir.exists() ){ 
                 Files.createDirectory(light_position_dir.toPath());
             }
             if (!accurate_color_dir.exists() ){
                 Files.createDirectory(accurate_color_dir.toPath());
+            }
+            if(!transmissive_gamma_dir.exists()){
+                Files.createDirectory(transmissive_gamma_dir.toPath());
             }
             if(!narrow_band_dir.exists()){
                 Files.createDirectory(narrow_band_dir.toPath());
@@ -575,7 +585,7 @@ public class SpectralRTI_Toolkit implements Command {
                     labelPanel.add(taskDirection);
                     contentPane.add(labelPanel);
                     /**
-                     * UI for creating the checkbox selections.  
+                     * UI for creating the radio button selections.  
                      * @see shortName
                     */
                     //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
@@ -1001,7 +1011,7 @@ public class SpectralRTI_Toolkit implements Command {
                 labelPanel.add(directions);
                 contentPane.add(labelPanel);
                 /**
-                 * UI for creating the checkbox selections.  
+                 * UI for creating the radio selections.  
                  * @see shortName
                 */
                 //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
@@ -1311,10 +1321,6 @@ public class SpectralRTI_Toolkit implements Command {
                         if (extensionIndex != -1)
                         {
                             String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
-                            //String simpleName2 = projectName + "_";
-                            //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                            //filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
-                            //simpleImageName = "AccurateColor_"+simpleName2+simpleName3;
                             filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName1;
                             simpleImageName = "AccurateColor_"+simpleName1;
                         }
@@ -1336,7 +1342,7 @@ public class SpectralRTI_Toolkit implements Command {
                 cr.close();
                 keptPieces.close();
                 createLpFile("AccurateColor", projectDirectory); 
-                WindowManager.closeAllWindows(); // IS this needed?
+                WindowManager.closeAllWindows();
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
@@ -1404,8 +1410,8 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             IJ.run(imp, "8-bit", "");
                             ImagePlus keptPieces = con.concatenate(cb, cr, true);
-                            cb.close(); //Can this be closed??
-                            cr.close(); //Can this be closed??
+                            cb.close();
+                            cr.close(); 
                             ImagePlus stack = con.concatenate(imp, keptPieces, true);
                             stack.setTitle("YCC");
                             stack.hide();
@@ -1448,7 +1454,7 @@ public class SpectralRTI_Toolkit implements Command {
                 if(redNarrowbands.length == 1){
                     IJ.run(redStacker, "Add Slice", "");
                 }
-                //YIKES
+                //@YIKES
                 //What happens if these weren't set yet?  Do I need to get the width of height of the image?
                 //It should at least be set to the height or width of the image when grabbed above in the pcaHeight < 100 clause right?
                 if(pcaWidth == 0){
@@ -1887,8 +1893,6 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                                //String simpleName2 = projectName + "_";
-                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName1;
                                 simpleImageName = "PseudoColor_"+simpleName1;
                             }
@@ -1915,8 +1919,6 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                                //String simpleName2 = projectName + "_";
-                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName1;
                                 simpleImageName = "PseudoColor_"+simpleName1;
                             }
@@ -2047,10 +2049,7 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); 
-                                //String simpleName2 = projectName + "_";
-                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName1;
-                                //filePath = projectDirectory+csProcessName+"RTI"+File.separator+simpleName2+simpleName3;
                                 simpleImageName = csProcessName+"_"+simpleName1;
                             }
                             else{
@@ -2338,17 +2337,13 @@ public class SpectralRTI_Toolkit implements Command {
             scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
             scrollGrid2.setLayout(new BoxLayout(scrollGrid2,BoxLayout.PAGE_AXIS));
             contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-            JPanel labelPanel = new JPanel();
-            JPanel labelPanel2 = new JPanel();
             JLabel directions = new JLabel("Adjust brightness of hemisphere captures?");
             JLabel directions2 = new JLabel("Apply adjustment to which output images?");
             directions2.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
-            //labelPanel.add(directions);
-            //labelPanel2.add(directions2);
             scrollGrid.add(directions);
             scrollGrid2.add(directions2);
             /**
-             * UI for creating the checkbox selections.  
+             * UI for creating the radio selections.  
              * @see shortName
             */
             //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
@@ -2652,10 +2647,6 @@ public class SpectralRTI_Toolkit implements Command {
                         lpSource = listOfLpFiles_list.get(0);
                     } 
                     else if(listOfLpFiles_list.isEmpty()){
-                        //noLpData.addMessage("Please provide light position source files in your LightPositionData directory in the future.");
-                        //noLpData.setMaximumSize(bestFit);
-                        //noLpData.showDialog();
-                        //throw new Throwable("You need to have light position data to continue.");
                         OpenDialog dialog = new OpenDialog("Locate Light Position Source File"); 
                         if(null==dialog.getPath()){
                             //@userHitCancel
@@ -2674,7 +2665,7 @@ public class SpectralRTI_Toolkit implements Command {
                         labelPanel.add(directions);
                         contentPane.add(labelPanel);
                         /**
-                         * UI for creating the checkbox selections.  
+                         * UI for creating the radio selections.  
                          * @see shortName
                         */
                         ButtonGroup capture_radios = new ButtonGroup();
@@ -2749,15 +2740,16 @@ public class SpectralRTI_Toolkit implements Command {
             File webRTIFolder;
             if(!rtiImage.equals("")){
                 //The user has chosen to just create a webrti from an existing RTI Image, we do not know for what process.
-                //We need to pull out the location of the provided RTI file
+                
                 File imgFile = new File(rtiImage);
                 String RTIDir = imgFile.getParent();
                 logService.log().info("RTI DIR: "+RTIDir);
-                //String dirName = new File(RTIDir).getName();
+                //Make webRTI files in the same directory as the provided rti image  
                 colorProcess = RTIDir;
                 webRTIFolder = new File(RTIDir);
             }
             else{
+                //Prepare to make RTI files from plugin generated rti file
                 colorProcess += "RTI";
                 webRTIFolder = new File(projectDirectory+colorProcess+File.separator);
             }
@@ -2776,7 +2768,6 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.pack();
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
             String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
-            
             if (webRtiDesired) {
                 noticeFrame.setVisible(true);  
                 logService.log().info("I have found a desire for WebRTI...input");
@@ -2808,7 +2799,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
                 
                 if (!webRTIFolder.exists() && rtiImage.equals("")) {
-                    //If the user only chose to make WebRTI, then they will be using the default directory.  Don't make a new one here. 
+                    //Make sure the directory we want to use exists if it is a user provided rti file.
                     Path createPath = webRTIFolder.toPath();
                     Files.createDirectory(createPath);
                     logService.log().info("A directory has been created for the Web RTI file at "+webRTIFolder.toString());
