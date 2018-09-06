@@ -105,6 +105,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import java.awt.Font;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -230,6 +231,10 @@ public class SpectralRTI_Toolkit implements Command {
             String csSource = "";
             Concatenator con = new Concatenator();
             File projectFile = null;
+            
+            /**
+             * First ask the user to locate the project directory.  We cannot continue without one. 
+             */
             while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
                 file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
                 projectDirectory = file_dialog.getDirectory();
@@ -248,9 +253,104 @@ public class SpectralRTI_Toolkit implements Command {
                 projectDirectory = projectDirectory.replace("\\",File.separator);
                 projectName = projectFile.getName();
             }
+            
+            
+            /**
+             * Second, consult with the user about their desired tasks.  This will help us know what to ask them throughout the plugin.
+             * We cannot continue without a task.
+             */
+            //Hmm this feels like it should be some kind of defined private array or something somwhere, not just defined all willy nilly here.  
+            JCheckBox[] tasks = new JCheckBox[11];
+            JCheckBox ch1 = new JCheckBox("Light Position Data");
+            JCheckBox ch2 = new JCheckBox("Accurate Color RTI");
+            JCheckBox ch12 = new JCheckBox("Accurate Color Static Raking");
+            JCheckBox ch3 = new JCheckBox("Extended Spectrum RTI");
+            JCheckBox ch4 = new JCheckBox("Extended Spectrum Static Raking");
+            JCheckBox ch5 = new JCheckBox("PseudoColor RTI");
+            JCheckBox ch6 = new JCheckBox("PseudoColor Static Raking");
+            JCheckBox ch7 = new JCheckBox("Custom RTI");
+            JCheckBox ch8 = new JCheckBox("Custom Static Raking");
+            JCheckBox ch9 = new JCheckBox("WebRTI");
+            JLabel snL = new JLabel("Check below to use names instead of paths.");
+            snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
+            JCheckBox ch10 = new JCheckBox("Short File Names");
+            ch10.setSelected(shortName);
+            tasks[0] = ch1;
+            tasks[1] = ch2;
+            tasks[2] = ch12;
+            tasks[3] = ch3;
+            tasks[4] = ch4;
+            tasks[5] = ch5;
+            tasks[6] = ch6;
+            tasks[7] = ch7;
+            tasks[8] = ch8;
+            tasks[9] = ch9;
+            tasks[10] = ch10;
+            while(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
+                contentPane = new JPanel();
+                JPanel scrollGrid = new JPanel();
+                scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel taskDirection = new JLabel("Select the tasks you would like to complete.  You must select at least one.");
+                labelPanel.add(taskDirection);
+                contentPane.add(labelPanel);
+                /**
+                 * UI for creating the checkbox selections.  
+                 * @see shortName
+                */
+                scrollGrid.add(tasks[0]);
+                scrollGrid.add(tasks[1]);
+                scrollGrid.add(tasks[2]);
+                scrollGrid.add(tasks[3]);
+                scrollGrid.add(tasks[4]);
+                scrollGrid.add(tasks[5]);
+                scrollGrid.add(tasks[6]);
+                scrollGrid.add(tasks[7]);
+                scrollGrid.add(tasks[8]);
+                scrollGrid.add(tasks[9]);
+                scrollGrid.add(snL);
+                scrollGrid.add(tasks[10]);
+                JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel.setBorder(BorderFactory.createEmptyBorder());
+                //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                //spanel.setPreferredSize(preferredSize);     
+                contentPane.add(spanel);
+                Object[] taskBtnLabels = {"Confirm",
+                    "Quit"};
+                int result3 = JOptionPane.showOptionDialog(null, contentPane, "Choose Desired Tasks", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, taskBtnLabels, taskBtnLabels[0]);
+                /**
+                 * Gather and process user selected tasks
+                */
+                if (result3 == JOptionPane.OK_OPTION){
+                    lpDesired = tasks[0].isSelected();
+                    acRtiDesired = tasks[1].isSelected();
+                    acRakingDesired = tasks[2].isSelected();
+                    xsRtiDesired = tasks[3].isSelected();
+                    xsRakingDesired = tasks[4].isSelected();
+                    psRtiDesired = tasks[5].isSelected();
+                    psRakingDesired = tasks[6].isSelected();
+                    csRtiDesired = tasks[7].isSelected();
+                    csRakingDesired = tasks[8].isSelected();
+                    webRtiDesired = tasks[9].isSelected();
+                    shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
+                    prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+                    String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
+                    prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
+                    Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
+                }
+                else {
+                     //@userHitCancel
+                    IJ.error("You must provide a task set to continue.  Exiting...");
+                    throw new Throwable("You must provide a task set to continue.");
+                }
+            }
+
             /**
              * consult with user about values stored in prefs file in base fiji folder.  
-             * We can move this around, say to the project directory since we know it by this point, if we want.  
+             * Some will be required and if not provided, the plugin will have to ask for them later.
+             * TODO: Since we know desired tasks, make sure to call out the required preferences with a bold or colored label.  
              */
             if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
                 contentPane = new JPanel();
@@ -281,9 +381,39 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("hshThreads","HSH Threads");
                     key = key.replace("webRtiMaker","Web RTI Maker");
                     key = key.replace("shortFileNames","Short File Names");
-                    
+
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                     JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
+                    if(key.equals("HSH Fitter")){
+                        if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
+                        //We will need to know the fitter
+                            Font font = fieldLabel.getFont();
+                            // same font but bold
+                            Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                            fieldLabel.setFont(boldFont);
+                            fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                        }
+                    }
+                    if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor")){
+                        if(acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
+                        //We will need to know the compressor and arguments
+                            Font font = fieldLabel.getFont();
+                            // same font but bold
+                            Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                            fieldLabel.setFont(boldFont);
+                            fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                        }
+                    }
+                    if(key.equals("Web Rti Maker")){
+                        if(webRtiDesired){
+                        //We will need to know the web RTI Maker
+                            Font font = fieldLabel.getFont();
+                            // same font but bold
+                            Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                            fieldLabel.setFont(boldFont);
+                            fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                        }
+                    }
                     scrollGrid.add(fieldLabel);
                     JTextField fieldToAdd = new JTextField(value1, 50);
                     fields[i] = fieldToAdd;
@@ -405,95 +535,6 @@ public class SpectralRTI_Toolkit implements Command {
             }
             else{
                 listOfNarrowbandCaptures = narrow_band_dir.listFiles();
-            }
-
-            //Hmm this feels like it should be some kind of defined private array or something somwhere, not just defined all willy nilly here.  
-            JCheckBox[] tasks = new JCheckBox[11];
-            JCheckBox ch1 = new JCheckBox("Light Position Data");
-            JCheckBox ch2 = new JCheckBox("Accurate Color RTI");
-            JCheckBox ch12 = new JCheckBox("Accurate Color Static Raking");
-            JCheckBox ch3 = new JCheckBox("Extended Spectrum RTI");
-            JCheckBox ch4 = new JCheckBox("Extended Spectrum Static Raking");
-            JCheckBox ch5 = new JCheckBox("PseudoColor RTI");
-            JCheckBox ch6 = new JCheckBox("PseudoColor Static Raking");
-            JCheckBox ch7 = new JCheckBox("Custom RTI");
-            JCheckBox ch8 = new JCheckBox("Custom Static Raking");
-            JCheckBox ch9 = new JCheckBox("WebRTI");
-            JLabel snL = new JLabel("Check below to use names instead of paths.");
-            snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
-            JCheckBox ch10 = new JCheckBox("Short File Names");
-            ch10.setSelected(shortName);
-            tasks[0] = ch1;
-            tasks[1] = ch2;
-            tasks[2] = ch12;
-            tasks[3] = ch3;
-            tasks[4] = ch4;
-            tasks[5] = ch5;
-            tasks[6] = ch6;
-            tasks[7] = ch7;
-            tasks[8] = ch8;
-            tasks[9] = ch9;
-            tasks[10] = ch10;
-            while(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
-                contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
-                scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
-                JLabel taskDirection = new JLabel("Select the tasks you would like to complete.  You must select at least one.");
-                labelPanel.add(taskDirection);
-                contentPane.add(labelPanel);
-                /**
-                 * UI for creating the checkbox selections.  
-                 * @see shortName
-                */
-                scrollGrid.add(tasks[0]);
-                scrollGrid.add(tasks[1]);
-                scrollGrid.add(tasks[2]);
-                scrollGrid.add(tasks[3]);
-                scrollGrid.add(tasks[4]);
-                scrollGrid.add(tasks[5]);
-                scrollGrid.add(tasks[6]);
-                scrollGrid.add(tasks[7]);
-                scrollGrid.add(tasks[8]);
-                scrollGrid.add(tasks[9]);
-                scrollGrid.add(snL);
-                scrollGrid.add(tasks[10]);
-                JScrollPane spanel = new JScrollPane(scrollGrid);
-                spanel.setBorder(BorderFactory.createEmptyBorder());
-                //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-                //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-                //spanel.setPreferredSize(preferredSize);     
-                contentPane.add(spanel);
-                Object[] taskBtnLabels = {"Confirm",
-                    "Quit"};
-                int result3 = JOptionPane.showOptionDialog(null, contentPane, "Choose Desired Tasks", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, taskBtnLabels, taskBtnLabels[0]);
-                /**
-                 * Gather and process user selected tasks
-                */
-                if (result3 == JOptionPane.OK_OPTION){
-                    lpDesired = tasks[0].isSelected();
-                    acRtiDesired = tasks[1].isSelected();
-                    acRakingDesired = tasks[2].isSelected();
-                    xsRtiDesired = tasks[3].isSelected();
-                    xsRakingDesired = tasks[4].isSelected();
-                    psRtiDesired = tasks[5].isSelected();
-                    psRakingDesired = tasks[6].isSelected();
-                    csRtiDesired = tasks[7].isSelected();
-                    csRakingDesired = tasks[8].isSelected();
-                    webRtiDesired = tasks[9].isSelected();
-                    shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
-                    prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                    String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
-                    prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
-                    Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
-                }
-                else {
-                     //@userHitCancel
-                    IJ.error("You must provide a task set to continue.  Exiting...");
-                    throw new Throwable("You must provide a task set to continue.");
-                }
-
             }
             /** DEBUGGING **/
             logService.log().info("Variable States listed below!");
