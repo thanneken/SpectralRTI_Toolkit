@@ -233,6 +233,27 @@ public class SpectralRTI_Toolkit implements Command {
             File projectFile = null;
             
             /**
+             * Make sure there is a preference file.  If not, crete one with the default empty entries.
+             */
+            if (!spectralPrefsFile.exists()){
+                JOptionPane.showMessageDialog(null, "A prefs file will be created for you in the ImageJ directory to store your choices in later sessions.", "No Preference File Found", JOptionPane.PLAIN_MESSAGE);
+                logService.log().warn("We are making a new prefs file with the empty defaults.");
+                /**
+                    *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
+                    *@see projectDirectory 
+                */
+                Files.createFile(spectralPrefsFile.toPath()); 
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredCompress="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredJp2Args="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredFitter="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("jpegQuality=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+            }
+            
+            /**
              * First ask the user to locate the project directory.  We cannot continue without one. 
              */
             while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
@@ -352,132 +373,115 @@ public class SpectralRTI_Toolkit implements Command {
              * Some will be required and if not provided, the plugin will have to ask for them later.
              * TODO: Since we know desired tasks, make sure to call out the required preferences with a bold or colored label.  
              */
-            if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
-                contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
-                scrollGrid.setLayout(new SpringLayout());
-                //display label and text area side by side in two columns for as many prefs exist
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
-                JPanel labelPanel2 = new JPanel();
-                JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
-                JLabel prefsLabel2 = new JLabel("Edit or clear as desired.");
-                labelPanel.add(prefsLabel);
-                labelPanel2.add(prefsLabel2);
-                contentPane.add(labelPanel);
-                contentPane.add(labelPanel2);
-                prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                prefs = prefsFileAsText.split(System.lineSeparator());
-                logService.log().info(Arrays.toString(prefs));
-                JTextField[] fields = new JTextField[prefs.length];
-                for (int i=0;i<prefs.length;i++){
-                    //Swap the labels out for presentation
-                    String key = prefs[i].substring(0, prefs[i].indexOf("="));
-                    key = key.replace("preferredCompress","JP2 Compressor");
-                    key = key.replace("preferredJp2Args","JP2 Arguments");
-                    key = key.replace("preferredFitter","HSH Fitter");
-                    key = key.replace("jpegQuality","JPEG Quality");
-                    key = key.replace("hshOrder","HSH Order");
-                    key = key.replace("hshThreads","HSH Threads");
-                    key = key.replace("webRtiMaker","Web RTI Maker");
-                    key = key.replace("shortFileNames","Short File Names");
+            
+            contentPane = new JPanel();
+            JPanel scrollGrid = new JPanel();
+            scrollGrid.setLayout(new SpringLayout());
+            //display label and text area side by side in two columns for as many prefs exist
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel labelPanel = new JPanel();
+            JPanel labelPanel2 = new JPanel();
+            JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
+            JLabel prefsLabel2 = new JLabel("Edit or clear as desired.");
+            labelPanel.add(prefsLabel);
+            labelPanel2.add(prefsLabel2);
+            contentPane.add(labelPanel);
+            contentPane.add(labelPanel2);
+            prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+            prefs = prefsFileAsText.split(System.lineSeparator());
+            logService.log().info(Arrays.toString(prefs));
+            JTextField[] fields = new JTextField[prefs.length];
+            for (int i=0;i<prefs.length;i++){
+                //Swap the labels out for presentation
+                String key = prefs[i].substring(0, prefs[i].indexOf("="));
+                key = key.replace("preferredCompress","JP2 Compressor");
+                key = key.replace("preferredJp2Args","JP2 Arguments");
+                key = key.replace("preferredFitter","HSH Fitter");
+                key = key.replace("jpegQuality","JPEG Quality");
+                key = key.replace("hshOrder","HSH Order");
+                key = key.replace("hshThreads","HSH Threads");
+                key = key.replace("webRtiMaker","Web RTI Maker");
+                key = key.replace("shortFileNames","Short File Names");
 
-                    String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
-                    JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
-                    if(key.equals("HSH Fitter")){
-                        if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
-                        //We will need to know the fitter
-                            Font font = fieldLabel.getFont();
-                            // same font but bold
-                            Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-                            fieldLabel.setFont(boldFont);
-                            fieldLabel.setToolTipText("This will be required to complete your task(s)");
-                        }
-                    }
-                    if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor")){
-                        if(acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
-                        //We will need to know the compressor and arguments
-                            Font font = fieldLabel.getFont();
-                            // same font but bold
-                            Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-                            fieldLabel.setFont(boldFont);
-                            fieldLabel.setToolTipText("This will be required to complete your task(s)");
-                        }
-                    }
-                    if(key.equals("Web Rti Maker")){
-                        if(webRtiDesired){
-                        //We will need to know the web RTI Maker
-                            Font font = fieldLabel.getFont();
-                            // same font but bold
-                            Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-                            fieldLabel.setFont(boldFont);
-                            fieldLabel.setToolTipText("This will be required to complete your task(s)");
-                        }
-                    }
-                    scrollGrid.add(fieldLabel);
-                    JTextField fieldToAdd = new JTextField(value1, 50);
-                    fields[i] = fieldToAdd;
-                    fieldLabel.setLabelFor(fieldToAdd);
-                    scrollGrid.add(fieldToAdd);
-                }
-                SpringUtilities.makeCompactGrid(scrollGrid,
-                                8, 2, //rows, cols
-                                6, 6,        //initX, initY
-                                6, 6);       //xPad, yPad
-                JScrollPane spanel = new JScrollPane(scrollGrid);
-                spanel.setBorder(BorderFactory.createEmptyBorder());
-                contentPane.add(spanel);
-                
-                //Gather new values from the dialog, reset the labels and update the new values.
-                Object[] prefBtnLabels = {"Update",
-                    "Skip"};
-                int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
-                if (result2 == JOptionPane.OK_OPTION){
-                    for (int j=0; j<prefs.length;j++) {
-                            //Swap the labels back for processing
-                            String key = prefs[j].substring(0, prefs[j].indexOf("="));
-                            key = key.replace("JP2 Compressor","preferredCompress");
-                            key = key.replace("JP2 Arguments","preferredJp2Args");
-                            key = key.replace("HSH Fitter","preferredFitter");
-                            key = key.replace("JPEG Quality","jpegQuality");
-                            key = key.replace("HSH Order","hshOrder");
-                            key = key.replace("HSH Threads","hshThreads");
-                            key = key.replace("Web RTI Maker","webRtiMaker");
-                            key = key.replace("Short File Names","shortFileNames");
-                            //How can I do this from the result2 JOptionPane?
-                            String value2 = fields[j].getText(); //Gather new information
-                            if(key.equals("shortFileNames")){
-                                shortName = (value2.equals("true") || value2.equals("yes"));
-                                value2 = ""+shortName;
-                            }
-                            theList.put(key,value2);
-                            prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
+                String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
+                JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
+                if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
+                    if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
+                    //We will need to know the fitter
+                        Font font = fieldLabel.getFont();
+                        // same font but bold
+                        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                        fieldLabel.setFont(boldFont);
+                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
                     }
                 }
-                else {
-                     //@userHitCancel
+                if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor")){
+                    if(acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
+                    //We will need to know the compressor and arguments
+                        Font font = fieldLabel.getFont();
+                        // same font but bold
+                        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                        fieldLabel.setFont(boldFont);
+                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                    }
+                }
+                if(key.equals("Web Rti Maker")){
+                    if(webRtiDesired){
+                    //We will need to know the web RTI Maker
+                        Font font = fieldLabel.getFont();
+                        // same font but bold
+                        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                        fieldLabel.setFont(boldFont);
+                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                    }
+                }
+                scrollGrid.add(fieldLabel);
+                JTextField fieldToAdd = new JTextField(value1, 50);
+                fields[i] = fieldToAdd;
+                fieldLabel.setLabelFor(fieldToAdd);
+                scrollGrid.add(fieldToAdd);
+            }
+            SpringUtilities.makeCompactGrid(scrollGrid,
+                            8, 2, //rows, cols
+                            6, 6,        //initX, initY
+                            6, 6);       //xPad, yPad
+            JScrollPane spanel = new JScrollPane(scrollGrid);
+            spanel.setBorder(BorderFactory.createEmptyBorder());
+            contentPane.add(spanel);
+
+            //Gather new values from the dialog, reset the labels and update the new values.
+            Object[] prefBtnLabels = {"Update",
+                "Skip"};
+            int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
+            if (result2 == JOptionPane.OK_OPTION){
+                for (int j=0; j<prefs.length;j++) {
+                        //Swap the labels back for processing
+                        String key = prefs[j].substring(0, prefs[j].indexOf("="));
+                        key = key.replace("JP2 Compressor","preferredCompress");
+                        key = key.replace("JP2 Arguments","preferredJp2Args");
+                        key = key.replace("HSH Fitter","preferredFitter");
+                        key = key.replace("JPEG Quality","jpegQuality");
+                        key = key.replace("HSH Order","hshOrder");
+                        key = key.replace("HSH Threads","hshThreads");
+                        key = key.replace("Web RTI Maker","webRtiMaker");
+                        key = key.replace("Short File Names","shortFileNames");
+                        //How can I do this from the result2 JOptionPane?
+                        String value2 = fields[j].getText(); //Gather new information
+                        if(key.equals("shortFileNames")){
+                            shortName = (value2.equals("true") || value2.equals("yes"));
+                            value2 = ""+shortName;
+                        }
+                        theList.put(key,value2);
+                        prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
+                }
+            }
+            else {
+                 //@userHitCancel
 //                    IJ.error("You must make at least one selection to continue!  Exiting...");
 //                    throw new Throwable("You must make at least one selection to continue!");
-                }
-                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
-            else{             
-                JOptionPane.showMessageDialog(null, "No Preference File Found", "A prefs file will be created for you in the ImageJ directory to store your choices in later sessions.", JOptionPane.PLAIN_MESSAGE);
-                logService.log().warn("We are making a new prefs file with the empty defaults.");
-                /**
-                    *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
-                    *@see projectDirectory 
-                */
-                Files.createFile(spectralPrefsFile.toPath()); 
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredCompress="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredJp2Args="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredFitter="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("jpegQuality=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-            }
+            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
+
             jpegQuality = ij.plugin.JpegWriter.getQuality();
             int jpq = Integer.parseInt(theList.get("jpegQuality"));
             if (jpq > 0){
@@ -502,7 +506,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Path createPath = hemi_gamma_dir.toPath();
                 Files.createDirectory(createPath);
                 //We will alert users that this did not exist because it is so important
-                JOptionPane.showMessageDialog(null, "Hemisphere Captures Directory Not Found", "A Hemisphere Captures folder has been created for you in your project directory.  You will need captures to use this plugin.", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(null, "A Hemisphere Captures folder has been created for you in your project directory.  You will need captures to use this plugin. ", "Hemisphere Captures Directory Not Found", JOptionPane.PLAIN_MESSAGE);
                 logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                 hemi_gamma_dir = new File(createPath.toString());
             }
@@ -618,10 +622,10 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else if (listOfTransmissiveSources.length > 1){
                     contentPane = new JPanel();
-                    JPanel scrollGrid = new JPanel();
+                    scrollGrid = new JPanel();
                     scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel taskDirection = new JLabel("Make a selection from available transmissive sources.");
                     labelPanel.add(taskDirection);
                     contentPane.add(labelPanel);
@@ -643,7 +647,7 @@ public class SpectralRTI_Toolkit implements Command {
                         //Add the button group panel to the overall content container
                         scrollGrid.add(radioOption);                   
                     } 
-                    JScrollPane spanel = new JScrollPane(scrollGrid);
+                    spanel = new JScrollPane(scrollGrid);
                     spanel.setBorder(BorderFactory.createEmptyBorder());
                     //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                     //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -679,10 +683,10 @@ public class SpectralRTI_Toolkit implements Command {
                  * UI for raking images selection window.
                  */
                 contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
+                scrollGrid = new JPanel();
                 scrollGrid.setLayout(new GridLayout(20, 0, 0, 0));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
+                labelPanel = new JPanel();
                 JLabel selectLightPositions = new JLabel("Select light positions for lossless static raking images");
                 labelPanel.add(selectLightPositions);
                 contentPane.add(labelPanel);
@@ -719,7 +723,7 @@ public class SpectralRTI_Toolkit implements Command {
                     positions[l] = ch;
                     scrollGrid.add(ch);
                 }
-                JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel = new JScrollPane(scrollGrid);
                 //spanel.setBorder(BorderFactory.createEmptyBorder());
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -777,7 +781,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(listOfNarrowbandCaptures.length<9){
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel directions = new JLabel("You must have 9 or more narrow band captures for Extended Spectrum.  Please add them at this time or quit to add them later.");
                     labelPanel.add(directions);
                     contentPane.add(labelPanel);
@@ -805,8 +809,8 @@ public class SpectralRTI_Toolkit implements Command {
                 scrollPanel.setLayout(new GridLayout(0, 1, 1, 0));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 //contentPane.setLayout(new GridLayout(0, 1, 1, 1)); //Just want one column, as tall as it needs to be (scroll vertical)
-                JPanel labelPanel = new JPanel();
-                JPanel labelPanel2 = new JPanel();
+                labelPanel = new JPanel();
+                labelPanel2 = new JPanel();
                 JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.");
                 JLabel assignNarrowband2 = new JLabel("You must provide at least one selection for each visible range R, G and B.");
                 assignNarrowband2.setBorder(new EmptyBorder(0,0,15,0));
@@ -895,7 +899,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //Add the button group panel to the overall content container
                     scrollPanel.add(contentGroup);                   
 		} 
-                JScrollPane spanel = new JScrollPane(scrollPanel);
+                spanel = new JScrollPane(scrollPanel);
                 //spanel.setBorder(BorderFactory.createEmptyBorder());
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1015,7 +1019,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(listOfNarrowbandCaptures.length<9){
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel directions = new JLabel("You must have 9 or more narrow band captures for Pseudocolor.  Please add them at this time or quit to add them later.");
                     labelPanel.add(directions);
                     contentPane.add(labelPanel);
@@ -1044,10 +1048,10 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfPcaMethods[1]="Generate and manually select two";
                 listOfPcaMethods[2]="Open pregenerated images";
                 contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
+                scrollGrid = new JPanel();
                 scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
+                labelPanel = new JPanel();
                 JLabel directions = new JLabel("PseudoColor images require two source images (typically principal component images).");
                 labelPanel.add(directions);
                 contentPane.add(labelPanel);
@@ -1069,7 +1073,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //Add the button group panel to the overall content container
                     scrollGrid.add(radioOption);                   
                 } 
-                JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel = new JScrollPane(scrollGrid);
                 spanel.setBorder(BorderFactory.createEmptyBorder());
                 //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1216,7 +1220,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(listOfAccurateColorSources.length<1){
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel directions = new JLabel("You must have at least 1 accurate color image for the Accurate Color process.  Please add them at this time or quit to add them later.");
                     labelPanel.add(directions);
                     contentPane.add(labelPanel);
@@ -1249,10 +1253,10 @@ public class SpectralRTI_Toolkit implements Command {
                 else { //There were multiple sources, let the user pick the one they want to use.
                     while(null == accurateColorSource || !accurateColorSource.exists()) {
                         contentPane = new JPanel();
-                        JPanel scrollGrid = new JPanel();
+                        scrollGrid = new JPanel();
                         scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                        JPanel labelPanel = new JPanel();
+                        labelPanel = new JPanel();
                         JLabel directions = new JLabel("Choose the Accurate Color source to use.");
                         labelPanel.add(directions);
                         contentPane.add(labelPanel);
@@ -1271,7 +1275,7 @@ public class SpectralRTI_Toolkit implements Command {
                             //Add the button group panel to the overall content container
                             scrollGrid.add(radioOption);                   
                         } 
-                        JScrollPane spanel = new JScrollPane(scrollGrid);
+                        spanel = new JScrollPane(scrollGrid);
                         spanel.setBorder(BorderFactory.createEmptyBorder());
                         //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -2664,7 +2668,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 else{
-                    JOptionPane.showMessageDialog(null, "Light Position Data Not Found", "Please provide LP data in a LightPositionData directory in your project directory.  A Light Position directory was created for you.", JOptionPane.PLAIN_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Please provide LP data in a LightPositionData directory in your project directory.  A Light Position directory was created for you.", "Light Position Data Not Found", JOptionPane.PLAIN_MESSAGE);
                     Files.createDirectory(folder.toPath());
                 }    
                 //Check assembly-files folder inside LightPositionData folder
