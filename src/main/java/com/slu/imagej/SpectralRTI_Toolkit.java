@@ -415,7 +415,7 @@ public class SpectralRTI_Toolkit implements Command {
                         fieldLabel.setToolTipText("This will be required to complete your task(s)");
                     }
                 }
-                if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor")){
+                if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor") || key.equals("JPEG Quality")){
                     if(acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
                     //We will need to know the compressor and arguments
                         Font font = fieldLabel.getFont();
@@ -734,8 +734,10 @@ public class SpectralRTI_Toolkit implements Command {
                  * Gather and process user selected raking images
                 */
                 boolean atLeastOne = false;
+                Object[] btns = {"Confirm",
+                        "Quit"};
                 while(!atLeastOne){
-                    int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+                    int result = JOptionPane.showOptionDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if (result == JOptionPane.OK_OPTION){
                         for(JCheckBox check : positions){
                             listOfRakingDirections.add(check.isSelected());
@@ -910,8 +912,8 @@ public class SpectralRTI_Toolkit implements Command {
                  * Gather user visible range selections.
                  */
                 //Make sure this doesn't show infinite confirm dialogs.  
-                Object[] btns = {"Finish",
-                    "Cancel"};
+                Object[] btns = {"Confirm",
+                    "Quit"};
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
                     int result = JOptionPane.showOptionDialog(null, contentPane, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if ( result==JOptionPane.OK_OPTION) {
