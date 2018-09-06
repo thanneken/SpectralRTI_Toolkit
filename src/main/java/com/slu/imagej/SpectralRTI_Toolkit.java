@@ -106,8 +106,12 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
@@ -402,7 +406,6 @@ public class SpectralRTI_Toolkit implements Command {
                 key = key.replace("hshThreads","HSH Threads");
                 key = key.replace("webRtiMaker","Web RTI Maker");
                 key = key.replace("shortFileNames","Short File Names");
-
                 String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                 JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
                 if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
@@ -437,9 +440,38 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 scrollGrid.add(fieldLabel);
                 JTextField fieldToAdd = new JTextField(value1, 50);
+                JButton chooseBtn = new JButton("Choose File");
                 fields[i] = fieldToAdd;
-                fieldLabel.setLabelFor(fieldToAdd);
-                scrollGrid.add(fieldToAdd);
+                                 
+                if(key.equals("HSH Fitter") || key.equals("JP2 Compressor") || key.equals("Web RTI Maker")){
+                    //https://coderanch.com/t/346952/java/solved-JTextField-listen-JFileChooser
+                    //We want to offer the user a file picker to populate these text fields alongside the textfield... 
+                    JPanel chooserArea = new JPanel();
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    chooseBtn.addActionListener(new ActionListener() { 
+                    public void actionPerformed(ActionEvent e) { 
+                            //prefFileChooser();
+                            int returnVal = chooser.showOpenDialog(null);
+                            if(returnVal == JFileChooser.APPROVE_OPTION) {
+                                fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
+                            }
+                            else{
+                                fieldToAdd.setText("");
+                            }
+                        } 
+                    });
+                    chooserArea.add(chooseBtn);
+                    chooserArea.add(fieldToAdd);
+                    fieldLabel.setLabelFor(chooserArea);
+                    scrollGrid.add(chooserArea);
+                }
+                else{
+                    //Just a label and text field.
+                    fieldLabel.setLabelFor(fieldToAdd);
+                    scrollGrid.add(fieldToAdd);
+                }
+                
             }
             SpringUtilities.makeCompactGrid(scrollGrid,
                             8, 2, //rows, cols
