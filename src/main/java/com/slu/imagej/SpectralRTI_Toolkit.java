@@ -425,7 +425,7 @@ public class SpectralRTI_Toolkit implements Command {
                         fieldLabel.setToolTipText("This will be required to complete your task(s)");
                     }
                 }
-                if(key.equals("Web Rti Maker")){
+                if(key.equals("Web RTI Maker")){
                     if(webRtiDesired){
                     //We will need to know the web RTI Maker
                         Font font = fieldLabel.getFont();
