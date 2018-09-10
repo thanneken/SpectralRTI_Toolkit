@@ -2358,7 +2358,8 @@ public class SpectralRTI_Toolkit implements Command {
                 }); 
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
-                JLabel prefsLabel = new JLabel("You may edit the arguments as desired.");
+                JLabel prefsLabel = new JLabel("Below are the values for JP2 Compression. You can alter these values as needed.");
+                prefsLabel.setToolTipText("If you had never set these before, we provide default values.  You can use them or provide your own.");
                 labelPanel.add(prefsLabel);
                 contentPane.add(labelPanel);
                 String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible=no Clevels=5 Stiles={1024,1024} Cblk={64,64} Cuse_sop=yes Cuse_eph=yes Corder=RPCL ORGgen_plt=yes ORGtparts=R Cmodes=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
