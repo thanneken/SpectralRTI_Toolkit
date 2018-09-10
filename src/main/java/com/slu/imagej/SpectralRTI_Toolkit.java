@@ -189,6 +189,7 @@ public class SpectralRTI_Toolkit implements Command {
             theList.put("hshOrder", "0");
             theList.put("hshThreads", "0");
             theList.put("webRtiMaker", "");
+            theList.put("shortFileNames", "false");
         }
         private JPanel contentPane = new JPanel();
         final ImageJ ij2 = new ImageJ();
@@ -269,21 +270,69 @@ public class SpectralRTI_Toolkit implements Command {
                 prefs = prefsFileAsText.split(System.lineSeparator());
                 logService.log().info(Arrays.toString(prefs));
                 JTextField[] fields = new JTextField[prefs.length];
+                JLabel fieldLabel = null;
                 for (int i=0;i<prefs.length;i++){
                     //Swap the labels out for presentation
                     String key = prefs[i].substring(0, prefs[i].indexOf("="));
-                    key = key.replace("preferredCompress","JP2 Compressor");
-                    key = key.replace("preferredJp2Args","JP2 Arguments");
-                    key = key.replace("preferredFitter","HSH Fitter");
-                    key = key.replace("jpegQuality","JPEG Quality");
-                    key = key.replace("hshOrder","HSH Order");
-                    key = key.replace("hshThreads","HSH Threads");
-                    key = key.replace("webRtiMaker","Web RTI Maker");
-                    key = key.replace("shortFileNames","Short File Names");
                     
-                    String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
-                    JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
+                    switch(key){
+                        case "preferredCompress":
+                            key = key.replace("preferredCompress","JP2 Compressor");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("Your preferred JP2 Compressor.  This will be required for Static Raking operations. ");
+                        break;
+                            
+                        case "preferredJp2Args":
+                            key = key.replace("preferredJp2Args","JP2 Arguments");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("Your preferred JP2 Arguments for the JP2 Compressor.  Default settings will be offered to you if not set.  This will be required for Static Raking operations.");
+                        break;
+                            
+                        case "preferredFitter":
+                            key = key.replace("preferredFitter","HSH Fitter");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("Your preferred HSH fitter for creating RTI files.  This will be required for all RTI Image operations. ");
+                        break;
+                            
+                        case "jpegQuality":
+                            key = key.replace("jpegQuality","JPEG Quality");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("Your preferred JPEG Quality (0-100).  This will be applied when creating JPEG source files for RTI images. ");
+                        break;
+                            
+                        case "hshOrder":
+                            key = key.replace("hshOrder","HSH Order");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("Your HSH order.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
+                        break;
+                            
+                        case "hshThreads":
+                            key = key.replace("hshThreads","HSH Threads");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("The number of threads for the HSH fitter.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
+                        break;
+                            
+                        case "webRtiMaker":
+                            key = key.replace("webRtiMaker","Web RTI Maker");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("Your preferred WEB RTI maker.  The plugin will send the produced or selected RTI file to be converted into WebRTI and is required for this operation. ");
+                        break;
+                            
+                        case "shortFileNames":
+                            key = key.replace("shortFileNames","Short File Names");
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the UI.  This setting is not required.");
+                        break;
+                            
+                        default:
+                            key = "**"+key;
+                            fieldLabel = new JLabel(key, JLabel.TRAILING);
+                            fieldLabel.setToolTipText("This is an unknown or unsupported preference.");
+                            //This is an unknown setting or an attempt at expansion
+                            
+                    }
                     scrollGrid.add(fieldLabel);
+                    String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                     JTextField fieldToAdd = new JTextField(value1, 50);
                     fields[i] = fieldToAdd;
                     fieldLabel.setLabelFor(fieldToAdd);
@@ -400,18 +449,29 @@ public class SpectralRTI_Toolkit implements Command {
             //Hmm this feels like it should be some kind of defined private array or something somwhere, not just defined all willy nilly here.  
             JCheckBox[] tasks = new JCheckBox[11];
             JCheckBox ch1 = new JCheckBox("Light Position Data");
+            ch1.setToolTipText("Generate light position data.  You will need a Fitter to perform this task.");
             JCheckBox ch2 = new JCheckBox("Accurate Color RTI");
+            ch2.setToolTipText("Generate an Accurate Color RTI Image.  You will need a Fitter to perform this task.");
             JCheckBox ch12 = new JCheckBox("Accurate Color Static Raking");
+            ch12.setToolTipText("Generate a JP2 Accurate Color Static Raking image.  You will need a JP2 Compressor to perform this task.");
             JCheckBox ch3 = new JCheckBox("Extended Spectrum RTI");
+            ch3.setToolTipText("Generate an Extended Spectrum RTI Image.  You will need a Fitter to perform this task.");
             JCheckBox ch4 = new JCheckBox("Extended Spectrum Static Raking");
+            ch4.setToolTipText("Generate a JP2 Extended Spectrum Static Raking image.  You will need a JP2 Compressor to perform this task.");
             JCheckBox ch5 = new JCheckBox("PseudoColor RTI");
+            ch5.setToolTipText("Generate a Pseudocolor RTI Image.  You will need a Fitter to perform this task.");
             JCheckBox ch6 = new JCheckBox("PseudoColor Static Raking");
+            ch6.setToolTipText("Generate a JP2 Pseudocolor Static Raking image.  You will need a JP2 Compressor to perform this task.");
             JCheckBox ch7 = new JCheckBox("Custom RTI");
+            ch7.setToolTipText("Generate a Custom Spectral RTI Image.  You will need a Fitter and a custom source to perform this task.");
             JCheckBox ch8 = new JCheckBox("Custom Static Raking");
+            ch8.setToolTipText("Generate a Custom JP2 Static Raking image.  You will need a JP2 Compressor and a custom source to perform this task.");
             JCheckBox ch9 = new JCheckBox("WebRTI");
+            ch9.setToolTipText("Generate a WebRTI image for all RTI images created from other selected tasks.  If no other RTI task is selected, this process will ask for you to provide an RTI image.");
             JLabel snL = new JLabel("Check below to use names instead of paths.");
             snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
             JCheckBox ch10 = new JCheckBox("Short File Names");
+            ch10.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the plugin.");
             ch10.setSelected(shortName);
             tasks[0] = ch1;
             tasks[1] = ch2;
@@ -584,6 +644,9 @@ public class SpectralRTI_Toolkit implements Command {
                         //Create a new button group for this capture
                         //String defaultRange;
                         JRadioButton radioOption = new JRadioButton(listOfTransmissiveSources[i]);
+                        if(shortName){
+                            radioOption.setToolTipText(listOfTransmissiveSources_list.get(i));
+                        }
                         radioOption.setActionCommand(listOfTransmissiveSources[i]);
                         if(i==0){
                             radioOption.setSelected(true);
@@ -803,13 +866,14 @@ public class SpectralRTI_Toolkit implements Command {
                     bgroups[i] = capture_radios;
                     //Auto-select the correct button
                     String narrowCapture = "";
+                    JLabel jlabel = new JLabel(narrowCapture);
                     if(shortName){
                         narrowCapture = "..."+listOfNarrowbandCaptures[i].getName();
                     }
                     else{
                         narrowCapture = listOfNarrowbandCaptures[i].toString();
                     }
-                    JLabel jlabel = new JLabel(narrowCapture);
+                   
                     jlabel.setToolTipText(listOfNarrowbandCaptures[i].toString());
                     jlabel.setBorder(new EmptyBorder(0,10,0,0));
                     scrollPanel.add(jlabel);
@@ -1211,7 +1275,14 @@ public class SpectralRTI_Toolkit implements Command {
                         */
                         ButtonGroup capture_radios = new ButtonGroup();
                         for (int i=0; i<listOfAccurateColorSources.length; i++) {
-                            JRadioButton radioOption = new JRadioButton(listOfAccurateColorSources_string[i]);
+                            JRadioButton radioOption = null;
+                            if(shortName){
+                               radioOption = new JRadioButton(listOfAccurateColorSources_short.get(i)); 
+                               radioOption.setToolTipText(listOfAccurateColorSources_string[i]);
+                            }
+                            else{
+                               radioOption =  new JRadioButton(listOfAccurateColorSources_string[i]);
+                            }
                             radioOption.setActionCommand(listOfAccurateColorSources_string[i]);
                             if(i==0){
                                 radioOption.setSelected(true);
@@ -2349,7 +2420,6 @@ public class SpectralRTI_Toolkit implements Command {
             scrollGrid2.add(directions2);
             /**
              * UI for creating the checkbox selections.  
-             * @see shortName
             */
             //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
             ButtonGroup adjust_radios = new ButtonGroup();
@@ -2675,7 +2745,7 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane.add(labelPanel);
                         /**
                          * UI for creating the checkbox selections.  
-                         * @see shortName
+                         * @see shortName ??
                         */
                         ButtonGroup capture_radios = new ButtonGroup();
                         for (int i=0; i<listOfLpFiles.length; i++) {
