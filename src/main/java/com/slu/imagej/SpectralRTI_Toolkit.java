@@ -105,8 +105,13 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import java.awt.Dialog;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
@@ -230,27 +235,9 @@ public class SpectralRTI_Toolkit implements Command {
             String csSource = "";
             Concatenator con = new Concatenator();
             File projectFile = null;
-            while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
-                file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
-                projectDirectory = file_dialog.getDirectory();
-                if(null==projectDirectory){
-                    //@userHitCancel
-                    IJ.error("You must provide a project directory to continue.  Exiting...");
-                    throw new Throwable("You must provide a project directory."); //DIE if no directory provided
-                }
-                projectFile = new File(projectDirectory);
-            }
-            if(projectDirectory == null || projectDirectory.equals("")){
-                IJ.error("You must provide a project directory to continue.  Exiting...");
-                throw new Throwable("You must provide a project directory."); //DIE if no directory provided
-            }
-            else{
-                projectDirectory = projectDirectory.replace("\\",File.separator);
-                projectName = projectFile.getName();
-            }
+            
             /**
-             * consult with user about values stored in prefs file in base fiji folder.  
-             * We can move this around, say to the project directory since we know it by this point, if we want.  
+             * Make sure there is a preference file.  If not, crete one with the default empty entries.
              */
             if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
                 contentPane = new JPanel();
@@ -395,57 +382,34 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
-            jpegQuality = ij.plugin.JpegWriter.getQuality();
-            int jpq = Integer.parseInt(theList.get("jpegQuality"));
-            if (jpq > 0){
-                jpegQuality = jpq;
+            
+            /**
+             * First ask the user to locate the project directory.  We cannot continue without one. 
+             */
+            while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
+                file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
+                projectDirectory = file_dialog.getDirectory();
+                if(null==projectDirectory){
+                    //@userHitCancel
+                    IJ.error("You must provide a project directory to continue.  Exiting...");
+                    throw new Throwable("You must provide a project directory."); //DIE if no directory provided
+                }
+                projectFile = new File(projectDirectory);
+            }
+            if(projectDirectory == null || projectDirectory.equals("")){
+                IJ.error("You must provide a project directory to continue.  Exiting...");
+                throw new Throwable("You must provide a project directory."); //DIE if no directory provided
             }
             else{
-                /**
-                 * Don't actually write this to the file, force the user to edit the preference file themselves.
-                 * @see appendString variable
-                 */
+                projectDirectory = projectDirectory.replace("\\",File.separator);
+                projectName = projectFile.getName();
             }
-            IJ.run("Input/Output...","jpeg="+jpegQuality);
-            File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
-            File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
-            File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
-            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
-            File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
-            File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
-            File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
-            File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-            if (!hemi_gamma_dir.exists()) {
-                Path createPath = hemi_gamma_dir.toPath();
-                Files.createDirectory(createPath);
-                //JOptionPane.showMessageDialog(null, "Hemisphere Captures Directory Not Found", "A Hemisphere Captures folder has been created for you in your project directory.", JOptionPane.PLAIN_MESSAGE);
-                logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-                hemi_gamma_dir = new File(createPath.toString());
-            }
-            listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
-            while (listOfHemisphereCaptures.length < 1 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 1 image in HemisphereCaptures folder.\nPlease populate the folder then press Ok to continue, or cancel.")){
-                listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
-            }
-            if(listOfHemisphereCaptures.length < 1){
-                IJ.error("There must be at least 1 image in the hemisphere captures folder to continue.  Please populate for next time.  Exiting...");
-                throw new Throwable("There must be at least 1 image in the hemisphere caputres folder to continue.  Please populate for next time.");
-            }
-            Arrays.sort(listOfHemisphereCaptures, NameFileComparator.NAME_COMPARATOR);
             
             
-            if (!light_position_dir.exists() ){ 
-                Files.createDirectory(light_position_dir.toPath());
-            }
-            if (!accurate_color_dir.exists() ){
-                Files.createDirectory(accurate_color_dir.toPath());
-            }
-            if(!narrow_band_dir.exists()){
-                Files.createDirectory(narrow_band_dir.toPath());
-            }
-            else{
-                listOfNarrowbandCaptures = narrow_band_dir.listFiles();
-            }
-
+            /**
+             * Second, consult with the user about their desired tasks.  This will help us know what to ask them throughout the plugin.
+             * We cannot continue without a task.
+             */
             //Hmm this feels like it should be some kind of defined private array or something somwhere, not just defined all willy nilly here.  
             JCheckBox[] tasks = new JCheckBox[11];
             JCheckBox ch1 = new JCheckBox("Light Position Data");
@@ -543,7 +507,207 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.error("You must provide a task set to continue.  Exiting...");
                     throw new Throwable("You must provide a task set to continue.");
                 }
+            }
 
+            /**
+             * consult with user about values stored in prefs file in base fiji folder.  
+             * Some will be required and if not provided, the plugin will have to ask for them later.
+             * TODO: Since we know desired tasks, make sure to call out the required preferences with a bold or colored label.  
+             */
+            
+            contentPane = new JPanel();
+            JPanel scrollGrid = new JPanel();
+            scrollGrid.setLayout(new SpringLayout());
+            //display label and text area side by side in two columns for as many prefs exist
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel labelPanel = new JPanel();
+            JPanel labelPanel2 = new JPanel();
+            JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
+            JLabel prefsLabel2 = new JLabel("Edit or clear as desired.");
+            labelPanel.add(prefsLabel);
+            labelPanel2.add(prefsLabel2);
+            contentPane.add(labelPanel);
+            contentPane.add(labelPanel2);
+            prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+            prefs = prefsFileAsText.split(System.lineSeparator());
+            logService.log().info(Arrays.toString(prefs));
+            JTextField[] fields = new JTextField[prefs.length];
+            for (int i=0;i<prefs.length;i++){
+                //Swap the labels out for presentation
+                String key = prefs[i].substring(0, prefs[i].indexOf("="));
+                key = key.replace("preferredCompress","JP2 Compressor");
+                key = key.replace("preferredJp2Args","JP2 Arguments");
+                key = key.replace("preferredFitter","HSH Fitter");
+                key = key.replace("jpegQuality","JPEG Quality");
+                key = key.replace("hshOrder","HSH Order");
+                key = key.replace("hshThreads","HSH Threads");
+                key = key.replace("webRtiMaker","Web RTI Maker");
+                key = key.replace("shortFileNames","Short File Names");
+                String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
+                JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
+                if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
+                    if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
+                    //We will need to know the fitter
+                        Font font = fieldLabel.getFont();
+                        // same font but bold
+                        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                        fieldLabel.setFont(boldFont);
+                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                    }
+                }
+                if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor") || key.equals("JPEG Quality")){
+                    if(acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
+                    //We will need to know the compressor and arguments
+                        Font font = fieldLabel.getFont();
+                        // same font but bold
+                        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                        fieldLabel.setFont(boldFont);
+                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                    }
+                }
+                if(key.equals("Web RTI Maker")){
+                    if(webRtiDesired){
+                    //We will need to know the web RTI Maker
+                        Font font = fieldLabel.getFont();
+                        // same font but bold
+                        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
+                        fieldLabel.setFont(boldFont);
+                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
+                    }
+                }
+                scrollGrid.add(fieldLabel);
+                JTextField fieldToAdd = new JTextField(value1, 50);
+                JButton chooseBtn = new JButton("Choose File");
+                fields[i] = fieldToAdd;
+                                 
+                if(key.equals("HSH Fitter") || key.equals("JP2 Compressor") || key.equals("Web RTI Maker")){
+                    //https://coderanch.com/t/346952/java/solved-JTextField-listen-JFileChooser
+                    //We want to offer the user a file picker to populate these text fields alongside the textfield... 
+                    JPanel chooserArea = new JPanel();
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    chooseBtn.addActionListener(new ActionListener() { 
+                    public void actionPerformed(ActionEvent e) { 
+                            //prefFileChooser();
+                            int returnVal = chooser.showOpenDialog(null);
+                            if(returnVal == JFileChooser.APPROVE_OPTION) {
+                                fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
+                            }
+                            else{
+                                fieldToAdd.setText("");
+                            }
+                        } 
+                    });
+                    chooserArea.add(chooseBtn);
+                    chooserArea.add(fieldToAdd);
+                    fieldLabel.setLabelFor(chooserArea);
+                    scrollGrid.add(chooserArea);
+                }
+                else{
+                    //Just a label and text field.
+                    fieldLabel.setLabelFor(fieldToAdd);
+                    scrollGrid.add(fieldToAdd);
+                }
+                
+            }
+            SpringUtilities.makeCompactGrid(scrollGrid,
+                            8, 2, //rows, cols
+                            6, 6,        //initX, initY
+                            6, 6);       //xPad, yPad
+            JScrollPane spanel = new JScrollPane(scrollGrid);
+            spanel.setBorder(BorderFactory.createEmptyBorder());
+            contentPane.add(spanel);
+
+            //Gather new values from the dialog, reset the labels and update the new values.
+            Object[] prefBtnLabels = {"Update",
+                "Skip"};
+            int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
+            if (result2 == JOptionPane.OK_OPTION){
+                for (int j=0; j<prefs.length;j++) {
+                        //Swap the labels back for processing
+                        String key = prefs[j].substring(0, prefs[j].indexOf("="));
+                        key = key.replace("JP2 Compressor","preferredCompress");
+                        key = key.replace("JP2 Arguments","preferredJp2Args");
+                        key = key.replace("HSH Fitter","preferredFitter");
+                        key = key.replace("JPEG Quality","jpegQuality");
+                        key = key.replace("HSH Order","hshOrder");
+                        key = key.replace("HSH Threads","hshThreads");
+                        key = key.replace("Web RTI Maker","webRtiMaker");
+                        key = key.replace("Short File Names","shortFileNames");
+                        //How can I do this from the result2 JOptionPane?
+                        String value2 = fields[j].getText(); //Gather new information
+                        if(key.equals("shortFileNames")){
+                            shortName = (value2.equals("true") || value2.equals("yes"));
+                            value2 = ""+shortName;
+                        }
+                        theList.put(key,value2);
+                        prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
+                }
+            }
+            else {
+                 //@userHitCancel
+//                    IJ.error("You must make at least one selection to continue!  Exiting...");
+//                    throw new Throwable("You must make at least one selection to continue!");
+            }
+            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
+
+            jpegQuality = ij.plugin.JpegWriter.getQuality();
+            int jpq = Integer.parseInt(theList.get("jpegQuality"));
+            if (jpq > 0){
+                jpegQuality = jpq;
+            }
+            else{
+                /**
+                 * Don't actually write this to the file, force the user to edit the preference file themselves.
+                 * @see appendString variable
+                 */
+            }
+            IJ.run("Input/Output...","jpeg="+jpegQuality);
+            File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
+            File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
+            File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
+            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
+            File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+            File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
+            File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
+            File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+            if (!hemi_gamma_dir.exists()) {
+                Path createPath = hemi_gamma_dir.toPath();
+                Files.createDirectory(createPath);
+                //We will alert users that this did not exist because it is so important
+                JOptionPane.showMessageDialog(null, "A Hemisphere Captures folder has been created for you in your project directory.  You will need captures to use this plugin. ", "Hemisphere Captures Directory Not Found", JOptionPane.PLAIN_MESSAGE);
+                logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+                hemi_gamma_dir = new File(createPath.toString());
+            }
+            listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
+            while (listOfHemisphereCaptures.length < 1 && IJ.showMessageWithCancel("Please Populate Hemisphere Captures","The software expects at least 1 image in HemisphereCaptures folder.\nPlease populate the folder then press Ok to continue, or cancel.")){
+                listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
+            }
+            if(listOfHemisphereCaptures.length < 1){
+                IJ.error("There must be at least 1 image in the hemisphere captures folder to continue.  Please populate for next time.  Exiting...");
+                throw new Throwable("There must be at least 1 image in the hemisphere caputres folder to continue.  Please populate for next time.");
+            }
+            Arrays.sort(listOfHemisphereCaptures, NameFileComparator.NAME_COMPARATOR);
+            
+            /**
+            * These aren't always necessary and therefore aren't technically required.  We will create them automatically, but we do not need to tell the user.
+            * Consequently, this controls building the full required project folder structure automatically or not.  Whether we choose to do it or not does not 
+            * affect functionality.  
+            */
+            if (!light_position_dir.exists() ){ 
+                Files.createDirectory(light_position_dir.toPath());
+            }
+            if (!accurate_color_dir.exists() ){
+                Files.createDirectory(accurate_color_dir.toPath());
+            }
+            if(!transmissive_gamma_dir.exists()){
+                Files.createDirectory(transmissive_gamma_dir.toPath());
+            }
+            if(!narrow_band_dir.exists()){
+                Files.createDirectory(narrow_band_dir.toPath());
+            }
+            else{
+                listOfNarrowbandCaptures = narrow_band_dir.listFiles();
             }
             /** DEBUGGING **/
             logService.log().info("Variable States listed below!");
@@ -627,15 +791,15 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else if (listOfTransmissiveSources.length > 1){
                     contentPane = new JPanel();
-                    JPanel scrollGrid = new JPanel();
+                    scrollGrid = new JPanel();
                     scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel taskDirection = new JLabel("Make a selection from available transmissive sources.");
                     labelPanel.add(taskDirection);
                     contentPane.add(labelPanel);
                     /**
-                     * UI for creating the checkbox selections.  
+                     * UI for creating the radio button selections.  
                      * @see shortName
                     */
                     //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
@@ -655,7 +819,7 @@ public class SpectralRTI_Toolkit implements Command {
                         //Add the button group panel to the overall content container
                         scrollGrid.add(radioOption);                   
                     } 
-                    JScrollPane spanel = new JScrollPane(scrollGrid);
+                    spanel = new JScrollPane(scrollGrid);
                     spanel.setBorder(BorderFactory.createEmptyBorder());
                     //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                     //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -691,10 +855,10 @@ public class SpectralRTI_Toolkit implements Command {
                  * UI for raking images selection window.
                  */
                 contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
+                scrollGrid = new JPanel();
                 scrollGrid.setLayout(new GridLayout(20, 0, 0, 0));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
+                labelPanel = new JPanel();
                 JLabel selectLightPositions = new JLabel("Select light positions for lossless static raking images");
                 labelPanel.add(selectLightPositions);
                 contentPane.add(labelPanel);
@@ -731,7 +895,7 @@ public class SpectralRTI_Toolkit implements Command {
                     positions[l] = ch;
                     scrollGrid.add(ch);
                 }
-                JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel = new JScrollPane(scrollGrid);
                 //spanel.setBorder(BorderFactory.createEmptyBorder());
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -742,8 +906,10 @@ public class SpectralRTI_Toolkit implements Command {
                  * Gather and process user selected raking images
                 */
                 boolean atLeastOne = false;
+                Object[] btns = {"Confirm",
+                        "Quit"};
                 while(!atLeastOne){
-                    int result = JOptionPane.showConfirmDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION);
+                    int result = JOptionPane.showOptionDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if (result == JOptionPane.OK_OPTION){
                         for(JCheckBox check : positions){
                             listOfRakingDirections.add(check.isSelected());
@@ -789,7 +955,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(listOfNarrowbandCaptures.length<9){
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel directions = new JLabel("You must have 9 or more narrow band captures for Extended Spectrum.  Please add them at this time or quit to add them later.");
                     labelPanel.add(directions);
                     contentPane.add(labelPanel);
@@ -817,8 +983,8 @@ public class SpectralRTI_Toolkit implements Command {
                 scrollPanel.setLayout(new GridLayout(0, 1, 1, 0));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 //contentPane.setLayout(new GridLayout(0, 1, 1, 1)); //Just want one column, as tall as it needs to be (scroll vertical)
-                JPanel labelPanel = new JPanel();
-                JPanel labelPanel2 = new JPanel();
+                labelPanel = new JPanel();
+                labelPanel2 = new JPanel();
                 JLabel assignNarrowband = new JLabel("Assign each narrowband capture to the visible range of R, G, B, or none.");
                 JLabel assignNarrowband2 = new JLabel("You must provide at least one selection for each visible range R, G and B.");
                 assignNarrowband2.setBorder(new EmptyBorder(0,0,15,0));
@@ -908,7 +1074,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //Add the button group panel to the overall content container
                     scrollPanel.add(contentGroup);                   
 		} 
-                JScrollPane spanel = new JScrollPane(scrollPanel);
+                spanel = new JScrollPane(scrollPanel);
                 //spanel.setBorder(BorderFactory.createEmptyBorder());
                 spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -919,8 +1085,8 @@ public class SpectralRTI_Toolkit implements Command {
                  * Gather user visible range selections.
                  */
                 //Make sure this doesn't show infinite confirm dialogs.  
-                Object[] btns = {"Finish",
-                    "Cancel"};
+                Object[] btns = {"Confirm",
+                    "Quit"};
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
                     int result = JOptionPane.showOptionDialog(null, contentPane, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if ( result==JOptionPane.OK_OPTION) {
@@ -1028,7 +1194,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(listOfNarrowbandCaptures.length<9){
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel directions = new JLabel("You must have 9 or more narrow band captures for Pseudocolor.  Please add them at this time or quit to add them later.");
                     labelPanel.add(directions);
                     contentPane.add(labelPanel);
@@ -1057,15 +1223,15 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfPcaMethods[1]="Generate and manually select two";
                 listOfPcaMethods[2]="Open pregenerated images";
                 contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
+                scrollGrid = new JPanel();
                 scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
+                labelPanel = new JPanel();
                 JLabel directions = new JLabel("PseudoColor images require two source images (typically principal component images).");
                 labelPanel.add(directions);
                 contentPane.add(labelPanel);
                 /**
-                 * UI for creating the checkbox selections.  
+                 * UI for creating the radio selections.  
                  * @see shortName
                 */
                 //There will be a button group for each narrow band capture.  We need to keep track of each group as a distinct object.
@@ -1082,7 +1248,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //Add the button group panel to the overall content container
                     scrollGrid.add(radioOption);                   
                 } 
-                JScrollPane spanel = new JScrollPane(scrollGrid);
+                spanel = new JScrollPane(scrollGrid);
                 spanel.setBorder(BorderFactory.createEmptyBorder());
                 //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1229,7 +1395,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(listOfAccurateColorSources.length<1){
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                    JPanel labelPanel = new JPanel();
+                    labelPanel = new JPanel();
                     JLabel directions = new JLabel("You must have at least 1 accurate color image for the Accurate Color process.  Please add them at this time or quit to add them later.");
                     labelPanel.add(directions);
                     contentPane.add(labelPanel);
@@ -1262,10 +1428,10 @@ public class SpectralRTI_Toolkit implements Command {
                 else { //There were multiple sources, let the user pick the one they want to use.
                     while(null == accurateColorSource || !accurateColorSource.exists()) {
                         contentPane = new JPanel();
-                        JPanel scrollGrid = new JPanel();
+                        scrollGrid = new JPanel();
                         scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                        JPanel labelPanel = new JPanel();
+                        labelPanel = new JPanel();
                         JLabel directions = new JLabel("Choose the Accurate Color source to use.");
                         labelPanel.add(directions);
                         contentPane.add(labelPanel);
@@ -1291,7 +1457,7 @@ public class SpectralRTI_Toolkit implements Command {
                             //Add the button group panel to the overall content container
                             scrollGrid.add(radioOption);                   
                         } 
-                        JScrollPane spanel = new JScrollPane(scrollGrid);
+                        spanel = new JScrollPane(scrollGrid);
                         spanel.setBorder(BorderFactory.createEmptyBorder());
                         //spanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         //spanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -1382,10 +1548,6 @@ public class SpectralRTI_Toolkit implements Command {
                         if (extensionIndex != -1)
                         {
                             String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); //.toString().substring(0, extensionIndex)
-                            //String simpleName2 = projectName + "_";
-                            //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
-                            //filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName2+simpleName3;
-                            //simpleImageName = "AccurateColor_"+simpleName2+simpleName3;
                             filePath = projectDirectory+"AccurateColorRTI"+File.separator+"AccurateColor_"+simpleName1;
                             simpleImageName = "AccurateColor_"+simpleName1;
                         }
@@ -1407,7 +1569,7 @@ public class SpectralRTI_Toolkit implements Command {
                 cr.close();
                 keptPieces.close();
                 createLpFile("AccurateColor", projectDirectory); 
-                WindowManager.closeAllWindows(); // IS this needed?
+                WindowManager.closeAllWindows();
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
@@ -1475,8 +1637,8 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             IJ.run(imp, "8-bit", "");
                             ImagePlus keptPieces = con.concatenate(cb, cr, true);
-                            cb.close(); //Can this be closed??
-                            cr.close(); //Can this be closed??
+                            cb.close();
+                            cr.close(); 
                             ImagePlus stack = con.concatenate(imp, keptPieces, true);
                             stack.setTitle("YCC");
                             stack.hide();
@@ -1519,7 +1681,7 @@ public class SpectralRTI_Toolkit implements Command {
                 if(redNarrowbands.length == 1){
                     IJ.run(redStacker, "Add Slice", "");
                 }
-                //YIKES
+                //@YIKES
                 //What happens if these weren't set yet?  Do I need to get the width of height of the image?
                 //It should at least be set to the height or width of the image when grabbed above in the pcaHeight < 100 clause right?
                 if(pcaWidth == 0){
@@ -1958,8 +2120,6 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                                //String simpleName2 = projectName + "_";
-                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName1;
                                 simpleImageName = "PseudoColor_"+simpleName1;
                             }
@@ -1986,8 +2146,6 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
-                                //String simpleName2 = projectName + "_";
-                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 filePath = projectDirectory+"PseudoColorRTI"+File.separator+"PseudoColor_"+simpleName1;
                                 simpleImageName = "PseudoColor_"+simpleName1;
                             }
@@ -2118,10 +2276,7 @@ public class SpectralRTI_Toolkit implements Command {
                             if (extensionIndex != -1)
                             {
                                 String simpleName1 = listOfHemisphereCaptures[i].getName().substring(0, extensionIndex); 
-                                //String simpleName2 = projectName + "_";
-                                //String simpleName3 = simpleName1.substring(simpleName1.indexOf("RTI-"));
                                 filePath = projectDirectory+csProcessName+"RTI"+File.separator+csProcessName+"_"+simpleName1;
-                                //filePath = projectDirectory+csProcessName+"RTI"+File.separator+simpleName2+simpleName3;
                                 simpleImageName = csProcessName+"_"+simpleName1;
                             }
                             else{
@@ -2409,13 +2564,9 @@ public class SpectralRTI_Toolkit implements Command {
             scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
             scrollGrid2.setLayout(new BoxLayout(scrollGrid2,BoxLayout.PAGE_AXIS));
             contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-            JPanel labelPanel = new JPanel();
-            JPanel labelPanel2 = new JPanel();
             JLabel directions = new JLabel("Adjust brightness of hemisphere captures?");
             JLabel directions2 = new JLabel("Apply adjustment to which output images?");
             directions2.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
-            //labelPanel.add(directions);
-            //labelPanel2.add(directions2);
             scrollGrid.add(directions);
             scrollGrid2.add(directions2);
             /**
@@ -2698,7 +2849,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 else{
-                    JOptionPane.showMessageDialog(null, "Light Position Data Not Found", "Please provide LP data in a LightPositionData directory in your project directory.  A Light Position directory was created for you.", JOptionPane.PLAIN_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Please provide LP data in a LightPositionData directory in your project directory.  A Light Position directory was created for you.", "Light Position Data Not Found", JOptionPane.PLAIN_MESSAGE);
                     Files.createDirectory(folder.toPath());
                 }    
                 //Check assembly-files folder inside LightPositionData folder
@@ -2722,10 +2873,6 @@ public class SpectralRTI_Toolkit implements Command {
                         lpSource = listOfLpFiles_list.get(0);
                     } 
                     else if(listOfLpFiles_list.isEmpty()){
-                        //noLpData.addMessage("Please provide light position source files in your LightPositionData directory in the future.");
-                        //noLpData.setMaximumSize(bestFit);
-                        //noLpData.showDialog();
-                        //throw new Throwable("You need to have light position data to continue.");
                         OpenDialog dialog = new OpenDialog("Locate Light Position Source File"); 
                         if(null==dialog.getPath()){
                             //@userHitCancel
@@ -2819,15 +2966,16 @@ public class SpectralRTI_Toolkit implements Command {
             File webRTIFolder;
             if(!rtiImage.equals("")){
                 //The user has chosen to just create a webrti from an existing RTI Image, we do not know for what process.
-                //We need to pull out the location of the provided RTI file
+                
                 File imgFile = new File(rtiImage);
                 String RTIDir = imgFile.getParent();
                 logService.log().info("RTI DIR: "+RTIDir);
-                //String dirName = new File(RTIDir).getName();
+                //Make webRTI files in the same directory as the provided rti image  
                 colorProcess = RTIDir;
                 webRTIFolder = new File(RTIDir);
             }
             else{
+                //Prepare to make RTI files from plugin generated rti file
                 colorProcess += "RTI";
                 webRTIFolder = new File(projectDirectory+colorProcess+File.separator);
             }
@@ -2846,7 +2994,6 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.pack();
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
             String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
-            
             if (webRtiDesired) {
                 noticeFrame.setVisible(true);  
                 logService.log().info("I have found a desire for WebRTI...input");
@@ -2878,7 +3025,7 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
                 
                 if (!webRTIFolder.exists() && rtiImage.equals("")) {
-                    //If the user only chose to make WebRTI, then they will be using the default directory.  Don't make a new one here. 
+                    //Make sure the directory we want to use exists if it is a user provided rti file.
                     Path createPath = webRTIFolder.toPath();
                     Files.createDirectory(createPath);
                     logService.log().info("A directory has been created for the Web RTI file at "+webRTIFolder.toString());
