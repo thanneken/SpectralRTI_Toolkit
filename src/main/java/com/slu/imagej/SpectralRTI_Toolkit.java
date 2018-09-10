@@ -239,134 +239,8 @@ public class SpectralRTI_Toolkit implements Command {
             /**
              * Make sure there is a preference file.  If not, crete one with the default empty entries.
              */
-            if (spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
-                contentPane = new JPanel();
-                JPanel scrollGrid = new JPanel();
-                scrollGrid.setLayout(new SpringLayout());
-                //display label and text area side by side in two columns for as many prefs exist
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
-                JPanel labelPanel2 = new JPanel();
-                JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
-                JLabel prefsLabel2 = new JLabel("Edit or clear as desired.");
-                labelPanel.add(prefsLabel);
-                labelPanel2.add(prefsLabel2);
-                contentPane.add(labelPanel);
-                contentPane.add(labelPanel2);
-                prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                prefs = prefsFileAsText.split(System.lineSeparator());
-                logService.log().info(Arrays.toString(prefs));
-                JTextField[] fields = new JTextField[prefs.length];
-                JLabel fieldLabel = null;
-                for (int i=0;i<prefs.length;i++){
-                    //Swap the labels out for presentation
-                    String key = prefs[i].substring(0, prefs[i].indexOf("="));
-                    
-                    switch(key){
-                        case "preferredCompress":
-                            key = key.replace("preferredCompress","JP2 Compressor");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("Your preferred JP2 Compressor.  This will be required for Static Raking operations. ");
-                        break;
-                            
-                        case "preferredJp2Args":
-                            key = key.replace("preferredJp2Args","JP2 Arguments");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("Your preferred JP2 Arguments for the JP2 Compressor.  Default settings will be offered to you if not set.  This will be required for Static Raking operations.");
-                        break;
-                            
-                        case "preferredFitter":
-                            key = key.replace("preferredFitter","HSH Fitter");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("Your preferred HSH fitter for creating RTI files.  This will be required for all RTI Image operations. ");
-                        break;
-                            
-                        case "jpegQuality":
-                            key = key.replace("jpegQuality","JPEG Quality");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("Your preferred JPEG Quality (0-100).  This will be applied when creating JPEG source files for RTI images. ");
-                        break;
-                            
-                        case "hshOrder":
-                            key = key.replace("hshOrder","HSH Order");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("Your HSH order.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
-                        break;
-                            
-                        case "hshThreads":
-                            key = key.replace("hshThreads","HSH Threads");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("The number of threads for the HSH fitter.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
-                        break;
-                            
-                        case "webRtiMaker":
-                            key = key.replace("webRtiMaker","Web RTI Maker");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("Your preferred WEB RTI maker.  The plugin will send the produced or selected RTI file to be converted into WebRTI and is required for this operation. ");
-                        break;
-                            
-                        case "shortFileNames":
-                            key = key.replace("shortFileNames","Short File Names");
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the UI.  This setting is not required.");
-                        break;
-                            
-                        default:
-                            key = "**"+key;
-                            fieldLabel = new JLabel(key, JLabel.TRAILING);
-                            fieldLabel.setToolTipText("This is an unknown or unsupported preference.");
-                            //This is an unknown setting or an attempt at expansion
-                            
-                    }
-                    scrollGrid.add(fieldLabel);
-                    String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
-                    JTextField fieldToAdd = new JTextField(value1, 50);
-                    fields[i] = fieldToAdd;
-                    fieldLabel.setLabelFor(fieldToAdd);
-                    scrollGrid.add(fieldToAdd);
-                }
-                SpringUtilities.makeCompactGrid(scrollGrid,
-                                8, 2, //rows, cols
-                                6, 6,        //initX, initY
-                                6, 6);       //xPad, yPad
-                JScrollPane spanel = new JScrollPane(scrollGrid);
-                spanel.setBorder(BorderFactory.createEmptyBorder());
-                contentPane.add(spanel);
-                
-                //Gather new values from the dialog, reset the labels and update the new values.
-                Object[] prefBtnLabels = {"Update",
-                    "Skip"};
-                int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
-                if (result2 == JOptionPane.OK_OPTION){
-                    for (int j=0; j<prefs.length;j++) {
-                            //Swap the labels back for processing
-                            String key = prefs[j].substring(0, prefs[j].indexOf("="));
-                            key = key.replace("JP2 Compressor","preferredCompress");
-                            key = key.replace("JP2 Arguments","preferredJp2Args");
-                            key = key.replace("HSH Fitter","preferredFitter");
-                            key = key.replace("JPEG Quality","jpegQuality");
-                            key = key.replace("HSH Order","hshOrder");
-                            key = key.replace("HSH Threads","hshThreads");
-                            key = key.replace("Web RTI Maker","webRtiMaker");
-                            key = key.replace("Short File Names","shortFileNames");
-                            //How can I do this from the result2 JOptionPane?
-                            String value2 = fields[j].getText(); //Gather new information
-                            if(key.equals("shortFileNames")){
-                                shortName = (value2.equals("true") || value2.equals("yes"));
-                            }
-                            theList.put(key,value2);
-                            prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
-                    }
-                }
-                else {
-                     //@userHitCancel
-//                    IJ.error("You must make at least one selection to continue!  Exiting...");
-//                    throw new Throwable("You must make at least one selection to continue!");
-                }
-                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-            }
-            else{             
-                JOptionPane.showMessageDialog(null, "No Preference File Found", "A prefs file will be created for you in the ImageJ directory to store your choices in later sessions.", JOptionPane.PLAIN_MESSAGE);
+            if (!spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
+                JOptionPane.showMessageDialog(null, "No Preference File Found", "A prefs file will be created for you in the ImageJ directory to store your choices for later sessions.", JOptionPane.PLAIN_MESSAGE);
                 logService.log().warn("We are making a new prefs file with the empty defaults.");
                 /**
                     *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
@@ -405,7 +279,6 @@ public class SpectralRTI_Toolkit implements Command {
                 projectName = projectFile.getName();
             }
             
-            
             /**
              * Second, consult with the user about their desired tasks.  This will help us know what to ask them throughout the plugin.
              * We cannot continue without a task.
@@ -433,6 +306,7 @@ public class SpectralRTI_Toolkit implements Command {
             JCheckBox ch9 = new JCheckBox("WebRTI");
             ch9.setToolTipText("Generate a WebRTI image for all RTI images created from other selected tasks.  If no other RTI task is selected, this process will ask for you to provide an RTI image.");
             JLabel snL = new JLabel("Check below to use names instead of paths.");
+            snL.setToolTipText("/path/to/file.exe  vs.  file.exe");
             snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
             JCheckBox ch10 = new JCheckBox("Short File Names");
             ch10.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the plugin.");
@@ -523,7 +397,7 @@ public class SpectralRTI_Toolkit implements Command {
             JPanel labelPanel = new JPanel();
             JPanel labelPanel2 = new JPanel();
             JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
-            JLabel prefsLabel2 = new JLabel("Edit or clear as desired.");
+            JLabel prefsLabel2 = new JLabel("Edit or clear as desired.  Required information is bolded.");
             labelPanel.add(prefsLabel);
             labelPanel2.add(prefsLabel2);
             contentPane.add(labelPanel);
@@ -535,16 +409,63 @@ public class SpectralRTI_Toolkit implements Command {
             for (int i=0;i<prefs.length;i++){
                 //Swap the labels out for presentation
                 String key = prefs[i].substring(0, prefs[i].indexOf("="));
-                key = key.replace("preferredCompress","JP2 Compressor");
-                key = key.replace("preferredJp2Args","JP2 Arguments");
-                key = key.replace("preferredFitter","HSH Fitter");
-                key = key.replace("jpegQuality","JPEG Quality");
-                key = key.replace("hshOrder","HSH Order");
-                key = key.replace("hshThreads","HSH Threads");
-                key = key.replace("webRtiMaker","Web RTI Maker");
-                key = key.replace("shortFileNames","Short File Names");
+                JLabel fieldLabel = null;
+                switch(key){
+                    case "preferredCompress":
+                        key = key.replace("preferredCompress","JP2 Compressor");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("Your preferred JP2 Compressor.  This will be required for Static Raking operations. ");
+                    break;
+
+                    case "preferredJp2Args":
+                        key = key.replace("preferredJp2Args","JP2 Arguments");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("Your preferred JP2 Arguments for the JP2 Compressor.  Default settings will be offered to you if not set.  This will be required for Static Raking operations.");
+                    break;
+
+                    case "preferredFitter":
+                        key = key.replace("preferredFitter","HSH Fitter");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("Your preferred HSH fitter for creating RTI files.  This will be required for all RTI Image operations. ");
+                    break;
+
+                    case "jpegQuality":
+                        key = key.replace("jpegQuality","JPEG Quality");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("Your preferred JPEG Quality (0-100).  This will be applied when creating JPEG source files for RTI images. ");
+                    break;
+
+                    case "hshOrder":
+                        key = key.replace("hshOrder","HSH Order");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("Your HSH order.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
+                    break;
+
+                    case "hshThreads":
+                        key = key.replace("hshThreads","HSH Threads");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("The number of threads for the HSH fitter.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
+                    break;
+
+                    case "webRtiMaker":
+                        key = key.replace("webRtiMaker","Web RTI Maker");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("Your preferred WEB RTI maker.  The plugin will send the produced or selected RTI file to be converted into WebRTI and is required for this operation. ");
+                    break;
+
+                    case "shortFileNames":
+                        key = key.replace("shortFileNames","Short File Names");
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the UI.  This setting is not required.");
+                    break;
+
+                    default:
+                        key = "**"+key;
+                        fieldLabel = new JLabel(key, JLabel.TRAILING);
+                        fieldLabel.setToolTipText("This is an unknown or unsupported preference.");
+                        //This is an unknown setting or an attempt at expansion
+                }
                 String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
-                JLabel fieldLabel = new JLabel(key, JLabel.TRAILING);
                 if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
                     if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
                     //We will need to know the fitter
@@ -552,7 +473,6 @@ public class SpectralRTI_Toolkit implements Command {
                         // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
                         fieldLabel.setFont(boldFont);
-                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
                     }
                 }
                 if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor") || key.equals("JPEG Quality")){
@@ -562,7 +482,6 @@ public class SpectralRTI_Toolkit implements Command {
                         // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
                         fieldLabel.setFont(boldFont);
-                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
                     }
                 }
                 if(key.equals("Web RTI Maker")){
@@ -572,7 +491,6 @@ public class SpectralRTI_Toolkit implements Command {
                         // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
                         fieldLabel.setFont(boldFont);
-                        fieldLabel.setToolTipText("This will be required to complete your task(s)");
                     }
                 }
                 scrollGrid.add(fieldLabel);
