@@ -2697,7 +2697,7 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane = new JPanel();
                     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                     JPanel labelPanel = new JPanel();
-                    JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 1.00 and 2.00");
+                    JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 0.00 and 2.00");
                     JLabel prefsLabel2 = new JLabel("The Preview image will change with your adjustment.");
                     labelPanel.add(prefsLabel);
                     labelPanel.add(prefsLabel2);
@@ -2761,7 +2761,7 @@ public class SpectralRTI_Toolkit implements Command {
                         properValue = true; //The user hit cancel, so they are tired of seeing the message.  Just default to normal brightness.
                         normalizationFixedValue = 1.00;
                         JOptionPane.showMessageDialog(null,
-                        "You did not provide a value, default to 100% brightness", "Notice",
+                        "You did not provide a value, defaulting to 100% brightness", "Notice",
                         JOptionPane.PLAIN_MESSAGE);
                     }
                 }
