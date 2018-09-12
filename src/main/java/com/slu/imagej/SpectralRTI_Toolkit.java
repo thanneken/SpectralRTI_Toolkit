@@ -156,7 +156,7 @@ public class SpectralRTI_Toolkit implements Command {
 	private int normY;
 	private int normWidth;
 	private int normHeight;
-	private double normalizationFixedValue;
+	private double normalizationFixedValue = 1.00;
 	private int pcaX = 0;
         private int pcaY = 0;
         private int pcaWidth = 0;
@@ -1888,19 +1888,71 @@ public class SpectralRTI_Toolkit implements Command {
                     narrowNoGamma.changes = false;
                     ImagePlus noGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma");
                     noGammaPCA.show();
-                    /**@Yikes this whole process needs improving to wrap in a while scenario.  While slices>2... */
-                    dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok.  Press 'Esc' to quit.");
-                    dWait.show();
-                    if(dWait.escPressed()){
-                        //@userHitCancel
-                        IJ.error("You must delete until there are two slices to continue!   Exiting...");
-                        throw new Throwable("You must delete until there are two slices to continue!");
+                    while(noGammaPCA.getStackSize() > 2){
+                        contentPane = new JPanel();
+                        contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        labelPanel = new JPanel();
+                        labelPanel.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        JLabel directions = new JLabel("Delete slices from the PCA stack until two remain.");
+                        JLabel directions2 = new JLabel("Navigate to the slice in the stack you want to delete using the buttons below.");
+                        JLabel directions3 = new JLabel("Once there are only two slices remaining, click Finish to accept the slices.");
+                        labelPanel.add(directions);
+                        labelPanel.add(directions2);
+                        labelPanel.add(directions3);
+                        contentPane.add(labelPanel);
+                        JButton deleteSlice = new JButton("Delete Slice");
+                        deleteSlice.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                if(noGammaPCA.getStackSize() > 2){
+                                    IJ.run(noGammaPCA, "Delete Slice", "");
+                                }
+                                else{
+                                    JOptionPane.showMessageDialog(null,
+                                    "You have two slices, cannot remove any more.", "Error Massage",
+                                    JOptionPane.ERROR_MESSAGE);
+                                }
+                            } 
+                        });
+                        JButton nextSlice = new JButton("Next Slice");
+                        nextSlice.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                IJ.run(noGammaPCA, "Next Slice [>]", "");
+                            } 
+                        });
+                        JButton previousSlice = new JButton("Previous Slice");
+                        previousSlice.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                IJ.run(noGammaPCA, "Previous Slice [<]", "");
+                            } 
+                        });
+                        JPanel buttonPanel = new JPanel();
+                        buttonPanel.add(nextSlice);
+                        buttonPanel.add(previousSlice);
+                        buttonPanel.add(deleteSlice);
+                        contentPane.add(buttonPanel);
+//                        JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
+//                        fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+//                        fitterNoticeFrame.getContentPane().add(contentPane);
+//                        fitterNoticeFrame.pack();
+//                        fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
+                        Object[] btns = {"Confirm",
+                        "Quit"};
+                        int result31 = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (result31 == JOptionPane.OK_OPTION){
+                            if(noGammaPCA.getStackSize() == 2){
+                                noGammaPCA.hide();
+                                noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
+                                noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                                IJ.run(noGammaPCA, "8-bit", "");
+                                narrowKeptPCA = noGammaPCA;
+                            }
+                        }
+                        else {
+                            //@userHitCancel
+                            IJ.error("You must delete until there are two slices to continue!   Exiting...");
+                            throw new Throwable("You must delete until there are two slices to continue!");
+                        }
                     }
-                    noGammaPCA.hide();
-                    noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
-                    noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                    IJ.run(noGammaPCA, "8-bit", "");
-                    narrowKeptPCA = noGammaPCA;
 		/**
                  * @see option to use previously generated principal component images
                  */
