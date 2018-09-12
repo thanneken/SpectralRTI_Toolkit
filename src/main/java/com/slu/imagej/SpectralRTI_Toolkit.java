@@ -156,7 +156,7 @@ public class SpectralRTI_Toolkit implements Command {
 	private int normY;
 	private int normWidth;
 	private int normHeight;
-	private double normalizationFixedValue;
+	private double normalizationFixedValue = 1.00;
 	private int pcaX = 0;
         private int pcaY = 0;
         private int pcaWidth = 0;
@@ -372,11 +372,18 @@ public class SpectralRTI_Toolkit implements Command {
                     csRtiDesired = tasks[7].isSelected();
                     csRakingDesired = tasks[8].isSelected();
                     webRtiDesired = tasks[9].isSelected();
-                    shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
-                    prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                    String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
-                    prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
-                    Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
+                    if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
+                        JOptionPane.showMessageDialog(null,
+                        "You must select at least one task.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
+                    }
+                    else{
+                        shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
+                        prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+                        String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
+                        prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
+                        Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
+                    }
                 }
                 else {
                      //@userHitCancel
@@ -658,6 +665,11 @@ public class SpectralRTI_Toolkit implements Command {
                             throw new Throwable("You must provide an RTI Image for processing to continue.");
                         }
                         rtiImageToUse = rti_image.getPath();
+                        if(null == rtiImageToUse || rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti")){
+                            JOptionPane.showMessageDialog(null,
+                            "You must provide an RTI image.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
                     createWebRTIFiles("", rtiImageToUse);
                 }
@@ -850,6 +862,11 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.error("You must make at least one selection to continue!  Exiting...");
                         throw new Throwable("You must make at least one selection to continue!");
                     }
+                    if(!atLeastOne){
+                        JOptionPane.showMessageDialog(null,
+                            "You select at least one.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
             }
             else { //We already have the list initiated, fill it with false.
@@ -889,6 +906,11 @@ public class SpectralRTI_Toolkit implements Command {
                          //@userHitCancel
                         IJ.error("You must have 9 or more narrow band captures for Extended Spectrum.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
+                    }
+                    if (listOfNarrowbandCaptures.length<9) { 
+                        JOptionPane.showMessageDialog(null,
+                        "You must have 9 or more narrow band captures for Extended Spectrum.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
@@ -1085,6 +1107,11 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
                         }
+                        if(imp.getRoi() == null){
+                            JOptionPane.showMessageDialog(null,
+                            "You must draw a rectangle.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
                     if(imp.getRoi() == null){
                         //@userHitCancel
@@ -1128,6 +1155,11 @@ public class SpectralRTI_Toolkit implements Command {
                          //@userHitCancel
                         IJ.error("You must have 9 or more narrow band captures for Pseudocolor.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
+                    }
+                    if (listOfNarrowbandCaptures.length<9) { 
+                        JOptionPane.showMessageDialog(null,
+                        "You must have 9 or more narrow band captures for Pseudocolor.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
@@ -1196,6 +1228,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 logService.log().info("Got PCA method: "+pcaMethod);
                 if (pcaHeight < 100) { 
+                    /*
                     while(listOfNarrowbandCaptures.length < 1){
                         contentPane = new JPanel();
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
@@ -1214,6 +1247,11 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
                             throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
                         }
+                        if (listOfNarrowbandCaptures.length<1) { 
+                            JOptionPane.showMessageDialog(null,
+                            "There needs to be at least one image in the narrowband nogamma captures folder", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
                     if (listOfNarrowbandCaptures.length < 1){
                         IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
@@ -1222,7 +1260,8 @@ public class SpectralRTI_Toolkit implements Command {
                     else{
                         imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
                     }  
-
+                    */
+                    imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString());
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.setTitle("Preview");
@@ -1234,6 +1273,11 @@ public class SpectralRTI_Toolkit implements Command {
                             //@userHitCancel
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
+                        }
+                        if(imp.getRoi() == null){
+                            JOptionPane.showMessageDialog(null,
+                            "You must draw a rectangle.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
                         }
                     }
                     bounds = WindowManager.getImage("Preview").getRoi().getBounds();
@@ -1253,6 +1297,11 @@ public class SpectralRTI_Toolkit implements Command {
                         throw new Throwable("You must provide a custom source to continue.");
                     }
                     csSource = csSourceDialog.getPath();
+                    if(null == csSource || csSource.equals("")){
+                        JOptionPane.showMessageDialog(null,
+                        "You must provide a custom source.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
                 logService.log().info("Should have custom source");
                 logService.log().info(csSource);
@@ -1273,6 +1322,11 @@ public class SpectralRTI_Toolkit implements Command {
                         //@userHitCancel
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
+                    }
+                    if(imp.getRoi() == null){
+                        JOptionPane.showMessageDialog(null,
+                        "You must draw a rectangle.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 bounds = imp.getRoi().getBounds();
@@ -1330,10 +1384,15 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                         throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     }
+                    if(listOfAccurateColorSources.length<1){
+                        JOptionPane.showMessageDialog(null,
+                        "Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator, "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
                 if (listOfAccurateColorSources.length<1){
-                    IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
-                    throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
+                    IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
+                    throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                 }
                 String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
                 for (File f : listOfAccurateColorSources) {
@@ -1401,6 +1460,11 @@ public class SpectralRTI_Toolkit implements Command {
                             //@userHitCancel is it OK to default to the first source?
                             IJ.error("You must provide a color source to continue!  Exiting...");
                             throw new Throwable("You must provide a color source to continue!");
+                        }
+                        if(null == accurateColorSource || !accurateColorSource.exists()){
+                            JOptionPane.showMessageDialog(null,
+                            "You must provide an Accurate Color source", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
                         }
                     }
 		}
@@ -1888,19 +1952,70 @@ public class SpectralRTI_Toolkit implements Command {
                     narrowNoGamma.changes = false;
                     ImagePlus noGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma");
                     noGammaPCA.show();
-                    /**@Yikes this whole process needs improving to wrap in a while scenario.  While slices>2... */
-                    dWait = new WaitForUserDialog("Delete Slices", "Delete slices from the stack until two remain\n(Hint: Image > Stacks > Delete Slice)\nEnhance contrast as desired\nThen press Ok.  Press 'Esc' to quit.");
-                    dWait.show();
-                    if(dWait.escPressed()){
-                        //@userHitCancel
-                        IJ.error("You must delete until there are two slices to continue!   Exiting...");
-                        throw new Throwable("You must delete until there are two slices to continue!");
+                    while(noGammaPCA.getStackSize() > 2){
+                        contentPane = new JPanel();
+                        contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        labelPanel = new JPanel();
+                        labelPanel.setLayout(new BoxLayout(labelPanel,BoxLayout.PAGE_AXIS));
+                        JLabel directions = new JLabel("Delete slices from the PCA stack until two remain.");
+                        JLabel directions2 = new JLabel("Navigate to the slice in the stack you want to delete using the buttons below.");
+                        JLabel directions3 = new JLabel("Once there are only two slices remaining, click Finish to accept the slices.");
+                        labelPanel.add(directions);
+                        labelPanel.add(directions2);
+                        labelPanel.add(directions3);
+                        contentPane.add(labelPanel);
+                        JButton deleteSlice = new JButton("Delete Slice");
+                        deleteSlice.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                if(noGammaPCA.getStackSize() > 2){
+                                    IJ.run(noGammaPCA, "Delete Slice", "");
+                                }
+                                else{
+                                    JOptionPane.showMessageDialog(null,
+                                    "You have two slices, cannot remove any more.", "Try Again",
+                                    JOptionPane.PLAIN_MESSAGE);
+                                }
+                            } 
+                        });
+                        JButton nextSlice = new JButton("Next Slice");
+                        nextSlice.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                IJ.run(noGammaPCA, "Next Slice [>]", "");
+                            } 
+                        });
+                        JButton previousSlice = new JButton("Previous Slice");
+                        previousSlice.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                IJ.run(noGammaPCA, "Previous Slice [<]", "");
+                            } 
+                        });
+                        JPanel buttonPanel = new JPanel();
+                        buttonPanel.add(nextSlice);
+                        buttonPanel.add(previousSlice);
+                        buttonPanel.add(deleteSlice);
+                        Object[] btns = {"Confirm",
+                        "Quit"};
+                        int result31 = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (result31 == JOptionPane.OK_OPTION){
+                            if(noGammaPCA.getStackSize() == 2){
+                                noGammaPCA.hide();
+                                noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
+                                noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                                IJ.run(noGammaPCA, "8-bit", "");
+                                narrowKeptPCA = noGammaPCA;
+                            }
+                            else{
+                                JOptionPane.showMessageDialog(null,
+                                "You must have a stack of two slices.", "Try Again",
+                                JOptionPane.PLAIN_MESSAGE);
+                            }
+                        }
+                        else {
+                            //@userHitCancel
+                            IJ.error("You must delete until there are two slices to continue!   Exiting...");
+                            throw new Throwable("You must delete until there are two slices to continue!");
+                        }
                     }
-                    noGammaPCA.hide();
-                    noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
-                    noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                    IJ.run(noGammaPCA, "8-bit", "");
-                    narrowKeptPCA = noGammaPCA;
 		/**
                  * @see option to use previously generated principal component images
                  */
@@ -2552,7 +2667,7 @@ public class SpectralRTI_Toolkit implements Command {
             else{ 
                 brightnessAdjustOption = "No";
             }
-            contentPane = new JPanel();
+            
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
                 while(imp.getRoi() == null){
@@ -2563,6 +2678,11 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
+                    if(imp.getRoi() == null){
+                        JOptionPane.showMessageDialog(null,
+                        "You must draw a rectangle.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
                 bounds = imp.getRoi().getBounds();
                 region = new RectangleOverlay();
@@ -2572,65 +2692,78 @@ public class SpectralRTI_Toolkit implements Command {
                 normWidth = bounds.width;
             } 
             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
-                JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 1.00 and 2.00");
-                JLabel prefsLabel2 = new JLabel("The Preview image will change with your adjustment.");
-                labelPanel.add(prefsLabel);
-                labelPanel.add(prefsLabel2);
-                contentPane.add(labelPanel);
-                JTextField adjustment = new JTextField("1.00", 10);
-                
-                adjustment.getDocument().addDocumentListener(new DocumentListener() {
-                    @Override
-                    public void changedUpdate(DocumentEvent e) {
-                      process();
-                    }
-                    @Override
-                    public void removeUpdate(DocumentEvent e) {
-                      process();
-                    }
-                    @Override
-                    public void insertUpdate(DocumentEvent e) {
-                      process();
-                    }
-                    public void process() {
-                       try{
-                        double previewAdjustVal = 1.00;
-                        if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
-//                          JOptionPane.showMessageDialog(null,
-//                             "Error: Please enter number between 0.00 and 2.00", "Error Massage",
-//                             JOptionPane.ERROR_MESSAGE);
+                boolean properValue = false;
+                while(!properValue){
+                    contentPane = new JPanel();
+                    contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                    JPanel labelPanel = new JPanel();
+                    JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 1.00 and 2.00");
+                    JLabel prefsLabel2 = new JLabel("The Preview image will change with your adjustment.");
+                    labelPanel.add(prefsLabel);
+                    labelPanel.add(prefsLabel2);
+                    contentPane.add(labelPanel);
+                    JTextField adjustment = new JTextField("1.00", 10);
+                    adjustment.getDocument().addDocumentListener(new DocumentListener() {
+                        @Override
+                        public void changedUpdate(DocumentEvent e) {
+                          process();
                         }
-                        else{
-                            previewAdjustVal = Double.parseDouble(adjustment.getText());
-                            IJ.run(imp,"Multiply...", "value="+previewAdjustVal+"");
+                        @Override
+                        public void removeUpdate(DocumentEvent e) {
+                          process();
                         }
-                       }
-                       catch(Exception e){
-//                           JOptionPane.showMessageDialog(null,
-//                             "Error: Please enter number between 0.00 and 2.00", "Error Massage",
-//                             JOptionPane.ERROR_MESSAGE);
-                       }
+                        @Override
+                        public void insertUpdate(DocumentEvent e) {
+                          process();
+                        }
+                        public void process() {
+                           try{
+                                double previewAdjustVal = 1.00;
+                                if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
+                                    //ignore the value, it won't work in the preview
+                                }
+                                else{
+                                    previewAdjustVal = Double.parseDouble(adjustment.getText());
+                                    IJ.run(imp, "Multiply...", "value="+previewAdjustVal+"");
+                                }
+                           }
+                           catch(Exception e){
+                               // ignore the value, it won't work in the preview.
+                           }
+                        }
+                      });
+                    contentPane.add(adjustment);
+                    //Gather new values from the dialog, reset the labels and update the new values.
+                    Object[] btns = {"Confirm",
+                        "Cancel"};
+                    int result30 = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (result30 == JOptionPane.OK_OPTION){
+                        try{
+                            if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
+                                properValue = false;
+                            }
+                            else{
+                                normalizationFixedValue = Double.parseDouble(adjustment.getText());
+                                properValue = true;
+                            }
+                        }
+                        catch(Exception e){
+                            //user did not provide a number, or the number provided was less than 1 or greater than 2.
+                            properValue = false;
+                            normalizationFixedValue = 1.00;
+                            JOptionPane.showMessageDialog(null,
+                            "Value not valid", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
-                  });
-                contentPane.add(adjustment);
-                //Gather new values from the dialog, reset the labels and update the new values.
-                Object[] btns = {"Confirm",
-                    "Cancell"};
-                int result30 = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                
-                if (result30 == JOptionPane.OK_OPTION){
-                    try{
-                        normalizationFixedValue = Double.parseDouble(adjustment.getText());
-                    }
-                    catch(Exception e){
+                    else {
+                        //@userHitCancel
+                        properValue = true; //The user hit cancel, so they are tired of seeing the message.  Just default to normal brightness.
                         normalizationFixedValue = 1.00;
+                        JOptionPane.showMessageDialog(null,
+                        "You did not provide a value, default to 100% brightness", "Notice",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
-                }
-                else {
-                    //@userHitCancel
-                    normalizationFixedValue = 1.00;
                 }
             }
             else{
