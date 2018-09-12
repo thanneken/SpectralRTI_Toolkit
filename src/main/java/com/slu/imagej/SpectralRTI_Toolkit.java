@@ -372,11 +372,18 @@ public class SpectralRTI_Toolkit implements Command {
                     csRtiDesired = tasks[7].isSelected();
                     csRakingDesired = tasks[8].isSelected();
                     webRtiDesired = tasks[9].isSelected();
-                    shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
-                    prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-                    String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
-                    prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
-                    Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
+                    if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
+                        JOptionPane.showMessageDialog(null,
+                        "You must select at least one task.", "Try Again",
+                        JOptionPane.ERROR_MESSAGE);
+                    }
+                    else{
+                        shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
+                        prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+                        String filePreferenceString = "shortFileNames="+shortName+System.lineSeparator();
+                        prefsFileAsText = prefsFileAsText.replaceFirst("shortFileNames=.*\\"+System.lineSeparator(), filePreferenceString); //replace the prefs var
+                        Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); 
+                    }
                 }
                 else {
                      //@userHitCancel
@@ -658,6 +665,11 @@ public class SpectralRTI_Toolkit implements Command {
                             throw new Throwable("You must provide an RTI Image for processing to continue.");
                         }
                         rtiImageToUse = rti_image.getPath();
+                        if(null == rtiImageToUse || rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti")){
+                            JOptionPane.showMessageDialog(null,
+                            "You must provide an RTI image.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
                     createWebRTIFiles("", rtiImageToUse);
                 }
@@ -850,6 +862,11 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.error("You must make at least one selection to continue!  Exiting...");
                         throw new Throwable("You must make at least one selection to continue!");
                     }
+                    if(!atLeastOne){
+                        JOptionPane.showMessageDialog(null,
+                            "You select at least one.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
             }
             else { //We already have the list initiated, fill it with false.
@@ -889,6 +906,11 @@ public class SpectralRTI_Toolkit implements Command {
                          //@userHitCancel
                         IJ.error("You must have 9 or more narrow band captures for Extended Spectrum.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
+                    }
+                    if (listOfNarrowbandCaptures.length<9) { 
+                        JOptionPane.showMessageDialog(null,
+                        "You must have 9 or more narrow band captures for Extended Spectrum.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
@@ -1085,6 +1107,11 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
                         }
+                        if(imp.getRoi() == null){
+                            JOptionPane.showMessageDialog(null,
+                            "You must draw a rectangle.", "Try Again",
+                            JOptionPane.ERROR_MESSAGE);
+                        }
                     }
                     if(imp.getRoi() == null){
                         //@userHitCancel
@@ -1128,6 +1155,11 @@ public class SpectralRTI_Toolkit implements Command {
                          //@userHitCancel
                         IJ.error("You must have 9 or more narrow band captures for Pseudocolor.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
+                    }
+                    if (listOfNarrowbandCaptures.length<9) { 
+                        JOptionPane.showMessageDialog(null,
+                        "You must have 9 or more narrow band captures for Pseudocolor.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
@@ -1196,6 +1228,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 logService.log().info("Got PCA method: "+pcaMethod);
                 if (pcaHeight < 100) { 
+                    /*
                     while(listOfNarrowbandCaptures.length < 1){
                         contentPane = new JPanel();
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
@@ -1214,6 +1247,11 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
                             throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
                         }
+                        if (listOfNarrowbandCaptures.length<1) { 
+                            JOptionPane.showMessageDialog(null,
+                            "There needs to be at least one image in the narrowband nogamma captures folder", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
                     if (listOfNarrowbandCaptures.length < 1){
                         IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
@@ -1222,7 +1260,8 @@ public class SpectralRTI_Toolkit implements Command {
                     else{
                         imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
                     }  
-
+                    */
+                    imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString());
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     //ImageJFunctions.show(imglib2_img, "Preview");
                     imp.setTitle("Preview");
@@ -1234,6 +1273,11 @@ public class SpectralRTI_Toolkit implements Command {
                             //@userHitCancel
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
+                        }
+                        if(imp.getRoi() == null){
+                            JOptionPane.showMessageDialog(null,
+                            "You must draw a rectangle.", "Try Again",
+                            JOptionPane.ERROR_MESSAGE);
                         }
                     }
                     bounds = WindowManager.getImage("Preview").getRoi().getBounds();
@@ -1253,6 +1297,11 @@ public class SpectralRTI_Toolkit implements Command {
                         throw new Throwable("You must provide a custom source to continue.");
                     }
                     csSource = csSourceDialog.getPath();
+                    if(null == csSource || csSource.equals("")){
+                        JOptionPane.showMessageDialog(null,
+                        "You must provide a custom source.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
                 logService.log().info("Should have custom source");
                 logService.log().info(csSource);
@@ -1273,6 +1322,11 @@ public class SpectralRTI_Toolkit implements Command {
                         //@userHitCancel
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
+                    }
+                    if(imp.getRoi() == null){
+                        JOptionPane.showMessageDialog(null,
+                        "You must draw a rectangle.", "Try Again",
+                        JOptionPane.ERROR_MESSAGE);
                     }
                 }
                 bounds = imp.getRoi().getBounds();
@@ -1330,10 +1384,15 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                         throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     }
+                    if(listOfAccurateColorSources.length<1){
+                        JOptionPane.showMessageDialog(null,
+                        "Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator, "Try Again",
+                        JOptionPane.ERROR_MESSAGE);
+                    }
                 }
                 if (listOfAccurateColorSources.length<1){
-                    IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
-                    throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
+                    IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
+                    throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                 }
                 String[] listOfAccurateColorSources_string = new String[listOfAccurateColorSources.length];
                 for (File f : listOfAccurateColorSources) {
@@ -1401,6 +1460,11 @@ public class SpectralRTI_Toolkit implements Command {
                             //@userHitCancel is it OK to default to the first source?
                             IJ.error("You must provide a color source to continue!  Exiting...");
                             throw new Throwable("You must provide a color source to continue!");
+                        }
+                        if(null == accurateColorSource || !accurateColorSource.exists()){
+                            JOptionPane.showMessageDialog(null,
+                            "You must provide an Accurate Color source", "Try Again",
+                            JOptionPane.ERROR_MESSAGE);
                         }
                     }
 		}
@@ -1892,7 +1956,7 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane = new JPanel();
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                         labelPanel = new JPanel();
-                        labelPanel.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                        labelPanel.setLayout(new BoxLayout(labelPanel,BoxLayout.PAGE_AXIS));
                         JLabel directions = new JLabel("Delete slices from the PCA stack until two remain.");
                         JLabel directions2 = new JLabel("Navigate to the slice in the stack you want to delete using the buttons below.");
                         JLabel directions3 = new JLabel("Once there are only two slices remaining, click Finish to accept the slices.");
@@ -1908,8 +1972,8 @@ public class SpectralRTI_Toolkit implements Command {
                                 }
                                 else{
                                     JOptionPane.showMessageDialog(null,
-                                    "You have two slices, cannot remove any more.", "Error Massage",
-                                    JOptionPane.ERROR_MESSAGE);
+                                    "You have two slices, cannot remove any more.", "Try Again",
+                                    JOptionPane.PLAIN_MESSAGE);
                                 }
                             } 
                         });
@@ -1929,12 +1993,6 @@ public class SpectralRTI_Toolkit implements Command {
                         buttonPanel.add(nextSlice);
                         buttonPanel.add(previousSlice);
                         buttonPanel.add(deleteSlice);
-                        contentPane.add(buttonPanel);
-//                        JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
-//                        fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-//                        fitterNoticeFrame.getContentPane().add(contentPane);
-//                        fitterNoticeFrame.pack();
-//                        fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
                         Object[] btns = {"Confirm",
                         "Quit"};
                         int result31 = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
@@ -1945,6 +2003,11 @@ public class SpectralRTI_Toolkit implements Command {
                                 noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
                                 IJ.run(noGammaPCA, "8-bit", "");
                                 narrowKeptPCA = noGammaPCA;
+                            }
+                            else{
+                                JOptionPane.showMessageDialog(null,
+                                "You must have a stack of two slices.", "Try Again",
+                                JOptionPane.ERROR_MESSAGE);
                             }
                         }
                         else {
@@ -2615,6 +2678,11 @@ public class SpectralRTI_Toolkit implements Command {
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
+                    if(imp.getRoi() == null){
+                        JOptionPane.showMessageDialog(null,
+                        "You must draw a rectangle.", "Try Again",
+                        JOptionPane.ERROR_MESSAGE);
+                    }
                 }
                 bounds = imp.getRoi().getBounds();
                 region = new RectangleOverlay();
@@ -2678,11 +2746,17 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     catch(Exception e){
                         normalizationFixedValue = 1.00;
+                        JOptionPane.showMessageDialog(null,
+                        "Value could not be processed, defaulting to 100% brightness.", "Notice",
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 else {
                     //@userHitCancel
                     normalizationFixedValue = 1.00;
+                    JOptionPane.showMessageDialog(null,
+                    "You did not provide a value, default to 100% brightness", "Notice",
+                    JOptionPane.PLAIN_MESSAGE);
                 }
             }
             else{
