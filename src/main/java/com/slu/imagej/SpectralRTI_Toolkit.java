@@ -116,6 +116,8 @@ import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.apache.commons.io.comparator.NameFileComparator;
 import ui.SpringUtilities;
 
@@ -2524,7 +2526,7 @@ public class SpectralRTI_Toolkit implements Command {
             contentPane.add(scrollGrid);
             contentPane.add(scrollGrid2);
             Object[] transmissiveSourcesBtnLabels = {"Confirm",
-                "Ignore"};
+                "Skip"};
             int result11 = JOptionPane.showOptionDialog(null, contentPane, "Adjust Brightness", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
             if (result11 == JOptionPane.OK_OPTION){
                 //Is there an easier way to get the selected btton from a buttonGroup?
@@ -2550,7 +2552,7 @@ public class SpectralRTI_Toolkit implements Command {
             else{ 
                 brightnessAdjustOption = "No";
             }
-
+            contentPane = new JPanel();
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
                 while(imp.getRoi() == null){
@@ -2570,30 +2572,72 @@ public class SpectralRTI_Toolkit implements Command {
                 normWidth = bounds.width;
             } 
             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                /**@Yikes this process needs to be improved to wrap it all into one window under a while !normalizationFixedValue */
-                dWait = new WaitForUserDialog("ImageJ will use the Muliply dialog to preview and choose a multiplier value.\nThis is just a preview image; the chosen value will be entered in the window that follows the preview.  Press 'Esc' to quit." );
-                dWait.show();
-                if(dWait.escPressed()){
-                    //@userHitCancel
-                    IJ.error("You must supply a multiplier to continue!  Exiting...");
-                    throw new Throwable("You must supply a multiplier to continue!");
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 1.00 and 2.00");
+                JLabel prefsLabel2 = new JLabel("The Preview image will change with your adjustment.");
+                labelPanel.add(prefsLabel);
+                labelPanel.add(prefsLabel2);
+                contentPane.add(labelPanel);
+                JTextField adjustment = new JTextField("1.00", 10);
+                
+                adjustment.getDocument().addDocumentListener(new DocumentListener() {
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                      process();
+                    }
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                      process();
+                    }
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                      process();
+                    }
+                    public void process() {
+                       try{
+                        double previewAdjustVal = 1.00;
+                        if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
+//                          JOptionPane.showMessageDialog(null,
+//                             "Error: Please enter number between 0.00 and 2.00", "Error Massage",
+//                             JOptionPane.ERROR_MESSAGE);
+                        }
+                        else{
+                            previewAdjustVal = Double.parseDouble(adjustment.getText());
+                            IJ.run(imp,"Multiply...", "value="+previewAdjustVal+"");
+                        }
+                       }
+                       catch(Exception e){
+//                           JOptionPane.showMessageDialog(null,
+//                             "Error: Please enter number between 0.00 and 2.00", "Error Massage",
+//                             JOptionPane.ERROR_MESSAGE);
+                       }
+                    }
+                  });
+                contentPane.add(adjustment);
+                //Gather new values from the dialog, reset the labels and update the new values.
+                Object[] btns = {"Confirm",
+                    "Cancell"};
+                int result30 = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                
+                if (result30 == JOptionPane.OK_OPTION){
+                    try{
+                        normalizationFixedValue = Double.parseDouble(adjustment.getText());
+                    }
+                    catch(Exception e){
+                        normalizationFixedValue = 1.00;
+                    }
                 }
-                /**
-                 * This is a bit weird here.  It would be great if the number from the multiply window
-                 * could be used so it doesn't ask twice.  
-                 */
-                IJ.run(imp, "Multiply...", ""); //I bet if we used the ij.plugin class to do this, we could get it all done is one window.
-                //@NotOK
-                GenericDialog gdMultiplier = new GenericDialog("Set Multiplier Value");
-                gdMultiplier.addNumericField("Enter selected multiplier: ", 1.30,2,4,"");
-                gdMultiplier.setMaximumSize(bestFit);
-                gdMultiplier.showDialog();
-                normalizationFixedValue = gdMultiplier.getNextNumber();
-                logService.log().info("Set a fixed value.  It is "+normalizationFixedValue);
+                else {
+                    //@userHitCancel
+                    normalizationFixedValue = 1.00;
+                }
             }
             else{
                 logService.log().info("Brightness not modified");
             }
+            logService.log().info("Set a fixed brightness value.  It is "+normalizationFixedValue);
+            imp.changes=false;
             imp.close();
         } 
         
