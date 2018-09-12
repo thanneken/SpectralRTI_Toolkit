@@ -375,7 +375,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if(!(acRakingDesired || acRtiDesired || xsRtiDesired || xsRakingDesired || psRtiDesired || psRakingDesired || csRtiDesired || csRakingDesired || lpDesired || webRtiDesired)){
                         JOptionPane.showMessageDialog(null,
                         "You must select at least one task.", "Try Again",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                     else{
                         shortName = tasks[10].isSelected(); //This is a preference, must write to prefs file
@@ -1110,7 +1110,7 @@ public class SpectralRTI_Toolkit implements Command {
                         if(imp.getRoi() == null){
                             JOptionPane.showMessageDialog(null,
                             "You must draw a rectangle.", "Try Again",
-                            JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.PLAIN_MESSAGE);
                         }
                     }
                     if(imp.getRoi() == null){
@@ -1277,7 +1277,7 @@ public class SpectralRTI_Toolkit implements Command {
                         if(imp.getRoi() == null){
                             JOptionPane.showMessageDialog(null,
                             "You must draw a rectangle.", "Try Again",
-                            JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.PLAIN_MESSAGE);
                         }
                     }
                     bounds = WindowManager.getImage("Preview").getRoi().getBounds();
@@ -1326,7 +1326,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if(imp.getRoi() == null){
                         JOptionPane.showMessageDialog(null,
                         "You must draw a rectangle.", "Try Again",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 bounds = imp.getRoi().getBounds();
@@ -1387,7 +1387,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if(listOfAccurateColorSources.length<1){
                         JOptionPane.showMessageDialog(null,
                         "Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator, "Try Again",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 if (listOfAccurateColorSources.length<1){
@@ -1464,7 +1464,7 @@ public class SpectralRTI_Toolkit implements Command {
                         if(null == accurateColorSource || !accurateColorSource.exists()){
                             JOptionPane.showMessageDialog(null,
                             "You must provide an Accurate Color source", "Try Again",
-                            JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.PLAIN_MESSAGE);
                         }
                     }
 		}
@@ -2007,7 +2007,7 @@ public class SpectralRTI_Toolkit implements Command {
                             else{
                                 JOptionPane.showMessageDialog(null,
                                 "You must have a stack of two slices.", "Try Again",
-                                JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.PLAIN_MESSAGE);
                             }
                         }
                         else {
@@ -2667,7 +2667,7 @@ public class SpectralRTI_Toolkit implements Command {
             else{ 
                 brightnessAdjustOption = "No";
             }
-            contentPane = new JPanel();
+            
             if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
                 //gd.setVisible(false);
                 while(imp.getRoi() == null){
@@ -2681,7 +2681,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if(imp.getRoi() == null){
                         JOptionPane.showMessageDialog(null,
                         "You must draw a rectangle.", "Try Again",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.PLAIN_MESSAGE);
                     }
                 }
                 bounds = imp.getRoi().getBounds();
@@ -2692,71 +2692,78 @@ public class SpectralRTI_Toolkit implements Command {
                 normWidth = bounds.width;
             } 
             else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
-                JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 1.00 and 2.00");
-                JLabel prefsLabel2 = new JLabel("The Preview image will change with your adjustment.");
-                labelPanel.add(prefsLabel);
-                labelPanel.add(prefsLabel2);
-                contentPane.add(labelPanel);
-                JTextField adjustment = new JTextField("1.00", 10);
-                
-                adjustment.getDocument().addDocumentListener(new DocumentListener() {
-                    @Override
-                    public void changedUpdate(DocumentEvent e) {
-                      process();
-                    }
-                    @Override
-                    public void removeUpdate(DocumentEvent e) {
-                      process();
-                    }
-                    @Override
-                    public void insertUpdate(DocumentEvent e) {
-                      process();
-                    }
-                    public void process() {
-                       try{
-                        double previewAdjustVal = 1.00;
-                        if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
-//                          JOptionPane.showMessageDialog(null,
-//                             "Error: Please enter number between 0.00 and 2.00", "Error Massage",
-//                             JOptionPane.ERROR_MESSAGE);
+                boolean properValue = false;
+                while(!properValue){
+                    contentPane = new JPanel();
+                    contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                    JPanel labelPanel = new JPanel();
+                    JLabel prefsLabel = new JLabel("Enter a valid brightness adjustment between 1.00 and 2.00");
+                    JLabel prefsLabel2 = new JLabel("The Preview image will change with your adjustment.");
+                    labelPanel.add(prefsLabel);
+                    labelPanel.add(prefsLabel2);
+                    contentPane.add(labelPanel);
+                    JTextField adjustment = new JTextField("1.00", 10);
+                    adjustment.getDocument().addDocumentListener(new DocumentListener() {
+                        @Override
+                        public void changedUpdate(DocumentEvent e) {
+                          process();
                         }
-                        else{
-                            previewAdjustVal = Double.parseDouble(adjustment.getText());
-                            IJ.run(imp,"Multiply...", "value="+previewAdjustVal+"");
+                        @Override
+                        public void removeUpdate(DocumentEvent e) {
+                          process();
                         }
-                       }
-                       catch(Exception e){
-//                           JOptionPane.showMessageDialog(null,
-//                             "Error: Please enter number between 0.00 and 2.00", "Error Massage",
-//                             JOptionPane.ERROR_MESSAGE);
-                       }
+                        @Override
+                        public void insertUpdate(DocumentEvent e) {
+                          process();
+                        }
+                        public void process() {
+                           try{
+                                double previewAdjustVal = 1.00;
+                                if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
+                                    //ignore the value, it won't work in the preview
+                                }
+                                else{
+                                    previewAdjustVal = Double.parseDouble(adjustment.getText());
+                                    IJ.run(imp, "Multiply...", "value="+previewAdjustVal+"");
+                                }
+                           }
+                           catch(Exception e){
+                               // ignore the value, it won't work in the preview.
+                           }
+                        }
+                      });
+                    contentPane.add(adjustment);
+                    //Gather new values from the dialog, reset the labels and update the new values.
+                    Object[] btns = {"Confirm",
+                        "Cancel"};
+                    int result30 = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (result30 == JOptionPane.OK_OPTION){
+                        try{
+                            if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
+                                properValue = false;
+                            }
+                            else{
+                                normalizationFixedValue = Double.parseDouble(adjustment.getText());
+                                properValue = true;
+                            }
+                        }
+                        catch(Exception e){
+                            //user did not provide a number, or the number provided was less than 1 or greater than 2.
+                            properValue = false;
+                            normalizationFixedValue = 1.00;
+                            JOptionPane.showMessageDialog(null,
+                            "Value not valid", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     }
-                  });
-                contentPane.add(adjustment);
-                //Gather new values from the dialog, reset the labels and update the new values.
-                Object[] btns = {"Confirm",
-                    "Cancell"};
-                int result30 = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                
-                if (result30 == JOptionPane.OK_OPTION){
-                    try{
-                        normalizationFixedValue = Double.parseDouble(adjustment.getText());
-                    }
-                    catch(Exception e){
+                    else {
+                        //@userHitCancel
+                        properValue = true; //The user hit cancel, so they are tired of seeing the message.  Just default to normal brightness.
                         normalizationFixedValue = 1.00;
                         JOptionPane.showMessageDialog(null,
-                        "Value could not be processed, defaulting to 100% brightness.", "Notice",
+                        "You did not provide a value, default to 100% brightness", "Notice",
                         JOptionPane.PLAIN_MESSAGE);
                     }
-                }
-                else {
-                    //@userHitCancel
-                    normalizationFixedValue = 1.00;
-                    JOptionPane.showMessageDialog(null,
-                    "You did not provide a value, default to 100% brightness", "Notice",
-                    JOptionPane.PLAIN_MESSAGE);
                 }
             }
             else{
