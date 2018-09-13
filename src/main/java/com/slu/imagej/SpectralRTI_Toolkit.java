@@ -215,9 +215,6 @@ public class SpectralRTI_Toolkit implements Command {
             startTime = timestamp();
             logService.log().warn("Starting SpectralRTI Plugin at "+startTime);
             File accurateColorSource = null;
-            //Default options to pass in when OK and Cancel are not appropriate
-            Object[] options = {"Finish",
-                    "Cancel"};
             //GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
             String[] prefs = null;
             DirectoryChooser file_dialog;
@@ -357,11 +354,11 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane.add(spanel);
                 Object[] taskBtnLabels = {"Confirm",
                     "Quit"};
-                int result3 = JOptionPane.showOptionDialog(null, contentPane, "Choose Desired Tasks", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, taskBtnLabels, taskBtnLabels[0]);
+                int taskResult = JOptionPane.showOptionDialog(null, contentPane, "Choose Desired Tasks", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, taskBtnLabels, taskBtnLabels[0]);
                 /**
                  * Gather and process user selected tasks
                 */
-                if (result3 == JOptionPane.OK_OPTION){
+                if (taskResult == JOptionPane.OK_OPTION){
                     lpDesired = tasks[0].isSelected();
                     acRtiDesired = tasks[1].isSelected();
                     acRakingDesired = tasks[2].isSelected();
@@ -441,19 +438,19 @@ public class SpectralRTI_Toolkit implements Command {
                     case "jpegQuality":
                         key = key.replace("jpegQuality","JPEG Quality");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("Your preferred JPEG Quality (0-100).  This will be applied when creating JPEG source files for RTI images. ");
+                        fieldLabel.setToolTipText("Your preferred JPEG Quality (1-100).  This will be applied when creating JPEG source files for RTI images. ");
                     break;
 
                     case "hshOrder":
                         key = key.replace("hshOrder","HSH Order");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("Your HSH order.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
+                        fieldLabel.setToolTipText("Your HSH order.  This will be applied when creating RTI images. ");
                     break;
 
                     case "hshThreads":
                         key = key.replace("hshThreads","HSH Threads");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("The number of threads for the HSH fitter.  This will be applied when creating RTI images.  **MORE HELPER TEXT** ");
+                        fieldLabel.setToolTipText("The number of threads for the HSH fitter.  This will be applied when creating RTI images. ");
                     break;
 
                     case "webRtiMaker":
@@ -538,9 +535,9 @@ public class SpectralRTI_Toolkit implements Command {
                 
             }
             SpringUtilities.makeCompactGrid(scrollGrid,
-                            8, 2, //rows, cols
-                            6, 6,        //initX, initY
-                            6, 6);       //xPad, yPad
+                8, 2, //rows, cols
+                6, 6, //initX, initY
+                6, 6);//xPad, yPad
             JScrollPane spanel = new JScrollPane(scrollGrid);
             spanel.setBorder(BorderFactory.createEmptyBorder());
             contentPane.add(spanel);
@@ -548,8 +545,8 @@ public class SpectralRTI_Toolkit implements Command {
             //Gather new values from the dialog, reset the labels and update the new values.
             Object[] prefBtnLabels = {"Update",
                 "Skip"};
-            int result2 = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
-            if (result2 == JOptionPane.OK_OPTION){
+            int prefsResult = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
+            if (prefsResult == JOptionPane.OK_OPTION){
                 for (int j=0; j<prefs.length;j++) {
                         //Swap the labels back for processing
                         String key = prefs[j].substring(0, prefs[j].indexOf("="));
@@ -561,7 +558,6 @@ public class SpectralRTI_Toolkit implements Command {
                         key = key.replace("HSH Threads","hshThreads");
                         key = key.replace("Web RTI Maker","webRtiMaker");
                         key = key.replace("Short File Names","shortFileNames");
-                        //How can I do this from the result2 JOptionPane?
                         String value2 = fields[j].getText(); //Gather new information
                         if(key.equals("shortFileNames")){
                             shortName = (value2.equals("true") || value2.equals("yes"));
@@ -759,8 +755,8 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane.add(spanel);
                     Object[] transmissiveSourcesBtnLabels = {"Confirm",
                         "Quit"};
-                    int result4 = JOptionPane.showOptionDialog(null, contentPane, "Select Transmissive Source", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
-                    if (result4 == JOptionPane.OK_OPTION){
+                    int transmissiveResult = JOptionPane.showOptionDialog(null, contentPane, "Select Transmissive Source", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
+                    if (transmissiveResult == JOptionPane.OK_OPTION){
                         //Is there an easier way to get the selected btton from a buttonGroup?
                         for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
                             AbstractButton button = buttons.nextElement();
@@ -841,8 +837,8 @@ public class SpectralRTI_Toolkit implements Command {
                 Object[] btns = {"Confirm",
                         "Quit"};
                 while(!atLeastOne){
-                    int result = JOptionPane.showOptionDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                    if (result == JOptionPane.OK_OPTION){
+                    int lpResult = JOptionPane.showOptionDialog(null, contentPane, "Select Light Positions", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (lpResult == JOptionPane.OK_OPTION){
                         for(JCheckBox check : positions){
                             listOfRakingDirections.add(check.isSelected());
                             if(check.isSelected()){
@@ -898,8 +894,8 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane.add(labelPanel);
                     Object[] btns = {"Confirm",
                         "Quit"};
-                    int result4 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                    if (result4 == JOptionPane.OK_OPTION){
+                    int datasetResult = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (datasetResult == JOptionPane.OK_OPTION){
                         listOfNarrowbandCaptures = narrow_band_dir.listFiles();
                     }
                     else {
@@ -1030,8 +1026,8 @@ public class SpectralRTI_Toolkit implements Command {
                 Object[] btns = {"Confirm",
                     "Quit"};
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
-                    int result = JOptionPane.showOptionDialog(null, contentPane, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                    if ( result==JOptionPane.OK_OPTION) {
+                    int capturesResult = JOptionPane.showOptionDialog(null, contentPane, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if ( capturesResult==JOptionPane.OK_OPTION) {
                         for(int d=0; d<bgroups.length; d++){
                             //Go over each button group (one for each narrow band capture, in order)
                             ButtonGroup grabSelection = bgroups[d]; 
@@ -1147,8 +1143,8 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane.add(labelPanel);
                     Object[] btns = {"Confirm",
                         "Quit"};
-                    int result5 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                    if (result5 == JOptionPane.OK_OPTION){
+                    int datasetResult = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (datasetResult == JOptionPane.OK_OPTION){
                         listOfNarrowbandCaptures = narrow_band_dir.listFiles();
                     }
                     else {
@@ -1208,8 +1204,8 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane.add(spanel);
                 Object[] psuedoMethodBtnLabels = {"Confirm",
                     "Quit"};
-                int result6 = JOptionPane.showOptionDialog(null, contentPane, "Select Method for Pseudocolor", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, psuedoMethodBtnLabels, psuedoMethodBtnLabels[0]);
-                if (result6 == JOptionPane.OK_OPTION){
+                int pseudoMethodResult = JOptionPane.showOptionDialog(null, contentPane, "Select Method for Pseudocolor", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, psuedoMethodBtnLabels, psuedoMethodBtnLabels[0]);
+                if (pseudoMethodResult == JOptionPane.OK_OPTION){
                     //Is there an easier way to get the selected btton from a buttonGroup?
                     for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
                         AbstractButton button = buttons.nextElement();
@@ -1228,39 +1224,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 logService.log().info("Got PCA method: "+pcaMethod);
                 if (pcaHeight < 100) { 
-                    /*
-                    while(listOfNarrowbandCaptures.length < 1){
-                        contentPane = new JPanel();
-                        contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                        labelPanel = new JPanel();
-                        directions = new JLabel("There needs to be at least one image in the narrowband nogamma captures folder.  Please add them at this time or quit and add them later.");
-                        labelPanel.add(directions);
-                        contentPane.add(labelPanel);
-                        Object[] btns = {"Confirm",
-                            "Quit"};
-                        int result7 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                        if (result7 == JOptionPane.OK_OPTION){
-                            listOfNarrowbandCaptures = narrow_band_dir.listFiles();
-                        }
-                        else {
-                             //@userHitCancel
-                            IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
-                            throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
-                        }
-                        if (listOfNarrowbandCaptures.length<1) { 
-                            JOptionPane.showMessageDialog(null,
-                            "There needs to be at least one image in the narrowband nogamma captures folder", "Try Again",
-                            JOptionPane.PLAIN_MESSAGE);
-                        }
-                    }
-                    if (listOfNarrowbandCaptures.length < 1){
-                        IJ.error("There needs to be at least one image in the narrowband nogamma captures folder.  Exiting...");
-                        throw new Throwable("There needs to be at least one image in the narrowband nogamma captures folder...");
-                    }
-                    else{
-                        imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString() );
-                    }  
-                    */
+                   //It should already have been forced that there are at least 9 listOfNarrobandCapture images
                     imp = opener.openImage( listOfNarrowbandCaptures[Math.round(listOfNarrowbandCaptures.length/2)].toString());
                     //imglib2_img = ImagePlusAdapter.wrap( imp );
                     //ImageJFunctions.show(imglib2_img, "Preview");
@@ -1375,8 +1339,8 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane.add(labelPanel);
                     Object[] btns = {"Confirm",
                         "Quit"};
-                    int result8 = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                    if (result8 == JOptionPane.OK_OPTION){
+                    int datasetReult = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (datasetReult == JOptionPane.OK_OPTION){
                         listOfAccurateColorSources = accurate_color_dir.listFiles();
                     }
                     else {
@@ -1444,8 +1408,8 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane.add(spanel);
                         Object[] btns = {"Confirm",
                             "Quit"};
-                        int result9 = JOptionPane.showOptionDialog(null, contentPane, "Select Color Source", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                        if (result9 == JOptionPane.OK_OPTION){
+                        int colorSourceResult = JOptionPane.showOptionDialog(null, contentPane, "Select Color Source", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (colorSourceResult == JOptionPane.OK_OPTION){
                             //Is there an easier way to get the selected btton from a buttonGroup?
                             for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
                                 AbstractButton button = buttons.nextElement();
@@ -1995,8 +1959,8 @@ public class SpectralRTI_Toolkit implements Command {
                         buttonPanel.add(deleteSlice);
                         Object[] btns = {"Confirm",
                         "Quit"};
-                        int result31 = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                        if (result31 == JOptionPane.OK_OPTION){
+                        int deleteSliceResult = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (deleteSliceResult == JOptionPane.OK_OPTION){
                             if(noGammaPCA.getStackSize() == 2){
                                 noGammaPCA.hide();
                                 noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
@@ -2485,9 +2449,9 @@ public class SpectralRTI_Toolkit implements Command {
                 //Gather new values from the dialog, reset the labels and update the new values.
                 Object[] btns = {"Approve",
                     "Quit"};
-                int result10 = JOptionPane.showOptionDialog(null, contentPane, "Approve JP2 Arguments", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                int argsResult = JOptionPane.showOptionDialog(null, contentPane, "Approve JP2 Arguments", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                 
-                if (result10 == JOptionPane.OK_OPTION){
+                if (argsResult == JOptionPane.OK_OPTION){
                    preferredJp2Args = args.getText();
                 }
                 else {
@@ -2642,8 +2606,8 @@ public class SpectralRTI_Toolkit implements Command {
             contentPane.add(scrollGrid2);
             Object[] transmissiveSourcesBtnLabels = {"Confirm",
                 "Skip"};
-            int result11 = JOptionPane.showOptionDialog(null, contentPane, "Adjust Brightness", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
-            if (result11 == JOptionPane.OK_OPTION){
+            int brightResult = JOptionPane.showOptionDialog(null, contentPane, "Adjust Brightness", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, transmissiveSourcesBtnLabels, transmissiveSourcesBtnLabels[0]);
+            if (brightResult == JOptionPane.OK_OPTION){
                 //Is there an easier way to get the selected btton from a buttonGroup?
                 for (Enumeration<AbstractButton> buttons = adjust_radios.getElements(); buttons.hasMoreElements();) {
                     AbstractButton button = buttons.nextElement();
@@ -2731,13 +2695,13 @@ public class SpectralRTI_Toolkit implements Command {
                                // ignore the value, it won't work in the preview.
                            }
                         }
-                      });
+                    });
                     contentPane.add(adjustment);
                     //Gather new values from the dialog, reset the labels and update the new values.
                     Object[] btns = {"Confirm",
                         "Cancel"};
-                    int result30 = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                    if (result30 == JOptionPane.OK_OPTION){
+                    int valueResult = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                    if (valueResult == JOptionPane.OK_OPTION){
                         try{
                             if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
                                 properValue = false;
@@ -2786,28 +2750,7 @@ public class SpectralRTI_Toolkit implements Command {
             String appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
             File preferredHSH;
             String hshLocation = "";
-            JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
-            GenericDialog fitterMessageFrame = new GenericDialog("Try Again");
-            contentPane = new JPanel();
-            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-            JPanel labelPanel = new JPanel();
-            JLabel fitterText = new JLabel("Running the fitter.  This could take a while.  This window will close and a notification"
-                + " will appear when the process is complete.  Thank you for your patience.");
-            labelPanel.add(fitterText);
-            contentPane.add(labelPanel);
-            fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            fitterNoticeFrame.getContentPane().add(contentPane);
-            fitterNoticeFrame.pack();
-            fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
-            contentPane = new JPanel();
-            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-            JPanel msgPanel = new JPanel();
-            JLabel msgText = new JLabel("The chosen fitter will not work for this process.  Please use hshfitter.exe or a cmd file for batch processing later.");
-            labelPanel.add(msgText);
-            contentPane.add(msgPanel);
-            fitterMessageFrame.add(contentPane);
-            fitterMessageFrame.pack();
-            fitterMessageFrame.setLocation(screenSize.width/2-fitterMessageFrame.getSize().width/2, screenSize.height/2-fitterMessageFrame.getSize().height/2);
+            
             File fitterFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
             if(!fitterFile.exists()){
                 Files.createFile(fitterFile.toPath());
@@ -2820,6 +2763,28 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.error("You must provide the location for the RTI Fitter or cmd file to continue.  Exiting...");
                     throw new Throwable("You must provide the location for the RTI Fitter or cmd file to continue.");
                 }
+                JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
+                GenericDialog fitterMessageFrame = new GenericDialog("Try Again");
+                contentPane = new JPanel();
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel labelPanel = new JPanel();
+                JLabel fitterText = new JLabel("Running the fitter.  This could take a while.  This window will close and a notification"
+                    + " will appear when the process is complete.  Thank you for your patience.");
+                labelPanel.add(fitterText);
+                contentPane.add(labelPanel);
+                fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                fitterNoticeFrame.getContentPane().add(contentPane);
+                fitterNoticeFrame.pack();
+                fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
+                contentPane = new JPanel();
+                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+                JPanel msgPanel = new JPanel();
+                JLabel msgText = new JLabel("The chosen fitter will not work for this process.  Please use hshfitter.exe or a cmd file for batch processing later.");
+                labelPanel.add(msgText);
+                contentPane.add(msgPanel);
+                fitterMessageFrame.add(contentPane);
+                fitterMessageFrame.pack();
+                fitterMessageFrame.setLocation(screenSize.width/2-fitterMessageFrame.getSize().width/2, screenSize.height/2-fitterMessageFrame.getSize().height/2);
                 preferredFitter = dialog.getPath();
                 preferredFitter = preferredFitter.replace("\\", "/"); 
                 if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
@@ -2847,6 +2812,7 @@ public class SpectralRTI_Toolkit implements Command {
                     Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
                     appendString += "Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
                     Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
+                    fitterNoticeFrame.setVisible(true);
                     if(isWindows){
                         //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
                         String commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
@@ -2869,6 +2835,7 @@ public class SpectralRTI_Toolkit implements Command {
                 } 
                 else if (preferredFitter.endsWith("cmd")||preferredFitter.endsWith("bash")) {
                     logService.log().info("Detected the preferred fitter is in fact a cmd or bash file.  This will defer processing.");
+                    fitterNoticeFrame.setVisible(true);
                     //This is the deferred batch section.  Just write to the file, do not perform processes.
                     int hshOrder = Integer.parseInt(theList.get("hshOrder"));
                     if (hshOrder < 2 ) hshOrder = 3;
@@ -3009,8 +2976,8 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane.add(spanel);
                         Object[] btns = {"Confirm",
                             "Quit"};
-                        int result12 = JOptionPane.showOptionDialog(null, contentPane, "Select Light Position Source File", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                        if (result12 == JOptionPane.OK_OPTION){
+                        int lpFileResult = JOptionPane.showOptionDialog(null, contentPane, "Select Light Position Source File", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
+                        if (lpFileResult == JOptionPane.OK_OPTION){
                             //Is there an easier way to get the selected btton from a buttonGroup?
                             for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
                                 AbstractButton button = buttons.nextElement();
@@ -3062,7 +3029,6 @@ public class SpectralRTI_Toolkit implements Command {
             File webRTIFolder;
             if(!rtiImage.equals("")){
                 //The user has chosen to just create a webrti from an existing RTI Image, we do not know for what process.
-                
                 File imgFile = new File(rtiImage);
                 String RTIDir = imgFile.getParent();
                 logService.log().info("RTI DIR: "+RTIDir);
