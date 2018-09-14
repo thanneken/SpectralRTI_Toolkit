@@ -547,7 +547,7 @@ public class SpectralRTI_Toolkit implements Command {
 
             //Gather new values from the dialog, reset the labels and update the new values.
             Object[] prefBtnLabels = {"Update",
-                "Skip"};
+                "Continue"};
             int prefsResult = JOptionPane.showOptionDialog(null, contentPane, "Consult Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, prefBtnLabels, prefBtnLabels[0]);
             if (prefsResult == JOptionPane.OK_OPTION){
                 for (int j=0; j<prefs.length;j++) {
@@ -1033,7 +1033,7 @@ public class SpectralRTI_Toolkit implements Command {
                  * Gather user visible range selections.
                  */
                 //Make sure this doesn't show infinite confirm dialogs.  
-                Object[] btns = {"Confirm",
+                Object[] btns = {"Apply",
                     "Quit"};
                 while(!(atLeastOneR && atLeastOneG && atLeastOneB)){
                     int capturesResult = JOptionPane.showOptionDialog(null, contentPane, "Assign Narrowband Captures", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
@@ -2485,8 +2485,8 @@ public class SpectralRTI_Toolkit implements Command {
                 JTextField args = new JTextField(arguments, 85);
                 contentPane.add(args);
                 //Gather new values from the dialog, reset the labels and update the new values.
-                Object[] btns = {"Approve",
-                    "Quit"};
+                Object[] btns = {"Apply",
+                    "Default"};
                 int argsResult = JOptionPane.showOptionDialog(null, contentPane, "Approve JP2 Arguments", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                 
                 if (argsResult == JOptionPane.OK_OPTION){
@@ -2494,9 +2494,13 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else {
                      //@userHitCancel
-                    WindowManager.closeAllWindows();
-                    IJ.error("You must provide JP2 arguments to continue.  Exiting...");
-                    throw new Throwable("You must provide JP2 arguments to continue!");
+                    preferredJp2Args = arguments;
+                    JOptionPane.showMessageDialog(null,
+                        "You did not provide a jp2 arguments.  We are using the default value.", "Notice",
+                        JOptionPane.PLAIN_MESSAGE);
+//                    WindowManager.closeAllWindows();
+//                    IJ.error("You must provide JP2 arguments to continue.  Exiting...");
+//                    throw new Throwable("You must provide JP2 arguments to continue!");
                 }
             }
             preferredJp2Args =preferredJp2Args.replace("\\", "/");
@@ -2723,10 +2727,12 @@ public class SpectralRTI_Toolkit implements Command {
                         public void process() {
                            try{
                                 double previewAdjustVal = 1.00;
+                                
                                 if (Double.parseDouble(adjustment.getText())<=0 || Double.parseDouble(adjustment.getText())>2.00){
                                     //ignore the value, it won't work in the preview
                                 }
                                 else{
+                                    imp.revert(); //should undo the last brightness change
                                     previewAdjustVal = Double.parseDouble(adjustment.getText());
                                     IJ.run(imp, "Multiply...", "value="+previewAdjustVal+"");
                                 }
@@ -2738,8 +2744,8 @@ public class SpectralRTI_Toolkit implements Command {
                     });
                     contentPane.add(adjustment);
                     //Gather new values from the dialog, reset the labels and update the new values.
-                    Object[] btns = {"Confirm",
-                        "Cancel"};
+                    Object[] btns = {"Apply",
+                        "Default"};
                     int valueResult = JOptionPane.showOptionDialog(null, contentPane, "Set Brightness Value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if (valueResult == JOptionPane.OK_OPTION){
                         try{
