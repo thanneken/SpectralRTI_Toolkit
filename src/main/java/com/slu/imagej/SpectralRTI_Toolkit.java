@@ -264,12 +264,14 @@ public class SpectralRTI_Toolkit implements Command {
                 projectDirectory = file_dialog.getDirectory();
                 if(null==projectDirectory){
                     //@userHitCancel
+                    WindowManager.closeAllWindows();
                     IJ.error("You must provide a project directory to continue.  Exiting...");
                     throw new Throwable("You must provide a project directory."); //DIE if no directory provided
                 }
                 projectFile = new File(projectDirectory);
             }
             if(projectDirectory == null || projectDirectory.equals("")){
+                WindowManager.closeAllWindows();
                 IJ.error("You must provide a project directory to continue.  Exiting...");
                 throw new Throwable("You must provide a project directory."); //DIE if no directory provided
             }
@@ -384,6 +386,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else {
                      //@userHitCancel
+                    WindowManager.closeAllWindows();
                     IJ.error("You must provide a task set to continue.  Exiting...");
                     throw new Throwable("You must provide a task set to continue.");
                 }
@@ -607,6 +610,7 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
             }
             if(listOfHemisphereCaptures.length < 1){
+                WindowManager.closeAllWindows();
                 IJ.error("There must be at least 1 image in the hemisphere captures folder to continue.  Please populate for next time.  Exiting...");
                 throw new Throwable("There must be at least 1 image in the hemisphere caputres folder to continue.  Please populate for next time.");
             }
@@ -657,6 +661,7 @@ public class SpectralRTI_Toolkit implements Command {
                         OpenDialog rti_image = new OpenDialog("Locate the RTI image (.rti extension) to make into WebRTI.");
                         if(null== rti_image.getPath()){
                             //@UserHitCanvel
+                            WindowManager.closeAllWindows();
                             IJ.error("You must provide an RTI Image for processing to continue.  Exiting...");
                             throw new Throwable("You must provide an RTI Image for processing to continue.");
                         }
@@ -670,6 +675,7 @@ public class SpectralRTI_Toolkit implements Command {
                     createWebRTIFiles("", rtiImageToUse);
                 }
                 else{
+                    WindowManager.closeAllWindows();
                     IJ.error("You must provide at least one task.  Exiting...");
                     throw new Throwable("You must provide at least one task set to continue.");
                 }
@@ -771,6 +777,7 @@ public class SpectralRTI_Toolkit implements Command {
                     else{ 
                         //@userHitCancel is it OK to default to the first source?
                         transmissiveSource = listOfTransmissiveSourcePaths[0];
+                        WindowManager.closeAllWindows();
                         IJ.error("You must select one transmissive source to continue.  Exiting...");
                         throw new Throwable("You must select one transmissive source.");
                     }
@@ -848,13 +855,14 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                         //@userHitCancel
-                        //YIKES Pane was cancelled or closed.  How should i handle (@userHitCancel).  Make them all false?
+                        //How should i handle (@userHitCancel).  Make them all false?
                         /*
                         listOfRakingDirections = new ArrayList<>();
                         for(JCheckBox check : positions){
                             listOfRakingDirections.add(Boolean.FALSE);
                         }
                         */
+                        WindowManager.closeAllWindows();
                         IJ.error("You must make at least one selection to continue!  Exiting...");
                         throw new Throwable("You must make at least one selection to continue!");
                     }
@@ -900,6 +908,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                          //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must have 9 or more narrow band captures for Extended Spectrum.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
                     }
@@ -910,6 +919,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
+                    WindowManager.closeAllWindows();
                     IJ.error("You must have 9 or more narrow band captures for Extended Spectrum!  Exiting...");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
@@ -970,14 +980,13 @@ public class SpectralRTI_Toolkit implements Command {
                     bgroups[i] = capture_radios;
                     //Auto-select the correct button
                     String narrowCapture = "";
-                    JLabel jlabel = new JLabel(narrowCapture);
                     if(shortName){
                         narrowCapture = "..."+listOfNarrowbandCaptures[i].getName();
                     }
                     else{
                         narrowCapture = listOfNarrowbandCaptures[i].toString();
                     }
-                   
+                    JLabel jlabel = new JLabel(narrowCapture);
                     jlabel.setToolTipText(listOfNarrowbandCaptures[i].toString());
                     jlabel.setBorder(new EmptyBorder(0,10,0,0));
                     scrollPanel.add(jlabel);
@@ -989,6 +998,7 @@ public class SpectralRTI_Toolkit implements Command {
                     contentGroup.add(radioOptionG);
                     contentGroup.add(radioOptionB);
                     contentGroup.add(radioOptionNone);
+                    jlabel.setLabelFor(contentGroup);
                     /**
                        * Since it is conventional to capture in a sequence of short to long wavelengths, it is helpful to default the first third of the files 
                        * in "narrowband captures" to blue, the middle third to green, and final third to red. 
@@ -1053,20 +1063,20 @@ public class SpectralRTI_Toolkit implements Command {
                                 }
                             }
                         }
+                        if(!(atLeastOneR && atLeastOneG && atLeastOneB)){
+                            JOptionPane.showMessageDialog(null,
+                            "You must designate at least one capture to each visible range of R, G, B", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
                     } 
                     else {
                         //Pane was cancelled or closed. (@userHitCancel)
+                        WindowManager.closeAllWindows();
                         IJ.error("You must designate the captures to the visible range of R, G, B, or none to continue!  Exiting...");
                         throw new Throwable("You must designate the captures to the visible range of R, G, B, or none to continue!");
                     }
                 }
-                
-                /**
-                 * @Yikes
-                 * Here is a sticky point.  ImageJ is requiring AT LEAST TWO selections for each visible range.  This is because it wants
-                 * to treat it like a stack, and a stack is > 1 image.
-                 * @Fixed add a slice if we detected there was only one
-                 */
+
                 if(!(atLeastOneR && atLeastOneG && atLeastOneB)){
                     String whichOnes = "You did not provide a selection of the visible range(s) ";
                     if(!atLeastOneR){
@@ -1078,6 +1088,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if(!atLeastOneB){
                         whichOnes +="B";
                     }
+                    WindowManager.closeAllWindows();
                     IJ.error("You must designate at least one capture to each of the visible ranges (R,G,B). "+whichOnes+" --- Exiting...");
                     throw new Throwable("You must designate at least one capture to each of the visible ranges (R,G,B). "+whichOnes);
                 }
@@ -1100,6 +1111,7 @@ public class SpectralRTI_Toolkit implements Command {
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
+                            WindowManager.closeAllWindows();
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
                         }
@@ -1111,6 +1123,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     if(imp.getRoi() == null){
                         //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
@@ -1149,6 +1162,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                          //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must have 9 or more narrow band captures for Pseudocolor.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
                     }
@@ -1159,6 +1173,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
+                    WindowManager.closeAllWindows();
                     IJ.error("You must have 9 or more narrow band captures for Pseudocolor!  Exiting...");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
@@ -1219,6 +1234,7 @@ public class SpectralRTI_Toolkit implements Command {
                 else{ 
                     //@userHitCancel is it OK to default to the first source?
                     pcaMethod = listOfPcaMethods[0];
+                    WindowManager.closeAllWindows();
                     IJ.error("You must select one Psuedocolor method to continue.  Exiting...");
                     throw new Throwable("You must select one Psuedocolor method.");
                 }
@@ -1235,6 +1251,7 @@ public class SpectralRTI_Toolkit implements Command {
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
+                            WindowManager.closeAllWindows();
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
                         }
@@ -1257,6 +1274,7 @@ public class SpectralRTI_Toolkit implements Command {
                     OpenDialog csSourceDialog = new OpenDialog("Choose a Source for Custom Process");
                     if(null == csSourceDialog.getPath()){
                         //@userHitCanvel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must provide a custom source to continue.  Exiting...");
                         throw new Throwable("You must provide a custom source to continue.");
                     }
@@ -1284,6 +1302,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
@@ -1308,6 +1327,7 @@ public class SpectralRTI_Toolkit implements Command {
                             filePath = projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                         }
                         else{
+                            WindowManager.closeAllWindows();
                             IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+imageName+"  ---  Exiting...");
                             throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+imageName); 
                         }
@@ -1345,6 +1365,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                          //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                         throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     }
@@ -1355,6 +1376,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 if (listOfAccurateColorSources.length<1){
+                    WindowManager.closeAllWindows();
                     IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                     throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                 }
@@ -1422,6 +1444,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         else{ 
                             //@userHitCancel is it OK to default to the first source?
+                            WindowManager.closeAllWindows();
                             IJ.error("You must provide a color source to continue!  Exiting...");
                             throw new Throwable("You must provide a color source to continue!");
                         }
@@ -1500,6 +1523,7 @@ public class SpectralRTI_Toolkit implements Command {
                             simpleImageName = "AccurateColor_"+simpleName1;
                         }
                         else{
+                            WindowManager.closeAllWindows();
                             IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                             throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                         }
@@ -1622,7 +1646,7 @@ public class SpectralRTI_Toolkit implements Command {
 		}
                 //ImagePlus redStacker = FolderOpener.open(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator, "file=("+redStringList+") sort"); //This only opens the folder, cant pick and choose
 		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort"); //Opens a series of images in a chosen folder as a stack. Images may have different dimensions and can be of any format supported by ImageJ              
-                ImagePlus redStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                ImagePlus redStacker = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
                 redStacker.setTitle("RedStack");
                 logService.log().info("There are "+redStacker.getStackSize()+" images in the RED STACK");
                 redStacker.hide();
@@ -1660,7 +1684,7 @@ public class SpectralRTI_Toolkit implements Command {
                     greenStringList = greenStringList+"|"+greenNarrowbands[i].toString();
 		}
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+greenStringList+") sort"); 
-                ImagePlus greenStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                ImagePlus greenStacker = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+greenStacker.getStackSize()+" images in the GREEN STACK");
                 greenStacker.hide();
                 if(greenNarrowbands.length == 1){
@@ -1689,7 +1713,7 @@ public class SpectralRTI_Toolkit implements Command {
                     blueStringList = blueStringList+"|"+blueNarrowbands[i].toString();
 		}
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+blueStringList+") sort");
-                ImagePlus blueStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                ImagePlus blueStacker = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+blueStacker.getStackSize()+" images in the BLUE STACK");
                 blueStacker.hide();
                 if(blueNarrowbands.length == 1){
@@ -1806,6 +1830,7 @@ public class SpectralRTI_Toolkit implements Command {
                             simpleImageName = "ExtendedSpectrum_"+simpleName1;
                         }
                         else{
+                            WindowManager.closeAllWindows();
                             IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                             throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                         }
@@ -1867,13 +1892,14 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus narrowNoGamma;
                 ImagePlus narrowKeptPCA = new ImagePlus();
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
-                narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                logService.log().warn(projectName+"/"+"Captures-Narrowband-NoGamma");
+                narrowNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
                 narrowNoGamma.hide();
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod.equals("Generate and select using defaults")){
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                        flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
+                        flNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Fluorescence-NoGamma");
                         flNoGamma.hide();
                         flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
                         narrowNoGamma.close();
@@ -1900,7 +1926,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //option to create new ones and manually select (close all but two)
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                        flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
+                        flNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Fluorescence-NoGamma");
                         flNoGamma.hide();
                         flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
                         narrowNoGamma.close();
@@ -1920,14 +1946,18 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane = new JPanel();
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                         labelPanel = new JPanel();
-                        labelPanel.setLayout(new BoxLayout(labelPanel,BoxLayout.PAGE_AXIS));
+                        labelPanel2 = new JPanel();
+                        JPanel labelPanel3 = new JPanel();
                         JLabel directions = new JLabel("Delete slices from the PCA stack until two remain.");
                         JLabel directions2 = new JLabel("Navigate to the slice in the stack you want to delete using the buttons below.");
                         JLabel directions3 = new JLabel("Once there are only two slices remaining, click Finish to accept the slices.");
                         labelPanel.add(directions);
-                        labelPanel.add(directions2);
-                        labelPanel.add(directions3);
+                        labelPanel2.add(directions2);
+                        labelPanel3.add(directions3);
+                        labelPanel3.setBorder(new EmptyBorder(0,0,10,0));
                         contentPane.add(labelPanel);
+                        contentPane.add(labelPanel2);
+                        contentPane.add(labelPanel3);
                         JButton deleteSlice = new JButton("Delete Slice");
                         deleteSlice.addActionListener(new ActionListener() { 
                             public void actionPerformed(ActionEvent e) { 
@@ -1957,6 +1987,7 @@ public class SpectralRTI_Toolkit implements Command {
                         buttonPanel.add(nextSlice);
                         buttonPanel.add(previousSlice);
                         buttonPanel.add(deleteSlice);
+                        contentPane.add(buttonPanel);
                         Object[] btns = {"Confirm",
                         "Quit"};
                         int deleteSliceResult = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
@@ -1976,6 +2007,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         else {
                             //@userHitCancel
+                            WindowManager.closeAllWindows();
                             IJ.error("You must delete until there are two slices to continue!   Exiting...");
                             throw new Throwable("You must delete until there are two slices to continue!");
                         }
@@ -1990,6 +2022,7 @@ public class SpectralRTI_Toolkit implements Command {
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
+                            WindowManager.closeAllWindows();
                             IJ.error("You must make selections to continue!  Exiting...");
                             throw new Throwable("You must make selections to continue!");
                         }
@@ -1999,6 +2032,7 @@ public class SpectralRTI_Toolkit implements Command {
                         WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
                     }
                     else{
+                        WindowManager.closeAllWindows();
                         IJ.error("Open a pair of images or stack of two slices to continue!  Exiting...");
                         throw new Throwable("Open a pair of images or stack of two slices to continue!");
                     }
@@ -2011,7 +2045,7 @@ public class SpectralRTI_Toolkit implements Command {
                 */
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-                    narrowNoGamma = WindowManager.getImage("Captures-Hemisphere-Gamma");
+                    narrowNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Hemisphere-Gamma");
                     narrowNoGamma.hide();
                     IJ.run(narrowNoGamma, "Z Project...", "projection=Median");
                     narrowNoGamma.changes = false;
@@ -2124,6 +2158,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             else{
                                 /**@Yikes can't wrap this in while, it is a hard fail. */
+                                WindowManager.closeAllWindows();
                                 IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                                 throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
@@ -2150,6 +2185,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             else{
                                 /**@Yikes can't wrap this in while, it is a hard fail. */
+                                WindowManager.closeAllWindows();
                                 IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                                 throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
@@ -2279,6 +2315,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = csProcessName+"_"+simpleName1;
                             }
                             else{
+                                WindowManager.closeAllWindows();
                                 IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                                 throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
@@ -2407,6 +2444,7 @@ public class SpectralRTI_Toolkit implements Command {
                 dialog = new OpenDialog("Locate kdu_compress or ojp_compress"); 
                 if(null==dialog.getPath()){
                     //@userHitCancel
+                    WindowManager.closeAllWindows();
                     IJ.error("You must provide the jp2 compressor location to continue.  Exiting...");
                     throw new Throwable("You must provide the jp2 compressor location to continue!");
                 }
@@ -2456,6 +2494,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else {
                      //@userHitCancel
+                    WindowManager.closeAllWindows();
                     IJ.error("You must provide JP2 arguments to continue.  Exiting...");
                     throw new Throwable("You must provide JP2 arguments to continue!");
                 }
@@ -2639,6 +2678,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
@@ -2760,6 +2800,7 @@ public class SpectralRTI_Toolkit implements Command {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 if(null==dialog.getPath()){
                     //@userHitCancel
+                    WindowManager.closeAllWindows();
                     IJ.error("You must provide the location for the RTI Fitter or cmd file to continue.  Exiting...");
                     throw new Throwable("You must provide the location for the RTI Fitter or cmd file to continue.");
                 }
@@ -2939,6 +2980,7 @@ public class SpectralRTI_Toolkit implements Command {
                         OpenDialog dialog = new OpenDialog("Locate Light Position Source File"); 
                         if(null==dialog.getPath()){
                             //@userHitCancel
+                            WindowManager.closeAllWindows();
                             IJ.error("You must provide the location for the light position source file to continue.  Exiting...");
                             throw new Throwable("You must provide the location for the light position source file to continue.");
                         }
@@ -2990,6 +3032,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         else{ 
                             //@userHitCancel is it OK to default to the first source?
+                            WindowManager.closeAllWindows();
                             IJ.error("You must make a selection for which light position file to use.  Exiting...");
                             throw new Throwable("You must make a selection for which light position file to use.");
                         }
@@ -3067,6 +3110,7 @@ public class SpectralRTI_Toolkit implements Command {
                     OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
                     if(null==dialog2.getPath()){
                         //@userHitCancel
+                        WindowManager.closeAllWindows();
                         IJ.error("You must provide the webGLRTIMaker.exe location to continue.  Exiting...");
                         throw new Throwable("You must provide the webGLRTIMaker.exe location to continue.");
                     }
