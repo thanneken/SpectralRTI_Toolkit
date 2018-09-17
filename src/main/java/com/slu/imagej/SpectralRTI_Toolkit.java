@@ -1915,7 +1915,6 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus narrowNoGamma;
                 ImagePlus narrowKeptPCA = new ImagePlus();
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
-                logService.log().warn(projectName+"/"+"Captures-Narrowband-NoGamma");
                 narrowNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
                 narrowNoGamma.hide();
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
@@ -2035,6 +2034,7 @@ public class SpectralRTI_Toolkit implements Command {
                         }
                         else {
                             //@userHitCancel
+                            noGammaPCA.changes = false; //otherwise it asks to save changes..
                             WindowManager.closeAllWindows();
                             IJ.error("You must delete until there are two slices to continue!   Exiting...");
                             throw new Throwable("You must delete until there are two slices to continue!");
@@ -2760,6 +2760,7 @@ public class SpectralRTI_Toolkit implements Command {
                                     //ignore the value, it won't work in the preview
                                 }
                                 else{
+                                    imp.changes = false;
                                     imp.revert(); //should undo the last brightness change
                                     previewAdjustVal = Double.parseDouble(adjustment.getText());
                                     IJ.run(imp, "Multiply...", "value="+previewAdjustVal+"");
