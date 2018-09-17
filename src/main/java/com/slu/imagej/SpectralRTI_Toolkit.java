@@ -42,6 +42,7 @@ package com.slu.imagej;
 
 //ImageJ specific imports
 import ij.IJ;
+import static ij.IJ.URL;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.WaitForUserDialog;
@@ -108,8 +109,11 @@ import java.awt.Dialog;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -119,7 +123,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.apache.commons.io.comparator.NameFileComparator;
-import ui.SpringUtilities;
+import ui.*;
 
 /**
  * @author bhaberbe
@@ -207,7 +211,26 @@ public class SpectralRTI_Toolkit implements Command {
         
         /* Use to test code bits.  switch out theMacro_test() with testCode() in main */
         private void testCode() throws IOException, Throwable{
-            logService.log().info("TEST code");
+            JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
+            contentPane = new JPanel();
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel labelPanel = new JPanel();
+            JLabel fitterText = new JLabel("Running the fitter.  This could take a while.  This window will close and a notification"
+                + " will appear when the process is complete.  Thank you for your patience.");
+            labelPanel.add(fitterText);
+            contentPane.add(labelPanel);
+            logService.log().warn(this.getClass());
+            
+            
+            ImageIcon icon = new ImageIcon("gifs/spinny.gif",
+                "loading...");
+            JLabel animated = new JLabel(icon);
+            contentPane.add(animated);
+
+            fitterNoticeFrame.getContentPane().add(contentPane);
+            fitterNoticeFrame.pack();
+            fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
+            fitterNoticeFrame.setVisible(true);
         }
         
         private void theMacro_tested() throws IOException, Throwable{
@@ -447,13 +470,13 @@ public class SpectralRTI_Toolkit implements Command {
                     case "hshOrder":
                         key = key.replace("hshOrder","HSH Order");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("Your HSH order.  This will be applied when creating RTI images. ");
+                        fieldLabel.setToolTipText("Minimum of 3 which will be defaulted to.  This will be applied when creating RTI images. ");
                     break;
 
                     case "hshThreads":
                         key = key.replace("hshThreads","HSH Threads");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("The number of threads for the HSH fitter.  This will be applied when creating RTI images. ");
+                        fieldLabel.setToolTipText("Minimum of 16 which will be defaulted to.  This will be applied when creating RTI images. ");
                     break;
 
                     case "webRtiMaker":
@@ -1344,7 +1367,7 @@ public class SpectralRTI_Toolkit implements Command {
                         imp.close();
                     }
                 }
-                IJ.showMessageWithCancel("Use RTI Builder to Create LP File","Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in\n"+projectDirectory+"LightPositionData"+File.separator+"\nPress cancel to discontinue Spectral RTI Toolkit or Ok to continue with other tasks after the lp file has been created.");
+                IJ.showMessageWithCancel("Use RTI Builder to Create LP File","Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in\n"+projectDirectory+"LightPositionData"+File.separator+"\nPress cancel to discontinue Spectral RTI Toolkit or Ok to complete other selected tasks.");
             }
             if(acRtiDesired || acRakingDesired){ //Gather accurate color info
                 listOfAccurateColorSources = accurate_color_dir.listFiles();
@@ -1948,9 +1971,12 @@ public class SpectralRTI_Toolkit implements Command {
                         labelPanel = new JPanel();
                         labelPanel2 = new JPanel();
                         JPanel labelPanel3 = new JPanel();
+                        JPanel sliceCountPanel = new JPanel();
                         JLabel directions = new JLabel("Delete slices from the PCA stack until two remain.");
                         JLabel directions2 = new JLabel("Navigate to the slice in the stack you want to delete using the buttons below.");
                         JLabel directions3 = new JLabel("Once there are only two slices remaining, click Finish to accept the slices.");
+                        JLabel sliceCount = new JLabel(noGammaPCA.getStackSize()+" slices");
+                        sliceCountPanel.add(sliceCount);
                         labelPanel.add(directions);
                         labelPanel2.add(directions2);
                         labelPanel3.add(directions3);
@@ -1958,15 +1984,17 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane.add(labelPanel);
                         contentPane.add(labelPanel2);
                         contentPane.add(labelPanel3);
+                        contentPane.add(sliceCountPanel);
                         JButton deleteSlice = new JButton("Delete Slice");
                         deleteSlice.addActionListener(new ActionListener() { 
                             public void actionPerformed(ActionEvent e) { 
                                 if(noGammaPCA.getStackSize() > 2){
                                     IJ.run(noGammaPCA, "Delete Slice", "");
+                                    sliceCount.setText(noGammaPCA.getStackSize()+" slices");
                                 }
                                 else{
                                     JOptionPane.showMessageDialog(null,
-                                    "You have two slices, cannot remove any more.", "Try Again",
+                                    "Only two slices, cannot remove any more.", "Try Again",
                                     JOptionPane.PLAIN_MESSAGE);
                                 }
                             } 
@@ -2815,7 +2843,7 @@ public class SpectralRTI_Toolkit implements Command {
                 contentPane = new JPanel();
                 contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                 JPanel labelPanel = new JPanel();
-                JLabel fitterText = new JLabel("Running the fitter.  This could take a while.  This window will close and a notification"
+                JLabel fitterText = new JLabel("Running the fitter.  This could take a while. "+System.lineSeparator()+"  This window will close and a notification"
                     + " will appear when the process is complete.  Thank you for your patience.");
                 labelPanel.add(fitterText);
                 contentPane.add(labelPanel);
@@ -2836,6 +2864,9 @@ public class SpectralRTI_Toolkit implements Command {
                 preferredFitter = preferredFitter.replace("\\", "/"); 
                 if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
                     int hshOrder = Integer.parseInt(theList.get("hshOrder"));
+                    /**
+                     * Could add a message here notifying the user about defaulting hshOrder and hshThreads
+                     */
                     if (hshOrder < 2 ) hshOrder = 3;
                     int hshThreads = Integer.parseInt(theList.get("hshThreads"));
                     if (hshThreads < 1 ) hshThreads = 16;
@@ -2884,6 +2915,7 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info("Detected the preferred fitter is in fact a cmd or bash file.  This will defer processing.");
                     fitterNoticeFrame.setVisible(true);
                     //This is the deferred batch section.  Just write to the file, do not perform processes.
+                    
                     int hshOrder = Integer.parseInt(theList.get("hshOrder"));
                     if (hshOrder < 2 ) hshOrder = 3;
                     int hshThreads = Integer.parseInt(theList.get("hshThreads"));

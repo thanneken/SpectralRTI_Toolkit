@@ -7,3 +7,4 @@ build.xml
 target/
 /target/
 nb-configuration.xml
+nbactions.xml
