@@ -470,13 +470,13 @@ public class SpectralRTI_Toolkit implements Command {
                     case "hshOrder":
                         key = key.replace("hshOrder","HSH Order");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("Minimum of 3 which will be defaulted to.  This will be applied when creating RTI images. ");
+                        fieldLabel.setToolTipText("Default is 3.  This will be applied when creating RTI images. ");
                     break;
 
                     case "hshThreads":
                         key = key.replace("hshThreads","HSH Threads");
                         fieldLabel = new JLabel(key, JLabel.TRAILING);
-                        fieldLabel.setToolTipText("Minimum of 16 which will be defaulted to.  This will be applied when creating RTI images. ");
+                        fieldLabel.setToolTipText("Default is 16.  This will be applied when creating RTI images. ");
                     break;
 
                     case "webRtiMaker":
