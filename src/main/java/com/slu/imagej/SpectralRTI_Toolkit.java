@@ -268,13 +268,14 @@ public class SpectralRTI_Toolkit implements Command {
                     *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
                     *@see projectDirectory 
                 */
+                String arguments = "-rate -,2.4,1.48331273,.91673033,.56657224,.35016049,.21641118,.13374944,.08266171 Creversible=no Clevels=5 Stiles={1024,1024} Cblk={64,64} Cuse_sop=yes Cuse_eph=yes Corder=RPCL ORGgen_plt=yes ORGtparts=R Cmodes=BYPASS -double_buffering 10 -num_threads 4 -no_weights";
                 Files.createFile(spectralPrefsFile.toPath()); 
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredCompress="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredJp2Args="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredJp2Args="+arguments+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("preferredFitter="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("jpegQuality=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=0"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("jpegQuality=90"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshOrder=3"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(spectralPrefsFile.toString()), ("hshThreads=16"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
@@ -434,6 +435,8 @@ public class SpectralRTI_Toolkit implements Command {
             labelPanel2.add(prefsLabel2);
             contentPane.add(labelPanel);
             contentPane.add(labelPanel2);
+            //If there was no prefs file when the plugin first ran, it created a prefs file with the default values, which will be read out here.  
+            //Otherwise, it found a prefs file and will read out what it had stored from alst time.
             prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
             prefs = prefsFileAsText.split(System.lineSeparator());
             logService.log().info(Arrays.toString(prefs));
@@ -498,6 +501,8 @@ public class SpectralRTI_Toolkit implements Command {
                         //This is an unknown setting or an attempt at expansion
                 }
                 String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
+                value1 = value1.replace("/", File.separator); //ensure dir values are displayed with the correct slashes
+                value1 = value1.replace("\\", File.separator); //ensure dir values are displayed with the correct slashes
                 if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
                     if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
                     //We will need to know the fitter
@@ -2818,8 +2823,8 @@ public class SpectralRTI_Toolkit implements Command {
         public void runFitter(String colorProcess) throws IOException, Throwable {
             logService.log().info("Running the fitter for "+colorProcess+"...");
             String preferredFitter = theList.get("preferredFitter");
-            preferredFitter = preferredFitter.replace("/", File.separator);
-            String appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
+            //preferredFitter = preferredFitter.replace("/", File.separator);
+            
             File preferredHSH;
             String hshLocation = "";
             
@@ -2827,7 +2832,8 @@ public class SpectralRTI_Toolkit implements Command {
             if(!fitterFile.exists()){
                 Files.createFile(fitterFile.toPath());
             }
-            logService.log().info("Preferred fitter is "+preferredFitter);
+            
+            String appendString = "";
             while(preferredFitter.equals("") || !(preferredFitter.endsWith("hshfitter.exe") || preferredFitter.endsWith("cmd") || preferredFitter.endsWith("bash"))){
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 if(null==dialog.getPath()){
@@ -2859,6 +2865,8 @@ public class SpectralRTI_Toolkit implements Command {
                 fitterMessageFrame.pack();
                 fitterMessageFrame.setLocation(screenSize.width/2-fitterMessageFrame.getSize().width/2, screenSize.height/2-fitterMessageFrame.getSize().height/2);
                 preferredFitter = dialog.getPath();
+                logService.log().info("Preferred fitter is "+preferredFitter);
+                appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
                 if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
                     int hshOrder = Integer.parseInt(theList.get("hshOrder"));
                     /**
@@ -2955,9 +2963,10 @@ public class SpectralRTI_Toolkit implements Command {
                     //throw new Throwable("Problem identifying type of RTI fitter");
                 }
             }
+            
             preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
-            appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
-            prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), appendString); //replace the prefs var
+            String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
+            prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), fitterString); //replace the prefs var
             Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             logService.log().info("End fitter process");
         }
