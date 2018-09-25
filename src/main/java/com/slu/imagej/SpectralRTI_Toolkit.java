@@ -2473,7 +2473,8 @@ public class SpectralRTI_Toolkit implements Command {
             String preferredString = "";
             OpenDialog dialog;  //For files
             String returnString = "/new/JP2file";
-            while(preferredCompress.equals("")){
+            File preferredCompressFile = new File(preferredCompress);
+            while(preferredCompress.equals("")  || !preferredCompressFile.exists()){
                 dialog = new OpenDialog("Locate kdu_compress or ojp_compress"); 
                 if(null==dialog.getPath()){
                     //@userHitCancel
@@ -2482,6 +2483,7 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must provide the jp2 compressor location to continue!");
                 }
                 preferredCompress = dialog.getPath();
+                preferredCompressFile = new File(preferredCompress);
             }
             theList.put("preferredCompress", preferredCompress); //always keep dirs locally with correct slash for OS
             
@@ -2533,7 +2535,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
             }
             theList.put("preferredJp2Args", preferredJp2Args);
-            File preferredCompressFile = new File(preferredCompress);
+            
             String compressLocation = preferredCompressFile.getParent();
             Boolean noClob = noClobber(projDir+"StaticRaking"+File.separator+inFile+".jp2"); 
             String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
@@ -3152,7 +3154,8 @@ public class SpectralRTI_Toolkit implements Command {
                 webRtiMaker = theList.get("webRtiMaker");
                 webRtiMaker = webRtiMaker.replace("/", File.separator); //ensure dir has correct slash for OS
                 webRtiMaker = webRtiMaker.replace("\\", File.separator); //ensure dir has correct slash for OS
-                while(webRtiMaker.equals("")) {
+                File webRTIFile = new File(webRtiMaker);
+                while(webRtiMaker.equals("") || !webRTIFile.exists()) {
                     OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
                     if(null==dialog2.getPath()){
                         //@userHitCancel
@@ -3161,11 +3164,9 @@ public class SpectralRTI_Toolkit implements Command {
                         throw new Throwable("You must provide the webGLRTIMaker.exe location to continue.");
                     }
                     webRtiMaker = dialog2.getPath();
-                    webRTIDir = dialog2.getDirectory();
+                    webRTIFile = new File(webRtiMaker);
                 }
-                
                 webRTIDir = new File(webRtiMaker).getParent();
-               
                 /**
                  * if the user provided an RTI image location, use that.  Otherwise, use the one the fitter made. 
                  */
