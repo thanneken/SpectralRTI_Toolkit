@@ -262,6 +262,8 @@ public class SpectralRTI_Toolkit implements Command {
                     key = key.replace("webRtiMaker","Web RTI Maker");
                     key = key.replace("shortFileNames","Short File Names");
                     String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
+                    value1 = value1.replace("\\", File.separator); //Always display with the correct slash
+                    value1 = value1.replace("/", File.separator); //Always display with the correct slash
                     prefsDialog.addStringField(key, value1, 80);
                 }
                 prefsDialog.setMaximumSize(bestFit);
@@ -307,7 +309,10 @@ public class SpectralRTI_Toolkit implements Command {
                     if(key.equals("shortFileNames")){
                         shortName = (value2.equals("true") || value2.equals("yes"));
                     }
-                    theList.put(key,value2);
+                    value2 = value2.replace("\\", File.separator); //Always keep locally with correct slash for OS
+                    value2 = value2.replace("/", File.separator); //Always keep locally with correct slash for OS
+                    theList.put(key,value2); //always add to the list with the correct slash
+                    value2 = value2.replace("\\", "/"); //always store with backslash for consistency
                     prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
                 }
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
@@ -502,12 +507,13 @@ public class SpectralRTI_Toolkit implements Command {
                     else{
                         transmissiveSource = transSourceDialog.getNextRadioButton();
                         //This needs to be the full file name, so call this replace() in case it is the short version.
-                        transmissiveSource = transmissiveSource.replace("...", transmissive_gamma_dir.toString()+File.separator);
                     }
+                    
                 }
                 else if (listOfTransmissiveSources.length == 0) {
                     transmissiveSource = "";
                 }
+                transmissiveSource = transmissiveSource.replace("...", transmissive_gamma_dir.toString()+File.separator);
                 /**
                  * UI for raking images selection window.
                  */
@@ -1110,7 +1116,7 @@ public class SpectralRTI_Toolkit implements Command {
                 cr.close();
                 keptPieces.close();
                 createLpFile("AccurateColor", projectDirectory); 
-                WindowManager.closeAllWindows(); // IS this needed?
+                //WindowManager.closeAllWindows(); // IS this needed?
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
@@ -1944,10 +1950,8 @@ public class SpectralRTI_Toolkit implements Command {
         public String createJp2(String inFile, String projDir) throws IOException, InterruptedException, Throwable {
             String preferredCompress = theList.get("preferredCompress");
             String preferredJp2Args = theList.get("preferredJp2Args");
-            preferredCompress = preferredCompress.replace("/", File.separator);
-            preferredJp2Args = preferredJp2Args.replace("/", File.separator);
-            String compressString = "preferredCompress="+preferredCompress+System.lineSeparator();
-            String preferredString = "preferredJp2Args="+preferredJp2Args+System.lineSeparator();
+            String compressString = "";
+            String preferredString = "";
             OpenDialog dialog;  //For files
             String returnString = "/new/JP2file";
             while(preferredCompress.equals("")){
@@ -1959,14 +1963,15 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 preferredCompress = dialog.getPath();
             }
-            preferredCompress = preferredCompress.replace("\\", "/");
+            theList.put("preferredCompress", preferredCompress); //Always keep locally with correct slash for OS
+            preferredCompress = preferredCompress.replace("\\", "/"); //always store with backslash
             prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
             compressString = "preferredCompress="+preferredCompress+System.lineSeparator();
             System.out.println("Compress String: "+compressString); 
             prefsFileAsText = prefsFileAsText.replaceFirst("preferredCompress=.*\\"+System.lineSeparator(), compressString); //replace the prefs var
-            theList.put("preferredCompress", preferredCompress);
             Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-            
+            preferredCompress = preferredCompress.replace("\\", File.separator); //always use with correct slash for OS
+            preferredCompress = preferredCompress.replace("\\", File.separator); //always use with correct slash for OS
             while(preferredJp2Args.equals("")){
                 //@NotOK
                 GenericDialog gd = new GenericDialog("Approve arguments for Jpeg 2000 compression");
@@ -1987,7 +1992,6 @@ public class SpectralRTI_Toolkit implements Command {
             prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
             prefsFileAsText = prefsFileAsText.replaceFirst("preferredJp2Args=.*\\"+System.lineSeparator(), preferredString); //replace the prefs var
             Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-            
             File preferredCompressFile = new File(preferredCompress);
             String compressLocation = preferredCompressFile.getParent();
             Boolean noClob = noClobber(projDir+"StaticRaking"+File.separator+inFile+".jp2"); 
@@ -2183,7 +2187,7 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must provide the location for the RTI Fitter or cmd file to continue.");
                 }
                 preferredFitter = dialog.getPath();
-                preferredFitter = preferredFitter.replace("\\", "/"); 
+                
                 if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
                     int hshOrder = Integer.parseInt(theList.get("hshOrder"));
                     if (hshOrder < 2 ) hshOrder = 3;
@@ -2274,6 +2278,8 @@ public class SpectralRTI_Toolkit implements Command {
                     //throw new Throwable("Problem identifying type of RTI fitter");
                 }
             }
+            theList.put("preferredFitter", preferredFitter);
+            preferredFitter = preferredFitter.replace("\\", "/"); //always store with backslash
             appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
             prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), appendString); //replace the prefs var
             Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
@@ -2430,6 +2436,7 @@ public class SpectralRTI_Toolkit implements Command {
                 String webRTIDir;
                 webRtiMaker = theList.get("webRtiMaker");
                 webRtiMaker = webRtiMaker.replace("/", File.separator);
+                webRtiMaker = webRtiMaker.replace("\\", File.separator);
                 while(webRtiMaker.equals("")) {
                     OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
                     if(null==dialog2.getPath()){
@@ -2440,11 +2447,13 @@ public class SpectralRTI_Toolkit implements Command {
                     webRtiMaker = dialog2.getPath();
                     webRTIDir = dialog2.getDirectory();
                 }
-                webRtiMaker =webRtiMaker.replace("\\", "/");
+                webRtiMaker =webRtiMaker.replace("\\", "/"); //always store with backslash
                 webString = "webRtiMaker="+webRtiMaker;
-                webRTIDir = new File(webRtiMaker).getParent();
                 prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.lineSeparator(),webString+System.lineSeparator()); //replace the prefs var
                 Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
+                webRtiMaker =webRtiMaker.replace("\\", File.separator); //always use locally with correct slash for OS
+                webRtiMaker =webRtiMaker.replace("/", File.separator); //always use locally with correct slash for OS
+                webRTIDir = new File(webRtiMaker).getParent();
                 /**
                  * if the user provided an RTI image location, use that.  Otherwise, use the one the fitter made. 
                  */
