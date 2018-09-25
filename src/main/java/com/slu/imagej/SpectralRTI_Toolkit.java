@@ -190,6 +190,7 @@ public class SpectralRTI_Toolkit implements Command {
         private final static HashMap<String, String> theList; //List var from macro
         private String startTime = "";
         private boolean webRtiDesired = false;
+        private Boolean shortName = false; 
         static
         {
             theList = new HashMap<>();
@@ -237,7 +238,7 @@ public class SpectralRTI_Toolkit implements Command {
             //want these variables to be accessible across functions and to reset each time the macro is run
             startTime = timestamp();
             logService.log().warn("Starting SpectralRTI Plugin at "+startTime);
-            File accurateColorSource = null;
+            File accurateColorSource = null; //may be a better way to do this without the null.
             //GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
             String[] prefs = null;
             DirectoryChooser file_dialog;
@@ -250,7 +251,7 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean csRakingDesired = false;
             Boolean acRakingDesired = false;
             Boolean xsRakingDesired = false;
-            Boolean shortName = false; 
+            
             File[] listOfAccurateColorSources = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
             File[] listOfHemisphereCaptures = new File[0];
@@ -262,7 +263,7 @@ public class SpectralRTI_Toolkit implements Command {
              * Make sure there is a preference file.  If not, crete one with the default empty entries.
              */
             if (!spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
-                JOptionPane.showMessageDialog(null, "No Preference File Found", "A prefs file will be created for you in the ImageJ directory to store your choices for later sessions.", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(null, "A prefs file will be created for you in the ImageJ directory to store your choices for later sessions.", "No Preference File Found", JOptionPane.PLAIN_MESSAGE);
                 logService.log().warn("We are making a new prefs file with the empty defaults.");
                 /**
                     *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
@@ -288,21 +289,22 @@ public class SpectralRTI_Toolkit implements Command {
                 projectDirectory = file_dialog.getDirectory();
                 if(null==projectDirectory){
                     //@userHitCancel
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must provide a project directory to continue.  Exiting...");
                     throw new Throwable("You must provide a project directory."); //DIE if no directory provided
                 }
                 projectFile = new File(projectDirectory);
             }
             if(projectDirectory == null || projectDirectory.equals("")){
-                WindowManager.closeAllWindows();
+                //WindowManager.closeAllWindows();
                 IJ.error("You must provide a project directory to continue.  Exiting...");
                 throw new Throwable("You must provide a project directory."); //DIE if no directory provided
             }
             else{
-                projectDirectory = projectDirectory.replace("\\",File.separator);
+                //projectDirectory = projectDirectory.replace("\\",File.separator);
                 projectName = projectFile.getName();
             }
+            projectDirectory = projectDirectory + File.separator;
             
             /**
              * Second, consult with the user about their desired tasks.  This will help us know what to ask them throughout the plugin.
@@ -410,7 +412,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else {
                      //@userHitCancel
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must provide a task set to continue.  Exiting...");
                     throw new Throwable("You must provide a task set to continue.");
                 }
@@ -631,7 +633,7 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.createDirectory(createPath);
                 //We will alert users that this did not exist because it is so important
                 JOptionPane.showMessageDialog(null, "A Hemisphere Captures folder has been created for you in your project directory.  You will need captures to use this plugin. ", "Hemisphere Captures Directory Not Found", JOptionPane.PLAIN_MESSAGE);
-                logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+                logService.log().info("A directory has been created for the Hemisphere Captures at "+projectDirectory+"Captures-Hemisphere-Gamma");
                 hemi_gamma_dir = new File(createPath.toString());
             }
             listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
@@ -639,7 +641,7 @@ public class SpectralRTI_Toolkit implements Command {
                 listOfHemisphereCaptures = getHemisphereCaptures(hemi_gamma_dir.toString());
             }
             if(listOfHemisphereCaptures.length < 1){
-                WindowManager.closeAllWindows();
+                //WindowManager.closeAllWindows();
                 IJ.error("There must be at least 1 image in the hemisphere captures folder to continue.  Please populate for next time.  Exiting...");
                 throw new Throwable("There must be at least 1 image in the hemisphere caputres folder to continue.  Please populate for next time.");
             }
@@ -690,7 +692,7 @@ public class SpectralRTI_Toolkit implements Command {
                         OpenDialog rti_image = new OpenDialog("Locate the RTI image (.rti extension) to make into WebRTI.");
                         if(null== rti_image.getPath()){
                             //@UserHitCanvel
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("You must provide an RTI Image for processing to continue.  Exiting...");
                             throw new Throwable("You must provide an RTI Image for processing to continue.");
                         }
@@ -704,7 +706,7 @@ public class SpectralRTI_Toolkit implements Command {
                     createWebRTIFiles("", rtiImageToUse);
                 }
                 else{
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must provide at least one task.  Exiting...");
                     throw new Throwable("You must provide at least one task set to continue.");
                 }
@@ -716,7 +718,7 @@ public class SpectralRTI_Toolkit implements Command {
                 if (!static_ranking_dir.exists()) {
                     Path staticFilePath = static_ranking_dir.toPath();
                     Files.createDirectory(staticFilePath);
-                    logService.log().info("A directory has been created for lossless static raking images at "+projectDirectory+"StaticRaking"+File.separator);
+                    logService.log().info("A directory has been created for lossless static raking images at "+projectDirectory+"StaticRaking");
                 }
                 File[] listOfTransmissiveSources_dir = new File[0];
                 List<String> listOfTransmissiveSources_list = new ArrayList<>();
@@ -806,7 +808,7 @@ public class SpectralRTI_Toolkit implements Command {
                     else{ 
                         //@userHitCancel is it OK to default to the first source?
                         transmissiveSource = listOfTransmissiveSourcePaths[0];
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must select one transmissive source to continue.  Exiting...");
                         throw new Throwable("You must select one transmissive source.");
                     }
@@ -892,7 +894,7 @@ public class SpectralRTI_Toolkit implements Command {
                             listOfRakingDirections.add(Boolean.FALSE);
                         }
                         */
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must make at least one selection to continue!  Exiting...");
                         throw new Throwable("You must make at least one selection to continue!");
                     }
@@ -938,7 +940,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                          //@userHitCancel
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must have 9 or more narrow band captures for Extended Spectrum.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
                     }
@@ -949,7 +951,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must have 9 or more narrow band captures for Extended Spectrum!  Exiting...");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
@@ -1101,7 +1103,7 @@ public class SpectralRTI_Toolkit implements Command {
                     } 
                     else {
                         //Pane was cancelled or closed. (@userHitCancel)
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must designate the captures to the visible range of R, G, B, or none to continue!  Exiting...");
                         throw new Throwable("You must designate the captures to the visible range of R, G, B, or none to continue!");
                     }
@@ -1118,7 +1120,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if(!atLeastOneB){
                         whichOnes +="B";
                     }
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must designate at least one capture to each of the visible ranges (R,G,B). "+whichOnes+" --- Exiting...");
                     throw new Throwable("You must designate at least one capture to each of the visible ranges (R,G,B). "+whichOnes);
                 }
@@ -1141,7 +1143,7 @@ public class SpectralRTI_Toolkit implements Command {
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
                         }
@@ -1153,7 +1155,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     if(imp.getRoi() == null){
                         //@userHitCancel
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
@@ -1175,7 +1177,7 @@ public class SpectralRTI_Toolkit implements Command {
                 if(!listOfPseudoColorSources_dir.exists()){
                     //JOptionPane.showMessageDialog(null, "PseudoColor Directory Not Found", "A Pseudo Color folder has been created for you in your project directory.", JOptionPane.PLAIN_MESSAGE);
                     Files.createDirectory(listOfPseudoColorSources_dir.toPath());
-                    logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA"+File.separator);
+                    logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA");
                 }
                 while(listOfNarrowbandCaptures.length<9){
                     contentPane = new JPanel();
@@ -1192,7 +1194,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                          //@userHitCancel
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must have 9 or more narrow band captures for Pseudocolor.  Exiting...");
                         throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum.");
                     }
@@ -1203,7 +1205,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 if (listOfNarrowbandCaptures.length<9) { 
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must have 9 or more narrow band captures for Pseudocolor!  Exiting...");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
@@ -1264,7 +1266,7 @@ public class SpectralRTI_Toolkit implements Command {
                 else{ 
                     //@userHitCancel is it OK to default to the first source?
                     pcaMethod = listOfPcaMethods[0];
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must select one Psuedocolor method to continue.  Exiting...");
                     throw new Throwable("You must select one Psuedocolor method.");
                 }
@@ -1281,7 +1283,7 @@ public class SpectralRTI_Toolkit implements Command {
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("You must draw a rectangle to continue!  Exiting...");
                             throw new Throwable("You must draw a rectangle to continue!");
                         }
@@ -1304,7 +1306,7 @@ public class SpectralRTI_Toolkit implements Command {
                     OpenDialog csSourceDialog = new OpenDialog("Choose a Source for Custom Process");
                     if(null == csSourceDialog.getPath()){
                         //@userHitCanvel
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must provide a custom source to continue.  Exiting...");
                         throw new Throwable("You must provide a custom source to continue.");
                     }
@@ -1332,7 +1334,7 @@ public class SpectralRTI_Toolkit implements Command {
                     dWait.show();
                     if(dWait.escPressed()){
                         //@userHitCancel
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("You must draw a rectangle to continue!  Exiting...");
                         throw new Throwable("You must draw a rectangle to continue!");
                     }
@@ -1357,7 +1359,7 @@ public class SpectralRTI_Toolkit implements Command {
                             filePath = projectDirectory+"LightPositionData"+File.separator+"jpeg-exports"+File.separator+listOfHemisphereCaptures[i].getName().substring(0, extensionIndex);
                         }
                         else{
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+imageName+"  ---  Exiting...");
                             throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+imageName); 
                         }
@@ -1395,7 +1397,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                          //@userHitCancel
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                         throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                     }
@@ -1406,7 +1408,7 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                 }
                 if (listOfAccurateColorSources.length<1){
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator+"  ---  Exiting...");
                     throw new Throwable("Need at least one color image file in "+projectDirectory+"AccurateColor"+File.separator);
                 }
@@ -1466,15 +1468,17 @@ public class SpectralRTI_Toolkit implements Command {
                             for (Enumeration<AbstractButton> buttons = capture_radios.getElements(); buttons.hasMoreElements();) {
                                 AbstractButton button = buttons.nextElement();
                                 //Loop each button and see if it is selected
+                                String sourcePath = "";
                                 if (button.isSelected()) {
-                                   accurateColorSource = new File(button.getText());
-                                   break;
+                                    sourcePath = button.getText();
+                                    sourcePath = sourcePath.replace("...", accurate_color_dir.toString()+File.separator); //in case of shortName
+                                    accurateColorSource = new File(sourcePath);
+                                    break;
                                 }
                             }
                         }
                         else{ 
                             //@userHitCancel is it OK to default to the first source?
-                            WindowManager.closeAllWindows();
                             IJ.error("You must provide a color source to continue!  Exiting...");
                             throw new Throwable("You must provide a color source to continue!");
                         }
@@ -1494,7 +1498,7 @@ public class SpectralRTI_Toolkit implements Command {
                 File accurateRTI = new File(projectDirectory+"AccurateColorRTI"+File.separator);
 		if (!accurateRTI.exists()) {
                     Files.createDirectory(accurateRTI.toPath());
-                    logService.log().info("A directory has been created for Accurate Color RTI at "+projectDirectory+"AccurateColorRTI"+File.separator);
+                    logService.log().info("A directory has been created for Accurate Color RTI at "+projectDirectory+"AccurateColorRTI");
 		}
 		//integration
                 imp = opener.openImage( accurateColorSource.toString() );
@@ -1553,7 +1557,7 @@ public class SpectralRTI_Toolkit implements Command {
                             simpleImageName = "AccurateColor_"+simpleName1;
                         }
                         else{
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                             throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                         }
@@ -1571,7 +1575,7 @@ public class SpectralRTI_Toolkit implements Command {
                 cr.close();
                 keptPieces.close();
                 createLpFile("AccurateColor", projectDirectory); 
-                WindowManager.closeAllWindows();
+                //WindowManager.closeAllWindows();
 		runFitter("AccurateColor");
             }
             if (acRakingDesired) {
@@ -1825,7 +1829,7 @@ public class SpectralRTI_Toolkit implements Command {
 		if (xsRtiDesired) {
                     if (!extended_spectrum_dir.exists()) {
                         Files.createDirectory(extended_spectrum_dir.toPath());
-                        logService.log().info("A directory has been created for Extended Spectrum RTI at "+projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+                        logService.log().info("A directory has been created for Extended Spectrum RTI at "+projectDirectory+"ExtendedSpectrumRTI");
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++){
@@ -1860,7 +1864,7 @@ public class SpectralRTI_Toolkit implements Command {
                             simpleImageName = "ExtendedSpectrum_"+simpleName1;
                         }
                         else{
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                             throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                         }
@@ -2042,7 +2046,7 @@ public class SpectralRTI_Toolkit implements Command {
                         else {
                             //@userHitCancel
                             noGammaPCA.changes = false; //otherwise it asks to save changes..
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("You must delete until there are two slices to continue!   Exiting...");
                             throw new Throwable("You must delete until there are two slices to continue!");
                         }
@@ -2057,7 +2061,7 @@ public class SpectralRTI_Toolkit implements Command {
                         dWait.show();
                         if(dWait.escPressed()){
                             //@userHitCancel
-                            WindowManager.closeAllWindows();
+                            //WindowManager.closeAllWindows();
                             IJ.error("You must make selections to continue!  Exiting...");
                             throw new Throwable("You must make selections to continue!");
                         }
@@ -2067,7 +2071,7 @@ public class SpectralRTI_Toolkit implements Command {
                         WindowManager.getActiveWindow().setName("PCA of Captures-Narrowband-NoGamma kept stack");
                     }
                     else{
-                        WindowManager.closeAllWindows();
+                        //WindowManager.closeAllWindows();
                         IJ.error("Open a pair of images or stack of two slices to continue!  Exiting...");
                         throw new Throwable("Open a pair of images or stack of two slices to continue!");
                     }
@@ -2143,7 +2147,7 @@ public class SpectralRTI_Toolkit implements Command {
                     if (!pseudo_color_dir.exists()) {
                         File createPseudo = new File(projectDirectory+"PseudoColorRTI"+File.separator);
                         Files.createDirectory(createPseudo.toPath());
-                        logService.log().info("A directory has been created for PseudoColor RTI at "+projectDirectory+"PseudoColorRTI"+File.separator);
+                        logService.log().info("A directory has been created for PseudoColor RTI at "+projectDirectory+"PseudoColorRTI");
                     }
 		}
 		for(int i=0;i<listOfHemisphereCaptures.length;i++) {
@@ -2193,7 +2197,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             else{
                                 /**@Yikes can't wrap this in while, it is a hard fail. */
-                                WindowManager.closeAllWindows();
+                                //WindowManager.closeAllWindows();
                                 IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                                 throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
@@ -2220,7 +2224,7 @@ public class SpectralRTI_Toolkit implements Command {
                             }
                             else{
                                 /**@Yikes can't wrap this in while, it is a hard fail. */
-                                WindowManager.closeAllWindows();
+                                //WindowManager.closeAllWindows();
                                 IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                                 throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
@@ -2350,7 +2354,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 simpleImageName = csProcessName+"_"+simpleName1;
                             }
                             else{
-                                WindowManager.closeAllWindows();
+                                //WindowManager.closeAllWindows();
                                 IJ.error("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()+"  ---  Exiting...");
                                 throw new Throwable("A file in your hemisphere folder does not have an extension.  Please review around "+listOfHemisphereCaptures[i].getName()); 
                             }
@@ -2840,7 +2844,7 @@ public class SpectralRTI_Toolkit implements Command {
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 if(null==dialog.getPath()){
                     //@userHitCancel
-                    WindowManager.closeAllWindows();
+                    //WindowManager.closeAllWindows();
                     IJ.error("You must provide the location for the RTI Fitter or cmd file to continue.  Exiting...");
                     throw new Throwable("You must provide the location for the RTI Fitter or cmd file to continue.");
                 }
@@ -2995,7 +2999,12 @@ public class SpectralRTI_Toolkit implements Command {
                     list = folder.listFiles();
                     for (File file1 : list) {
                         if (file1.getName().endsWith("lp")) {
-                            listOfLpFiles_list.add(file1.toString());
+                            if(shortName){
+                                listOfLpFiles_list.add("..."+file1.getName());
+                            }
+                            else{
+                                listOfLpFiles_list.add(file1.toString());
+                            }
                         }
                     }
                 }
@@ -3012,7 +3021,12 @@ public class SpectralRTI_Toolkit implements Command {
 
                         } 
                         else if (list[i].getName().endsWith("lp")) {
-                            listOfLpFiles_list.add(list[i].toString());
+                            if(shortName){
+                                listOfLpFiles_list.add("...assembly-files"+File.separator+list[i].getName());
+                            }
+                            else{
+                                listOfLpFiles_list.add(list[i].toString());
+                            }
                         }
                     }
                 }             
@@ -3039,7 +3053,7 @@ public class SpectralRTI_Toolkit implements Command {
                         scrollGrid.setLayout(new BoxLayout(scrollGrid,BoxLayout.PAGE_AXIS));
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                         JPanel labelPanel = new JPanel();
-                        JLabel directions = new JLabel("Choose light position file.");
+                        JLabel directions = new JLabel("Choose Light Position File.");
                         labelPanel.add(directions);
                         contentPane.add(labelPanel);
                         /**
@@ -3084,6 +3098,7 @@ public class SpectralRTI_Toolkit implements Command {
                             throw new Throwable("You must make a selection for which light position file to use.");
                         }
                     }
+                    lpSource = lpSource.replace("...", projectDirectory+"LightPositionData"+File.separator);
                     lpFile = new File(lpSource);
                 }
             }
