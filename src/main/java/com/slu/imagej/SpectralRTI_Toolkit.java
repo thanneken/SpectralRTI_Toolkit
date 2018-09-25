@@ -304,8 +304,9 @@ public class SpectralRTI_Toolkit implements Command {
                 //projectDirectory = projectDirectory.replace("\\",File.separator);
                 projectName = projectFile.getName();
             }
-            projectDirectory = projectDirectory + File.separator;
-            
+            projectDirectory = projectDirectory.substring(0, projectDirectory.length() - 1); //always has a trailing '/'
+            projectDirectory = projectDirectory + File.separator; //make sure it ends with the proper trailing slash for the OS
+            logService.log().info("Project directory: "+projectDirectory);
             /**
              * Second, consult with the user about their desired tasks.  This will help us know what to ask them throughout the plugin.
              * We cannot continue without a task.
