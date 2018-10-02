@@ -237,6 +237,7 @@ public class SpectralRTI_Toolkit implements Command {
         private void theMacro_tested() throws IOException, Throwable{
             //want these variables to be accessible across functions and to reset each time the macro is run
             startTime = timestamp();
+            //The warn() here is a quick fix to force the log and console to pop up
             logService.log().warn("Starting SpectralRTI Plugin at "+startTime);
             File accurateColorSource = null; //may be a better way to do this without the null.
             //GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
@@ -264,7 +265,7 @@ public class SpectralRTI_Toolkit implements Command {
              */
             if (!spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
                 JOptionPane.showMessageDialog(null, "A prefs file will be created for you in the ImageJ directory to store your choices for later sessions.", "No Preference File Found", JOptionPane.PLAIN_MESSAGE);
-                logService.log().warn("We are making a new prefs file with the empty defaults.");
+                logService.log().info("We are making a new prefs file with the empty defaults.");
                 /**
                     *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
                     *@see projectDirectory 
@@ -1681,7 +1682,7 @@ public class SpectralRTI_Toolkit implements Command {
 		}
                 //ImagePlus redStacker = FolderOpener.open(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator, "file=("+redStringList+") sort"); //This only opens the folder, cant pick and choose
 		IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+redStringList+") sort"); //Opens a series of images in a chosen folder as a stack. Images may have different dimensions and can be of any format supported by ImageJ              
-                ImagePlus redStacker = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
+                ImagePlus redStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 redStacker.setTitle("RedStack");
                 logService.log().info("There are "+redStacker.getStackSize()+" images in the RED STACK");
                 redStacker.hide();
@@ -1719,7 +1720,7 @@ public class SpectralRTI_Toolkit implements Command {
                     greenStringList = greenStringList+"|"+greenNarrowbands[i].toString();
 		}
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+greenStringList+") sort"); 
-                ImagePlus greenStacker = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
+                ImagePlus greenStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+greenStacker.getStackSize()+" images in the GREEN STACK");
                 greenStacker.hide();
                 if(greenNarrowbands.length == 1){
@@ -1748,7 +1749,7 @@ public class SpectralRTI_Toolkit implements Command {
                     blueStringList = blueStringList+"|"+blueNarrowbands[i].toString();
 		}
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" file=("+blueStringList+") sort");
-                ImagePlus blueStacker = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
+                ImagePlus blueStacker = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 logService.log().info("There are "+blueStacker.getStackSize()+" images in the BLUE STACK");
                 blueStacker.hide();
                 if(blueNarrowbands.length == 1){
@@ -1927,13 +1928,13 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus narrowNoGamma;
                 ImagePlus narrowKeptPCA = new ImagePlus();
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
-                narrowNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Narrowband-NoGamma");
+                narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 narrowNoGamma.hide();
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod.equals("Generate and select using defaults")){
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                        flNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Fluorescence-NoGamma");
+                        flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
                         flNoGamma.hide();
                         flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
                         narrowNoGamma.close();
@@ -1960,7 +1961,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //option to create new ones and manually select (close all but two)
                     if (fluorescenceNoGamma.exists()) {
                         IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Fluorescence-NoGamma"+File.separator+" sort");
-                        flNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Fluorescence-NoGamma");
+                        flNoGamma = WindowManager.getImage("Captures-Fluorescence-NoGamma");
                         flNoGamma.hide();
                         flNarrowNoGammaStack = con.concatenate(narrowNoGamma, flNoGamma, false);
                         narrowNoGamma.close();
@@ -2085,7 +2086,7 @@ public class SpectralRTI_Toolkit implements Command {
                 */
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-                    narrowNoGamma = WindowManager.getImage(projectName+"/"+"Captures-Hemisphere-Gamma");
+                    narrowNoGamma = WindowManager.getImage("Captures-Hemisphere-Gamma");
                     narrowNoGamma.hide();
                     IJ.run(narrowNoGamma, "Z Project...", "projection=Median");
                     narrowNoGamma.changes = false;
@@ -2432,7 +2433,7 @@ public class SpectralRTI_Toolkit implements Command {
             end.addMessage("Processing Complete at "+timestamp());
             end.setMaximumSize(bestFit);
             end.showDialog();
-            logService.log().warn("End of SpectralRTI Plugin.");
+            logService.log().info("End of SpectralRTI Plugin.");
         }
         	
         /**
@@ -2449,7 +2450,7 @@ public class SpectralRTI_Toolkit implements Command {
             } catch (Throwable ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             }
-              logService.log().warn("Finished processing the run().");
+              logService.log().info("Finished processing the run().");
 	}       
 
         /**
