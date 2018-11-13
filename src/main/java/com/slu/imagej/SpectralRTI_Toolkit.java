@@ -516,6 +516,9 @@ public class SpectralRTI_Toolkit implements Command {
                 String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                 value1 = value1.replace("/", File.separator); //ensure dir values are displayed with the correct slashes
                 value1 = value1.replace("\\", File.separator); //ensure dir values are displayed with the correct slashes
+                if(key.equals("Shot File Names")){
+                    value1 = ""+shortName;
+                }
                 if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
                     if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
                     //We will need to know the fitter
@@ -3212,7 +3215,7 @@ public class SpectralRTI_Toolkit implements Command {
                     commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
                     logService.log().info("Running the webRTICommand...");
                     logService.log().info(commandString); 
-                    appendString = "Executing command "+commandString+System.lineSeparator();;
+                    appendString = "Executing command "+commandString+System.lineSeparator();
                     p2 = Runtime.getRuntime().exec(commandString, null, new File(webRTIDir)); //hshLocation
                     p2.waitFor();
                     Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
