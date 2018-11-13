@@ -174,6 +174,7 @@ public class SpectralRTI_Toolkit implements Command {
         private Rectangle bounds;
         //This is important for native commands.  Java is NOT PLATFORM INDEPENDENT, so check what platform we are.
         private final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+        
         private String positionNumber = "";
         String pcaMethod = "";
         private final List<String> redNarrowbands_list = new ArrayList<>();
@@ -239,6 +240,7 @@ public class SpectralRTI_Toolkit implements Command {
             startTime = timestamp();
             //The warn() here is a quick fix to force the log and console to pop up
             logService.log().warn("Starting SpectralRTI Plugin at "+startTime);
+            logService.log().info("Detected OS "+System.getProperty("os.name")+".  Treat as Windows = "+isWindows);
             File accurateColorSource = null; //may be a better way to do this without the null.
             //GenericDialog prefsDialog = new GenericDialog("Consult Preferences");
             String[] prefs = null;
@@ -281,7 +283,8 @@ public class SpectralRTI_Toolkit implements Command {
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("webRtiMaker="+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(spectralPrefsFile.toString()), ("shortFileNames=false"+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
             }
-            
+            prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
+            prefs = prefsFileAsText.split(System.lineSeparator());
             /**
              * First ask the user to locate the project directory.  We cannot continue without one. 
              */
@@ -339,6 +342,13 @@ public class SpectralRTI_Toolkit implements Command {
             snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
             JCheckBox ch10 = new JCheckBox("Short File Names");
             ch10.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the plugin.");
+            
+            //FIXME:This is a bit of a hack.  If the shortFileName is not the last preference in the prefs file, this will break.
+            int last_pref = prefs.length - 1;
+            String shortNamePref = prefs[last_pref].substring(prefs[last_pref].indexOf("=")+1); //Pre-populate choices
+            if(shortNamePref.equals("true") || shortNamePref.equals("yes")){
+                shortName = true;
+            }
             ch10.setSelected(shortName);
             tasks[0] = ch1;
             tasks[1] = ch2;
@@ -441,8 +451,7 @@ public class SpectralRTI_Toolkit implements Command {
             contentPane.add(labelPanel2);
             //If there was no prefs file when the plugin first ran, it created a prefs file with the default values, which will be read out here.  
             //Otherwise, it found a prefs file and will read out what it had stored from alst time.
-            prefsFileAsText = new String(Files.readAllBytes(spectralPrefsFile.toPath()), "UTF8");
-            prefs = prefsFileAsText.split(System.lineSeparator());
+            
             logService.log().info(Arrays.toString(prefs));
             JTextField[] fields = new JTextField[prefs.length];
             for (int i=0;i<prefs.length;i++){
@@ -2492,8 +2501,7 @@ public class SpectralRTI_Toolkit implements Command {
                 preferredCompressFile = new File(preferredCompress);
             }
             theList.put("preferredCompress", preferredCompress); //always keep dirs locally with correct slash for OS
-            
-            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file           
+            //Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file           
             while(preferredJp2Args.equals("")){
                 contentPane = new JPanel();
                 //display label and text area side by side in two columns for as many prefs exist
@@ -2541,7 +2549,6 @@ public class SpectralRTI_Toolkit implements Command {
                 }
             }
             theList.put("preferredJp2Args", preferredJp2Args);
-            
             String compressLocation = preferredCompressFile.getParent();
             Boolean noClob = noClobber(projDir+"StaticRaking"+File.separator+inFile+".jp2"); 
             String commandString = preferredCompress+" -i "+projDir+"StaticRaking"+File.separator+inFile+".tiff -o "+projDir+"StaticRaking"+File.separator+inFile+".jp2 "+preferredJp2Args;
@@ -2604,7 +2611,7 @@ public class SpectralRTI_Toolkit implements Command {
         */
         public String timestamp() {
             Date currentDate = new Date();
-            SimpleDateFormat ft = new SimpleDateFormat ("yyyyMMdd'_'hhmm");
+            SimpleDateFormat ft = new SimpleDateFormat ("yyyyMMdd'_'HHmm");
             String dateString = ft.format(currentDate);
             return dateString;
         }
@@ -2832,17 +2839,14 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("Running the fitter for "+colorProcess+"...");
             String preferredFitter = theList.get("preferredFitter");
             //preferredFitter = preferredFitter.replace("/", File.separator);
-            
             File preferredHSH;
             String hshLocation = "";
-            
             File fitterFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
             if(!fitterFile.exists()){
                 Files.createFile(fitterFile.toPath());
             }
-            
             String appendString = "";
-            while(preferredFitter.equals("") || !(preferredFitter.endsWith("hshfitter.exe") || preferredFitter.endsWith("cmd") || preferredFitter.endsWith("bash"))){
+            while(preferredFitter.equals("")){ //|| !(preferredFitter.endsWith("hshfitter.exe") || preferredFitter.endsWith("cmd") || preferredFitter.endsWith("bash"))
                 OpenDialog dialog = new OpenDialog("Locate Preferred RTI Fitter or cmd file for batch processing");
                 if(null==dialog.getPath()){
                     //@userHitCancel
@@ -2850,140 +2854,137 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.error("You must provide the location for the RTI Fitter or cmd file to continue.  Exiting...");
                     throw new Throwable("You must provide the location for the RTI Fitter or cmd file to continue.");
                 }
-                JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
-                GenericDialog fitterMessageFrame = new GenericDialog("Try Again");
-                contentPane = new JPanel();
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel labelPanel = new JPanel();
-                JLabel fitterText = new JLabel("Running the fitter.  This could take a while. "+System.lineSeparator()+"  This window will close and a notification"
-                    + " will appear when the process is complete.  Thank you for your patience.");
-                labelPanel.add(fitterText);
-                contentPane.add(labelPanel);
-                fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-                fitterNoticeFrame.getContentPane().add(contentPane);
-                fitterNoticeFrame.pack();
-                fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
-                contentPane = new JPanel();
-                contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
-                JPanel msgPanel = new JPanel();
-                JLabel msgText = new JLabel("The chosen fitter will not work for this process.  Please use hshfitter.exe or a cmd file for batch processing later.");
-                labelPanel.add(msgText);
-                contentPane.add(msgPanel);
-                fitterMessageFrame.add(contentPane);
-                fitterMessageFrame.pack();
-                fitterMessageFrame.setLocation(screenSize.width/2-fitterMessageFrame.getSize().width/2, screenSize.height/2-fitterMessageFrame.getSize().height/2);
                 preferredFitter = dialog.getPath();
-                logService.log().info("Preferred fitter is "+preferredFitter);
-                appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
-                if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
-                    int hshOrder = Integer.parseInt(theList.get("hshOrder"));
-                    /**
-                     * Could add a message here notifying the user about defaulting hshOrder and hshThreads
-                     */
-                    if (hshOrder < 2 ) hshOrder = 3;
-                    int hshThreads = Integer.parseInt(theList.get("hshThreads"));
-                    if (hshThreads < 1 ) hshThreads = 16;
-                    preferredHSH = new File(preferredFitter);
-                    hshLocation = preferredHSH.getParent();
-                    appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
-                    //Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                    if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")){
-                        appendString += "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight+System.lineSeparator();
-                        //Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                    }
-                    else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                        appendString += "Normalization fixed value: "+normalizationFixedValue+System.lineSeparator();
-                        //Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                    }
-                    if (pcaX > 0) {
-                        appendString += "PCA area bounds: "+pcaX+", "+pcaY+", "+pcaWidth+", "+pcaHeight+System.lineSeparator();
-                        //Files.write(fitterFile.toPath(), (appendString+System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-                    }
-                    appendString += "Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)"+System.lineSeparator();
-                    //Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
-                    appendString += "Executing command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
-                    //Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
-                    fitterNoticeFrame.setVisible(true);
-                    String commandString = "";
-                    if(isWindows){
-                        //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
-                        commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
-                        logService.log().info("Running the following fitter command...");
-                        logService.log().info(commandString);
-                        logService.log().info("Working directory for command is "+hshLocation);
-                        p = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
-                        p.waitFor();
-                        contentPane.removeAll();
-                    }
-                    else{
-                        commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
-                        p = Runtime.getRuntime().exec(commandString);
-                        p.waitFor();
-                        contentPane.removeAll();
-                    }
-                    fitterNoticeFrame.dispose();
-                    //should if(webRTIDesired) be here??
-                    //Make sure this is here for writing to .txt file. 
-                    Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
-                    createWebRTIFiles(colorProcess, "");
-                } 
-                else if (preferredFitter.endsWith("cmd")||preferredFitter.endsWith("bash")) {
-                    logService.log().info("Detected the preferred fitter is in fact a cmd or bash file.  This will defer processing.");
-                    fitterNoticeFrame.setVisible(true);
-                    //This is the deferred batch section.  Just write to the file, do not perform processes.
-                    
-                    int hshOrder = Integer.parseInt(theList.get("hshOrder"));
-                    if (hshOrder < 2 ) hshOrder = 3;
-                    int hshThreads = Integer.parseInt(theList.get("hshThreads"));
-                    if (hshThreads < 1 ) hshThreads = 16;
-                    String commandString = "";
-                    appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
-                    if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
-                        appendString += "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight+System.lineSeparator();
-                    } 
-                    else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
-                        appendString += "Normalization fixed value: "+normalizationFixedValue+System.lineSeparator();
-                    }
-                    if (pcaX > 0) {
-                        appendString += "PCA area bounds: "+pcaX+", "+pcaY+", "+pcaWidth+", "+pcaHeight+System.lineSeparator();
-                    }
-                    appendString += "Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)"+System.lineSeparator();
-                    appendString += "Deferring command "+preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
-                    commandString += "hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
-                    commandString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
-                    if (webRtiDesired) {
-                        //String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
-                        String webRtiString = "Cannot make WebRTI file due to deferred RTI image creation.  Example command: "+System.lineSeparator();
-                        webRtiString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
-                        webRtiString += "HTML for file: "+System.lineSeparator();
-                        webRtiString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>"+System.lineSeparator();
-                        appendString += webRtiString;
-                    }
-                    Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
-                    Files.write(Paths.get(preferredFitter), commandString.getBytes(), StandardOpenOption.APPEND);
-                    fitterNoticeFrame.dispose();
-                } 
-                else if (preferredFitter.endsWith("PTMfitter.exe")) { // use PTM fitter
-                    fitterNoticeFrame.dispose();
-                    fitterMessageFrame.showDialog();
-                    preferredFitter = "";
-                    //IJ.error("Macro code to execute PTMfitter not yet complete. Try HSHfitter.");
-                    //throw new Throwable("Macro code to execute PTMfitter not yet complete. Try HSHfitter."); //@@@
-                } 
-                else {
-                    fitterNoticeFrame.dispose();
-                    fitterMessageFrame.showDialog();
-                    preferredFitter = "";
-                    //IJ.error("Problem identifying type of RTI fitter.  Please provide the hshfitter or deferred batch file.");
-                    //throw new Throwable("Problem identifying type of RTI fitter");
-                }
             }
-            
-            preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
-            String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
-            prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), fitterString); //replace the prefs var
-            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-            logService.log().info("End fitter process");
+            JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
+            GenericDialog fitterMessageFrame = new GenericDialog("Try Again");
+            contentPane = new JPanel();
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel labelPanel = new JPanel();
+            JLabel fitterText = new JLabel("Running the fitter.  This could take a while. "+System.lineSeparator()+"  This window will close and a notification"
+                + " will appear when the process is complete.  Thank you for your patience.");
+            labelPanel.add(fitterText);
+            contentPane.add(labelPanel);
+            fitterNoticeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            fitterNoticeFrame.getContentPane().add(contentPane);
+            fitterNoticeFrame.pack();
+            fitterNoticeFrame.setLocation(screenSize.width/2-fitterNoticeFrame.getSize().width/2, screenSize.height/2-fitterNoticeFrame.getSize().height/2);
+            contentPane = new JPanel();
+            contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
+            JPanel msgPanel = new JPanel();
+            JLabel msgText = new JLabel("The chosen fitter is not supported.  Please use hshfitter.exe or defer with a bash or a cmd file.");
+            msgPanel.add(msgText);
+            contentPane.add(msgPanel);
+            fitterMessageFrame.add(contentPane);
+            fitterMessageFrame.pack();
+            fitterMessageFrame.setLocation(screenSize.width/2-fitterMessageFrame.getSize().width/2, screenSize.height/2-fitterMessageFrame.getSize().height/2);
+            logService.log().info("Preferred fitter is "+preferredFitter);
+            appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
+            if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
+                preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
+                String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
+                prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), fitterString); //replace the prefs var
+                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
+                int hshOrder = Integer.parseInt(theList.get("hshOrder"));
+                /**
+                 * Could add a message here notifying the user about defaulting hshOrder and hshThreads
+                 */
+                if (hshOrder < 2 ) hshOrder = 3;
+                int hshThreads = Integer.parseInt(theList.get("hshThreads"));
+                if (hshThreads < 1 ) hshThreads = 16;
+                preferredHSH = new File(preferredFitter);
+                hshLocation = preferredHSH.getParent();
+                appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
+                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")){
+                    appendString += "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight+System.lineSeparator();
+                }
+                else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                    appendString += "Normalization fixed value: "+normalizationFixedValue+System.lineSeparator();
+                }
+                if (pcaX > 0) {
+                    appendString += "PCA area bounds: "+pcaX+", "+pcaY+", "+pcaWidth+", "+pcaHeight+System.lineSeparator();
+                }
+                appendString += "Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)"+System.lineSeparator();
+                fitterNoticeFrame.setVisible(true);
+                String commandString = "";
+                if(isWindows){
+                    //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
+                    commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                    logService.log().info("Running the following fitter command...");
+                    logService.log().info(commandString);
+                    logService.log().info("Working directory for command is "+hshLocation);
+                    appendString += "Executing command "+commandString;
+                    p = Runtime.getRuntime().exec(commandString, null, new File(hshLocation)); //hshLocation
+                    p.waitFor();
+                    contentPane.removeAll();
+                }
+                else{
+                    commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
+                    appendString += "Executing command "+commandString;
+                    p = Runtime.getRuntime().exec(commandString);
+                    p.waitFor();
+                    contentPane.removeAll();
+                }
+                fitterNoticeFrame.dispose();
+                logService.log().info("End fitter process");
+                Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
+                createWebRTIFiles(colorProcess, "");
+            } 
+            else if (preferredFitter.endsWith("cmd")||preferredFitter.endsWith("bash")) {
+                logService.log().info("Detected the preferred fitter is in fact a cmd or bash file.  This will defer processing.");
+                preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
+                String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
+                prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), fitterString); //replace the prefs var
+                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
+                fitterNoticeFrame.setVisible(true);
+                //This is the deferred batch section.  Just write to the file, do not perform processes.
+                int hshOrder = Integer.parseInt(theList.get("hshOrder"));
+                if (hshOrder < 2 ) hshOrder = 3;
+                int hshThreads = Integer.parseInt(theList.get("hshThreads"));
+                if (hshThreads < 1 ) hshThreads = 16;
+                String commandString = "";
+                appendString += "Brightness Adjust Option: "+brightnessAdjustOption+System.lineSeparator();
+                if (brightnessAdjustOption.equals("Yes, by normalizing each image to a selected area")) {
+                    appendString += "Normalization area bounds: "+normX+", "+normY+", "+normWidth+", "+normHeight+System.lineSeparator();
+                } 
+                else if (brightnessAdjustOption.equals("Yes, by multiplying all images by a fixed value")) {
+                    appendString += "Normalization fixed value: "+normalizationFixedValue+System.lineSeparator();
+                }
+                if (pcaX > 0) {
+                    appendString += "PCA area bounds: "+pcaX+", "+pcaY+", "+pcaWidth+", "+pcaHeight+System.lineSeparator();
+                }
+                appendString += "Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)"+System.lineSeparator();
+                appendString += "Deferring fitter command hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
+                commandString += "hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
+                commandString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
+                if (webRtiDesired) {
+                    //String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+                    String webRtiString = "Cannot make WebRTI file due to deferred RTI image creation.  Example command: "+System.lineSeparator();
+                    webRtiString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
+                    webRtiString += "Example HTML for file: "+System.lineSeparator();
+                    webRtiString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>"+System.lineSeparator();
+                    appendString += webRtiString;
+                }
+                Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(preferredFitter), commandString.getBytes(), StandardOpenOption.APPEND);
+                fitterNoticeFrame.dispose();
+                logService.log().info("End fitter process");
+            } 
+            else if (preferredFitter.endsWith("PTMfitter.exe")) { // use PTM fitter
+                //This will show a mesasge saying this fitter is not supported, then restart the process of asking for the fitter again.
+                fitterNoticeFrame.dispose();
+                fitterMessageFrame.showDialog();
+                preferredFitter = "";
+                runFitter(colorProcess);
+            } 
+            else {
+                //This will show a mesasge saying this fitter is not supported, then restart the process of asking for the fitter again.
+                fitterNoticeFrame.dispose();
+                fitterMessageFrame.showDialog();
+                preferredFitter = "";
+                runFitter(colorProcess);
+            }
+           
         }
         
         /**
@@ -3199,7 +3200,6 @@ public class SpectralRTI_Toolkit implements Command {
                     rtiImage = projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+".rti";
                 }
                 logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
-                
                 if (!webRTIFolder.exists() && rtiImage.equals("")) {
                     //Make sure the directory we want to use exists if it is a user provided rti file.
                     Path createPath = webRTIFolder.toPath();
@@ -3207,10 +3207,12 @@ public class SpectralRTI_Toolkit implements Command {
                     logService.log().info("A directory has been created for the Web RTI file at "+webRTIFolder.toString());
                 }
                 String commandString= "";
+                String appendString = "";
                 if(isWindows){
                     commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
                     logService.log().info("Running the webRTICommand...");
-                    logService.log().info(commandString);                        
+                    logService.log().info(commandString); 
+                    appendString = "Executing command "+commandString+System.lineSeparator();;
                     p2 = Runtime.getRuntime().exec(commandString, null, new File(webRTIDir)); //hshLocation
                     p2.waitFor();
                     Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
@@ -3218,12 +3220,14 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else{
                     commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
+                    logService.log().info("Running the webRTICommand...");
+                    logService.log().info(commandString); 
+                    appendString = "Executing command "+commandString+System.lineSeparator();
                     p2 = Runtime.getRuntime().exec(commandString);
                     p2.waitFor();
                     Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
                     Files.write(Paths.get(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
-                String appendString = "Executing command "+commandString;
                 Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
                 noticeFrame.dispose();  
                 theList.put("webRtiMaker", webRtiMaker); //always keep locally with correct slash for OS
