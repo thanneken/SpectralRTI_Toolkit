@@ -2879,6 +2879,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 preferredFitter = dialog.getPath();
             }
+            theList.put("preferredFitter", preferredFitter);
             JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
             GenericDialog fitterMessageFrame = new GenericDialog("Try Again");
             contentPane = new JPanel();
@@ -3000,6 +3001,7 @@ public class SpectralRTI_Toolkit implements Command {
                 fitterNoticeFrame.dispose();
                 fitterMessageFrame.showDialog();
                 preferredFitter = "";
+                theList.put("preferredFitter", preferredFitter);
                 runFitter(colorProcess);
             } 
             else {
@@ -3007,6 +3009,7 @@ public class SpectralRTI_Toolkit implements Command {
                 fitterNoticeFrame.dispose();
                 fitterMessageFrame.showDialog();
                 preferredFitter = "";
+                theList.put("preferredFitter", preferredFitter);
                 runFitter(colorProcess);
             }
            
