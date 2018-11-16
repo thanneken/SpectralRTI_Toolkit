@@ -616,10 +616,30 @@ public class SpectralRTI_Toolkit implements Command {
                 }
             }
             else {
-                 //@userHitCancel
+                //@userHitCancel
 //                    IJ.error("You must make at least one selection to continue!  Exiting...");
 //                    throw new Throwable("You must make at least one selection to continue!");
+                for (int j=0; j<prefs.length;j++) {
+                    //Swap the labels back for processing
+                    String key = prefs[j].substring(0, prefs[j].indexOf("="));
+                    key = key.replace("JP2 Compressor","preferredCompress");
+                    key = key.replace("JP2 Arguments","preferredJp2Args");
+                    key = key.replace("HSH Fitter","preferredFitter");
+                    key = key.replace("JPEG Quality","jpegQuality");
+                    key = key.replace("HSH Order","hshOrder");
+                    key = key.replace("HSH Threads","hshThreads");
+                    key = key.replace("Web RTI Maker","webRtiMaker");
+                    key = key.replace("Short File Names","shortFileNames");
+                    String value2 = fields[j].getText(); //Gather new information
+                    if(key.equals("shortFileNames")){
+                        shortName = (value2.equals("true") || value2.equals("yes"));
+                        value2 = ""+shortName;
+                    }
+                    theList.put(key,value2);
+                }
             }
+            logService.log().info("These are the provided preferences: ");
+            logService.log().info(theList.toString());
             Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
 
             jpegQuality = ij.plugin.JpegWriter.getQuality();
@@ -717,7 +737,7 @@ public class SpectralRTI_Toolkit implements Command {
                             JOptionPane.PLAIN_MESSAGE);
                         }
                     }
-                    createWebRTIFiles("", rtiImageToUse);
+                    createWebRTIFiles("", rtiImageToUse, false);
                 }
                 else{
                     //WindowManager.closeAllWindows();
@@ -2883,6 +2903,7 @@ public class SpectralRTI_Toolkit implements Command {
             fitterMessageFrame.setLocation(screenSize.width/2-fitterMessageFrame.getSize().width/2, screenSize.height/2-fitterMessageFrame.getSize().height/2);
             logService.log().info("Preferred fitter is "+preferredFitter);
             appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
+            boolean noRun = false;
             if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
                 preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
                 String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
@@ -2931,9 +2952,10 @@ public class SpectralRTI_Toolkit implements Command {
                 fitterNoticeFrame.dispose();
                 logService.log().info("End fitter process");
                 Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
-                createWebRTIFiles(colorProcess, "");
+                createWebRTIFiles(colorProcess, "", noRun);
             } 
             else if (preferredFitter.endsWith("cmd")||preferredFitter.endsWith("bash")) {
+                noRun = true;
                 logService.log().info("Detected the preferred fitter is in fact a cmd or bash file.  This will defer processing.");
                 preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
                 String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
@@ -2962,15 +2984,15 @@ public class SpectralRTI_Toolkit implements Command {
                 commandString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
                 if (webRtiDesired) {
                     //String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
-                    String webRtiString = "Cannot make WebRTI file due to deferred RTI image creation.  Example command: "+System.lineSeparator();
-                    webRtiString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
-                    webRtiString += "Example HTML for file: "+System.lineSeparator();
-                    webRtiString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>"+System.lineSeparator();
+                    String webRtiString = "Creating .wrti file"+System.lineSeparator();
+                    webRtiString += "deferring Web RTI Maker command webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
+                    //webRtiString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>"+System.lineSeparator();
                     appendString += webRtiString;
                 }
                 Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
                 Files.write(Paths.get(preferredFitter), commandString.getBytes(), StandardOpenOption.APPEND);
                 fitterNoticeFrame.dispose();
+                createWebRTIFiles(colorProcess, "", noRun);
                 logService.log().info("End fitter process");
             } 
             else if (preferredFitter.endsWith("PTMfitter.exe")) { // use PTM fitter
@@ -3058,6 +3080,7 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.error("You must provide the location for the light position source file to continue.  Exiting...");
                             throw new Throwable("You must provide the location for the light position source file to continue.");
                         }
+                        logService.log().info("Selected lp source of "+dialog.getPath());
                         lpSource = dialog.getPath();
                     }
                     else{
@@ -3115,7 +3138,10 @@ public class SpectralRTI_Toolkit implements Command {
                     lpFile = new File(lpSource);
                 }
             }
-
+            else{
+                lpSource = lpSource.replace("...", projectDirectory+"LightPositionData"+File.separator);
+                lpFile = new File(lpSource);
+            }
             BufferedReader lpFileReader = Files.newBufferedReader(lpFile.toPath());
             String line= "";
             String lpFileAsText = "";
@@ -3142,7 +3168,7 @@ public class SpectralRTI_Toolkit implements Command {
             }
         }
         
-        private void createWebRTIFiles(String colorProcess, String rtiImage) throws IOException, InterruptedException, Throwable{
+        private void createWebRTIFiles(String colorProcess, String rtiImage, boolean noRun) throws IOException, InterruptedException, Throwable{
             logService.log().info("Create WebRTI for color process "+colorProcess+"...");
             File webRTIFolder;
             File fitterFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
@@ -3176,68 +3202,83 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
             String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
             if (webRtiDesired) {
-                noticeFrame.setVisible(true);  
-                logService.log().info("I have found a desire for WebRTI...input");
-                String webString;
-                String webRTIDir;
-                webRtiMaker = theList.get("webRtiMaker");
-                webRtiMaker = webRtiMaker.replace("/", File.separator); //ensure dir has correct slash for OS
-                webRtiMaker = webRtiMaker.replace("\\", File.separator); //ensure dir has correct slash for OS
-                File webRTIFile = new File(webRtiMaker);
-                while(webRtiMaker.equals("") || !webRTIFile.exists()) {
-                    OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
-                    if(null==dialog2.getPath()){
-                        //@userHitCancel
-                        WindowManager.closeAllWindows();
-                        IJ.error("You must provide the webGLRTIMaker.exe location to continue.  Exiting...");
-                        throw new Throwable("You must provide the webGLRTIMaker.exe location to continue.");
-                    }
-                    webRtiMaker = dialog2.getPath();
-                    webRTIFile = new File(webRtiMaker);
-                }
-                webRTIDir = new File(webRtiMaker).getParent();
-                /**
-                 * if the user provided an RTI image location, use that.  Otherwise, use the one the fitter made. 
-                 */
-                if(rtiImage.equals("")){
-                    rtiImage = projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+".rti";
-                }
-                logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
-                if (!webRTIFolder.exists() && rtiImage.equals("")) {
-                    //Make sure the directory we want to use exists if it is a user provided rti file.
-                    Path createPath = webRTIFolder.toPath();
-                    Files.createDirectory(createPath);
-                    logService.log().info("A directory has been created for the Web RTI file at "+webRTIFolder.toString());
-                }
-                String commandString= "";
-                String appendString = "";
-                if(isWindows){
-                    commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
-                    logService.log().info("Running the webRTICommand...");
-                    logService.log().info(commandString); 
-                    appendString = "Executing command "+commandString+System.lineSeparator();
-                    p2 = Runtime.getRuntime().exec(commandString, null, new File(webRTIDir)); //hshLocation
-                    p2.waitFor();
+                if(noRun){
+                    /* 
+                       The user has deferred creating their RTI file.  This means we can't run the webGLRTIMaker command because it will fail without an .rti image creates
+                       Just make the .wrti file so when the deferred command runs and makes the folders for the .wrti file, it will just work.
+                    */
                     Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
                     Files.write(Paths.get(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
                 }
                 else{
-                    commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
-                    logService.log().info("Running the webRTICommand...");
-                    logService.log().info(commandString); 
-                    appendString = "Executing command "+commandString+System.lineSeparator();
-                    p2 = Runtime.getRuntime().exec(commandString);
-                    p2.waitFor();
-                    Files.createFile(new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html").toPath());
-                    Files.write(Paths.get(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html"), webRtiString.getBytes(), StandardOpenOption.APPEND);
+                    noticeFrame.setVisible(true);  
+                    logService.log().info("I have found a desire for WebRTI...input");
+                    String webString;
+                    String webRTIDir;
+                    webRtiMaker = theList.get("webRtiMaker");
+                    webRtiMaker = webRtiMaker.replace("/", File.separator); //ensure dir has correct slash for OS
+                    webRtiMaker = webRtiMaker.replace("\\", File.separator); //ensure dir has correct slash for OS
+                    File webRTIFile = new File(webRtiMaker);
+                    while(webRtiMaker.equals("") || !webRTIFile.exists()) {
+                        OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
+                        if(null==dialog2.getPath()){
+                            //@userHitCancel
+                            WindowManager.closeAllWindows();
+                            IJ.error("You must provide the webGLRTIMaker.exe location to continue.  Exiting...");
+                            throw new Throwable("You must provide the webGLRTIMaker.exe location to continue.");
+                        }
+                        webRtiMaker = dialog2.getPath();
+                        webRTIFile = new File(webRtiMaker);
+                    }
+                    webRTIDir = new File(webRtiMaker).getParent();
+                    /**
+                     * if the user provided an RTI image location, use that.  Otherwise, use the one the fitter made. 
+                     */
+                    if(rtiImage.equals("")){
+                        rtiImage = projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+".rti";
+                    }
+                    logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
+                    if (!webRTIFolder.exists() && rtiImage.equals("")) {
+                        //Make sure the directory we want to use exists if it is a user provided rti file.
+                        Path createPath = webRTIFolder.toPath();
+                        Files.createDirectory(createPath);
+                        logService.log().info("A directory has been created for the Web RTI file at "+webRTIFolder.toString());
+                    }
+                    String commandString= "";
+                    String appendString = "";
+                    File wrti = new File(webRTIFolder+File.separator+projectName+"_"+colorProcess+"_"+startTime+"_wrti.html");
+                    if(isWindows){
+                        commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
+                        logService.log().info("Running the webRTICommand...");
+                        logService.log().info(commandString); 
+                        appendString = "Executing command "+commandString+System.lineSeparator();
+                        p2 = Runtime.getRuntime().exec(commandString, null, new File(webRTIDir)); //hshLocation
+                        p2.waitFor();
+                        if(!Files.exists(wrti.toPath())){
+                            Files.createFile(wrti.toPath());
+                        }
+                        Files.write(wrti.toPath(), webRtiString.getBytes());
+                    }
+                    else{
+                        commandString = webRtiMaker+" "+rtiImage+" -q "+jpegQualityWebRTI+" -r "+ramWebRTI;
+                        logService.log().info("Running the webRTICommand...");
+                        logService.log().info(commandString); 
+                        appendString = "Executing command "+commandString+System.lineSeparator();
+                        p2 = Runtime.getRuntime().exec(commandString);
+                        p2.waitFor();
+                        if(!Files.exists(wrti.toPath())){
+                            Files.createFile(wrti.toPath());
+                        }
+                        Files.write(wrti.toPath(), webRtiString.getBytes());
+                    }
+                    Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
+                    noticeFrame.dispose();  
+                    theList.put("webRtiMaker", webRtiMaker); //always keep locally with correct slash for OS
+                    webRtiMaker =webRtiMaker.replace("\\", "/"); //always write dirs to prefs file with backslash
+                    webString = "webRtiMaker="+webRtiMaker;
+                    prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.lineSeparator(),webString+System.lineSeparator()); //replace the prefs var
+                    Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
                 }
-                Files.write(fitterFile.toPath(), appendString.getBytes(), StandardOpenOption.APPEND);
-                noticeFrame.dispose();  
-                theList.put("webRtiMaker", webRtiMaker); //always keep locally with correct slash for OS
-                webRtiMaker =webRtiMaker.replace("\\", "/"); //always write dirs to prefs file with backslash
-                webString = "webRtiMaker="+webRtiMaker;
-                prefsFileAsText = prefsFileAsText.replaceFirst("webRtiMaker=.*\\"+System.lineSeparator(),webString+System.lineSeparator()); //replace the prefs var
-                Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
             }
             else{ //webRTIDesired was false.  Give a message? 
                 
