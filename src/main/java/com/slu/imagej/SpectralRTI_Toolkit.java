@@ -115,6 +115,7 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -2060,8 +2061,42 @@ public class SpectralRTI_Toolkit implements Command {
                         buttonPanel.add(previousSlice);
                         buttonPanel.add(deleteSlice);
                         contentPane.add(buttonPanel);
-                        Object[] btns = {"Confirm",
+                        JFrame contentFrame = new JFrame("Delete Slices");
+                        
+                        JButton finishBtn = new JButton("Finish");
+                        finishBtn.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                if(noGammaPCA.getStackSize() == 2){
+                                    noGammaPCA.hide();
+                                    noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
+                                    noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                                    IJ.run(noGammaPCA, "8-bit", "");
+                                    narrowKeptPCA = noGammaPCA;
+                                }
+                                else{
+                                    JOptionPane.showMessageDialog(null,
+                                    "You must have a stack of two slices.", "Try Again",
+                                    JOptionPane.PLAIN_MESSAGE);
+                                }
+                            } 
+                        });
+                        
+                        JButton quitBtn = new JButton("Quit");
+                        quitBtn.addActionListener(new ActionListener() { 
+                            public void actionPerformed(ActionEvent e) { 
+                                IJ.error("You must delete until there are two slices to continue!   Exiting...");
+                                throw new Throwable("You must delete until there are two slices to continue!");
+                            } 
+                        });
+                        contentFrame.add(contentPane);
+                        Object[] btns = {"Finish",
                         "Quit"};
+                        //https://docs.oracle.com/javase/tutorial/uiswing/misc/modality.html
+                        //https://stackoverflow.com/questions/5706455/can-i-use-a-java-joptionpane-in-a-non-modal-way
+                        //https://stackoverflow.com/questions/8523471/action-listener-to-jdialog-for-clicked-button
+                        //FIXME: Takes control of the UI, this should be a modeless free floating box so the user can still manipulate the images in the background.
+                        JDialog d2 = new JDialog(contentFrame, "", Dialog.ModalityType.MODELESS);
+                        d2.setVisible(true);
                         int deleteSliceResult = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                         if (deleteSliceResult == JOptionPane.OK_OPTION){
                             if(noGammaPCA.getStackSize() == 2){
@@ -3203,7 +3238,7 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.getContentPane().add(contentPane);
             noticeFrame.pack();
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
-            String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
+            String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
             if (webRtiDesired) {
                 if(noRun){
                     /* 
