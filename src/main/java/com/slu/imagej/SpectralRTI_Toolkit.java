@@ -211,7 +211,7 @@ public class SpectralRTI_Toolkit implements Command {
         public String name;
         public File spectralPrefsFile = new File("SpectralRTI_Toolkit-prefs.txt");//This is in the base fiji folder. 
         public String prefsFileAsText = "";
-        
+        public ImagePlus narrowKeptPCA = new ImagePlus();
         /* Use to test code bits.  switch out theMacro_test() with testCode() in main */
         private void testCode() throws IOException, Throwable{
             JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
@@ -1959,7 +1959,6 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus flNoGamma;
                 ImagePlus flNarrowNoGammaStack;
                 ImagePlus narrowNoGamma;
-                ImagePlus narrowKeptPCA = new ImagePlus();
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
                 narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
                 narrowNoGamma.hide();
@@ -2061,63 +2060,60 @@ public class SpectralRTI_Toolkit implements Command {
                         buttonPanel.add(previousSlice);
                         buttonPanel.add(deleteSlice);
                         contentPane.add(buttonPanel);
-                        JFrame contentFrame = new JFrame("Delete Slices");
-                        
-                        JButton finishBtn = new JButton("Finish");
-                        finishBtn.addActionListener(new ActionListener() { 
-                            public void actionPerformed(ActionEvent e) { 
-                                if(noGammaPCA.getStackSize() == 2){
-                                    noGammaPCA.hide();
-                                    noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
-                                    noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                                    IJ.run(noGammaPCA, "8-bit", "");
-                                    narrowKeptPCA = noGammaPCA;
-                                }
-                                else{
-                                    JOptionPane.showMessageDialog(null,
-                                    "You must have a stack of two slices.", "Try Again",
-                                    JOptionPane.PLAIN_MESSAGE);
-                                }
-                            } 
-                        });
-                        
-                        JButton quitBtn = new JButton("Quit");
-                        quitBtn.addActionListener(new ActionListener() { 
-                            public void actionPerformed(ActionEvent e) { 
-                                IJ.error("You must delete until there are two slices to continue!   Exiting...");
-                                throw new Throwable("You must delete until there are two slices to continue!");
-                            } 
-                        });
-                        contentFrame.add(contentPane);
+                        JFrame contentFrame = new JFrame("Delete Slices Frame");
+                        contentFrame.setLocation(screenSize.width/2-contentFrame.getSize().width/2, screenSize.height/2-contentFrame.getSize().height/2);
                         Object[] btns = {"Finish",
                         "Quit"};
                         //https://docs.oracle.com/javase/tutorial/uiswing/misc/modality.html
                         //https://stackoverflow.com/questions/5706455/can-i-use-a-java-joptionpane-in-a-non-modal-way
                         //https://stackoverflow.com/questions/8523471/action-listener-to-jdialog-for-clicked-button
                         //FIXME: Takes control of the UI, this should be a modeless free floating box so the user can still manipulate the images in the background.
-                        JDialog d2 = new JDialog(contentFrame, "", Dialog.ModalityType.MODELESS);
-                        d2.setVisible(true);
-                        int deleteSliceResult = JOptionPane.showOptionDialog(null, contentPane, "Delete Slices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
-                        if (deleteSliceResult == JOptionPane.OK_OPTION){
-                            if(noGammaPCA.getStackSize() == 2){
-                                noGammaPCA.hide();
-                                noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
-                                noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
-                                IJ.run(noGammaPCA, "8-bit", "");
-                                narrowKeptPCA = noGammaPCA;
+                        JOptionPane pane = new JOptionPane(contentPane, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, btns, btns[0]);
+                        JDialog d2 = pane.createDialog(contentFrame, "Delete Slices Dialog w/ pane");
+                        d2.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+                        //contentFrame.setVisible(true);
+                        String deleteSliceResult = "";
+                        while(noGammaPCA.getStackSize() != 2){
+                            d2.setVisible(true);
+                            logService.log().info("Pane Val: "+pane.getValue().toString());
+                            if(null == pane.getValue()){
+                                //@UserHitCancel
+                                noGammaPCA.changes = false; //otherwise it asks to save changes..
+                                //WindowManager.closeAllWindows();
+                                contentFrame.dispose();
+                                d2.dispose();
+                                IJ.error("You must delete until there are two slices to continue!   Exiting...");
+                                throw new Throwable("You must delete until there are two slices to continue!");
+                            }
+                            deleteSliceResult = pane.getValue().toString();
+                            if(deleteSliceResult.equals("Quit") || deleteSliceResult.equals("")){
+                                //@UserHitCancel
+                                noGammaPCA.changes = false; //otherwise it asks to save changes..
+                                //WindowManager.closeAllWindows();
+                                contentFrame.dispose();
+                                d2.dispose();
+                                IJ.error("You must delete until there are two slices to continue!   Exiting...");
+                                throw new Throwable("You must delete until there are two slices to continue!");
+                            }
+                            else if(deleteSliceResult.equals("Finish")){
+                                if(noGammaPCA.getStackSize() == 2){
+                                    noGammaPCA.hide();
+                                    noGammaPCA.setTitle("PCA of Captures-Narrowband-NoGamma kept stack");
+                                    noGammaPCA.setRoi(pcaX,pcaY,pcaWidth,pcaHeight); 
+                                    IJ.run(noGammaPCA, "8-bit", "");
+                                    narrowKeptPCA = noGammaPCA;
+                                    contentFrame.dispose();
+                                    d2.dispose();
+                                }
+                                else{
+                                    JOptionPane.showMessageDialog(null,
+                                    "You must have a stack of two slices.", "Try Again",
+                                    JOptionPane.PLAIN_MESSAGE);
+                                }
                             }
                             else{
-                                JOptionPane.showMessageDialog(null,
-                                "You must have a stack of two slices.", "Try Again",
-                                JOptionPane.PLAIN_MESSAGE);
-                            }
-                        }
-                        else {
-                            //@userHitCancel
-                            noGammaPCA.changes = false; //otherwise it asks to save changes..
-                            //WindowManager.closeAllWindows();
-                            IJ.error("You must delete until there are two slices to continue!   Exiting...");
-                            throw new Throwable("You must delete until there are two slices to continue!");
+                                //BAD NEWS BEARS
+                            }                          
                         }
                     }
 		/**
@@ -2151,6 +2147,7 @@ public class SpectralRTI_Toolkit implements Command {
                     * @see integrate pca pseudocolor with rti luminance
                     * @see create static diffuse (not trivial... use median of all)
                 */
+                logService.log().info("Picked my slices...");
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                     narrowNoGamma = WindowManager.getImage("Captures-Hemisphere-Gamma");
