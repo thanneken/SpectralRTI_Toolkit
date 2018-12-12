@@ -211,7 +211,6 @@ public class SpectralRTI_Toolkit implements Command {
         public String name;
         public File spectralPrefsFile = new File("SpectralRTI_Toolkit-prefs.txt");//This is in the base fiji folder. 
         public String prefsFileAsText = "";
-        public ImagePlus narrowKeptPCA = new ImagePlus();
         /* Use to test code bits.  switch out theMacro_test() with testCode() in main */
         private void testCode() throws IOException, Throwable{
             JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
@@ -1959,8 +1958,9 @@ public class SpectralRTI_Toolkit implements Command {
                 ImagePlus flNoGamma;
                 ImagePlus flNarrowNoGammaStack;
                 ImagePlus narrowNoGamma;
+                ImagePlus narrowKeptPCA = new ImagePlus();
                 IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Narrowband-NoGamma"+File.separator+" sort");
-                narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");
+                narrowNoGamma = WindowManager.getImage("Captures-Narrowband-NoGamma");//There are supposed to be a minimum of 9 images here. That should have already been checked.  
                 narrowNoGamma.hide();
 		//option to create new ones based on narrowband captures and assumption that pc1 and pc2 are best
 		if (pcaMethod.equals("Generate and select using defaults")){
@@ -2009,7 +2009,7 @@ public class SpectralRTI_Toolkit implements Command {
                     narrowNoGamma.changes = false;
                     ImagePlus noGammaPCA = WindowManager.getImage("PCA of Captures-Narrowband-NoGamma");
                     noGammaPCA.show();
-                    while(noGammaPCA.getStackSize() > 2){
+                    if(noGammaPCA.getStackSize() > 2){
                         contentPane = new JPanel();
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                         labelPanel = new JPanel();
@@ -2115,6 +2115,11 @@ public class SpectralRTI_Toolkit implements Command {
                                 //BAD NEWS BEARS
                             }                          
                         }
+                    }
+                    else{
+                        //There were supposed to be a minimum of 9 images in here, so we are ignoring it as if we didn't have the data.  
+                        IJ.error("You must have 9 or more narrow band captures!  Exiting...");
+                        throw new Throwable("You must have 9 or more narrow band captures for this processr!");
                     }
 		/**
                  * @see option to use previously generated principal component images
