@@ -2075,7 +2075,6 @@ public class SpectralRTI_Toolkit implements Command {
                         String deleteSliceResult = "";
                         while(noGammaPCA.getStackSize() != 2){
                             d2.setVisible(true);
-                            logService.log().info("Pane Val: "+pane.getValue().toString());
                             if(null == pane.getValue()){
                                 //@UserHitCancel
                                 noGammaPCA.changes = false; //otherwise it asks to save changes..
@@ -2152,7 +2151,6 @@ public class SpectralRTI_Toolkit implements Command {
                     * @see integrate pca pseudocolor with rti luminance
                     * @see create static diffuse (not trivial... use median of all)
                 */
-                logService.log().info("Picked my slices...");
 		if (psRakingDesired){
                     IJ.run("Image Sequence...", "open="+projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
                     narrowNoGamma = WindowManager.getImage("Captures-Hemisphere-Gamma");
