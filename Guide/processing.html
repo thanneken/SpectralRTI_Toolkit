@@ -64,11 +64,11 @@
 <p>All the software required for Spectral RTI processing is freely available. Status of operating system compatibility is as follows:</p>
 <ul>
 	<li><b>Windows 10:</b> Fully tested and compatible</li>
-	<li><b>Linux:</b> Fully tested, requires Wine to run HSHfitter and webGLRtiMaker</li>
+	<li><b>Linux:</b> Fully tested, requires Wine or compiling to run HSHfitter and webGLRtiMaker</li>
 	<li><b>MacOS:</b> Needs testing, expected compatibility with all components except optional webGLRtiMaker <a href="volunteer.html"><span class="volunteer">Volunteers needed</span></a></li>
 </ul>
-<h3>Fiji distribution of ImageJ</h3>
 <a href="staticimages/Fiji.png" target="images"><img alt="Fiji" src="staticimages/Fiji.png"></a>
+<h3>Fiji distribution of ImageJ</h3>
 <!--  image idea: Fiji download page -->
 <p>ImageJ is an open-source image processing suite originated by the National Institutes of Health. It is well suited to scientific and medical imaging applications. </p>
 <p>Fiji (Fiji Is Just ImageJ) is a distribution of ImageJ that includes additional plugins. Although the extra plugins required for the SpectralRTI_Toolkit can be downloaded separately, we recommend starting with the Fiji distribution.</p>
@@ -78,6 +78,7 @@
 <li>Fiji installer download page <a href="https://imagej.net/Fiji/Downloads">https://imagej.net/Fiji/Downloads</a></li>
 </ul>
 
+<a href="staticimages/Github.png" target="images"><img alt="Github" src="staticimages/Github.png"></a>
 <h3>SpectralRTI_Toolkit</h3>
 <!--
 <p>The SpectralRTI_Toolkit for ImageJ was originally developed as a macro.
@@ -102,27 +103,30 @@ As of June 2018, the recommendation is to try the Java plugin and revert to the 
 	<li>For ImageJ but not Fiji, <code>Stack_Manipulation-2.0.1.zip</code> and unzip to the <code>plugins</code> folder under ImageJ (required for Extended Spectrum and PCA Pseudocolor)</li>
 </ol>
 -->
-<a href="staticimages/Github.png" target="images"><img alt="Github" src="staticimages/Github.png"></a>
 <p>For initial installation, download or clone the SpectralRTI_Toolkit from its repository on GitHub:
 <a href="https://github.com/thanneken/SpectralRTI_Toolkit">https://github.com/thanneken/SpectralRTI_Toolkit</a></p>
 <p>Copy the contents of the folder <code>plugins</code> to the <code>plugins</code> folder in your instance of Fiji.</p>
-<p>To install subsequent updates to the Toolkit the key file for the plugins folder is <a href="https://github.com/thanneken/SpectralRTI_Toolkit/raw/master/plugins/SpectralRTI_Toolkit-0.0.1.jar"><code>SpectralRTI_Toolkit-0.0.1.jar</code></a>.
+<p>To install subsequent updates to the Toolkit the key file for the plugins folder is <a href="https://github.com/thanneken/SpectralRTI_Toolkit/raw/master/plugins/SpectralRTI_Toolkit-0.0.9.jar"><code>SpectralRTI_Toolkit-0.0.9.jar</code></a>.
 <a href="staticimages/RTIBuilder.png" target="images"><img alt="RTIBuilder" src="staticimages/RTIBuilder.png"></a>
 <h3>RTIBuilder</h3>
 <p>The RTIBuilder distributed by Cultural Heritage Imaging is the best way to create an LP file (unless you already have one) and also includes the HSHfitter required for creating RTI files.</p>
-<p>Windows and MacOS installers are available from <a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/Process/index.html">http://culturalheritageimaging.org</a>. For Linux, download and extract either version (e.g., <code>7z x RTIbuilder_2_0_2.dmg</code>). The application can be run from a terminal shell by changing to the directory that contains <code>RTIbuilder.jar</code> and entering the command <code>java -jar RTIbuilder.jar</code></p>
+<p>Windows and MacOS installers are available from <a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/Process/index.html">http://culturalheritageimaging.org</a>. 
+<p>For Linux, download and extract either version (e.g., <code>7z x RTIbuilder_2_0_2.dmg</code>). 
+The application can be run from a terminal shell by changing to the directory that contains <code>RTIbuilder.jar</code> and entering the command <code>java -jar RTIbuilder.jar</code>. 
+The included fitter <code>hshfitter.exe</code> can be run in Linux with Wine or compiled from <a href="https://github.com/rti-capture/rti-chi/tree/master/components/HSHfitter2">GitHub</a></p>
 <p>The SpectralRTI_Toolkit will prompt when it is time to run RTIBuilder to create an LP file. See below, "Light position data" <a class="small" href="#lpdata">(LINK)</a></p>
 <h3>Optional Jpeg2000 encoding for IIIF Image servers</h3>
 <p>The Toolkit will give the option of creating "Static Raking" images. "Static" contrasts with dynamically relightable RTI images. "Raking" means any angle of light among the hemisphere captures. Utilizing this option avoids lossy jpeg encoding (currently required for RTI) and creates files ready for IIIF Image repositories (tiled and layered). To utilize this feature it is necessary to download a jpeg2000 encoder. The best available is Kakadu. The executables for Windows, MacOS, and Linux can be downloaded from <a href="http://kakadusoftware.com/downloads/">http://kakadusoftware.com/downloads/</a>.</p>
 <h3>Optional WebRTI</h3>
-<p>To prepare RTI files for WebRTI you will need <code>webGLRTIMaker.exe</code> from <a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>.</p>
+<p>To prepare RTI files for WebRTI you will need <code>webGLRTIMaker.exe</code> from <a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>.
+Linux users have the option of running the Windows executable in Wine or compiling from <a href="https://github.com/jcupitt/webRTIViewer">GitHub</a></p>
 
 <h2 id="input">Managing input data</h2>
 <p>Data captured by the Jubilees Palimpsest Project is available for download.
 Testing on this data can be a good introduction to the software before trying on your own data.
 A script downloads a set of the necessary data in the required folder structure.
-The script is available as a <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/downloaddataset.bash">bash script</a> (Linux, Mac)
-and <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/downloaddataset.cmd">command script</a> (Windows).
+The script is available as a <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/sampledata/downloaddataset.bash">bash script</a> (Linux, Mac)
+and <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/sampledata/downloaddataset.cmd">command script</a> (Windows).
 Note that some directories are optional (transmissive, fluorescence, KTK custom).</p>
 <!--
 <p>Data captured by the Jubilees Palimpsest Project is available online for testing the Toolkit prior to application on your own data.
@@ -151,16 +155,12 @@ Each image set (e.g., page) requires a project folder (e.g. “Ambrosiana_C73inf
 <h2 id="firstrun">Running for the first time</h2>
 <ol>
 	<li>Start Fiji</li>
-	<li><code>Plugins > Install...</code>, then find and select <code>SpectralRTI_Toolkit.jar</code></li>
-	<li>Follow the prompts to save to the plugins folder and restart Fiji</li>
-	<li><code>Plugins > SpectralRTI_Toolkit</code></li>
+	<!-- <li><code>Plugins > Install...</code>, then find and select <code>SpectralRTI_Toolkit.jar</code></li>
+	<li>Follow the prompts to save to the plugins folder and restart Fiji</li> -->
+	<li><code>Plugins &gt; SpectralRTI_Toolkit</code></li>
 </ol>
 <p class="prompt"><b>Choose the project directory</b></p>
 <p>Locate the project directory folder that contains the sub-folders Captures-Hemisphere-Gamma, etc.</p>
-
-<p class="prompt"><b>Stored Preferences</b></p>
-<p>On the first run a window will notify you that rarely changed preferences will be saved.
-On subsequent runs previous selections will be listed and can be deleted or edited.</p>
 
 <a href="staticimages/SelectTasks.png" target="images"><img alt="Select Tasks" src="staticimages/SelectTasks.png"></a>
 <h2 id="selecttasks">Select tasks</h2>
@@ -179,12 +179,43 @@ On subsequent runs previous selections will be listed and can be deleted or edit
 	<li><b>Short File Names</b> (recommended) Use this option to show only filenames without full paths in the interface.</li>
 	<!-- why is this even an option? when would one want full paths? -->
 </ul>
+
+<p class="prompt"><b>Stored Preferences</b></p>
+<p>On the first run a window will notify you that rarely changed preferences will be saved.
+On subsequent runs previous selections will be listed and can be deleted or edited.
+The rarely changed preferences are as follows.</p>
+
+<dl>
+<dt>JP2 Compressor</dt>
+	<dd>Used for Static Raking output, not needed for RTI</dd>
+	<dd><code>kdu_compress</code> recommended, <code>ojp_compress</code> also works</dd>
+<dt>JP2 Arguments</dt>
+	<dd>[Advanced] The default values work well with the IIIF Image API</dd>
+<dt>HSH Fitter</dt>
+	<dd><code>hshfitter.exe</code> on Windows, or <code>hshfitter</code> if compiled for Linux</dd>
+	<dd>Also accepts a batch file, such as <code>deferredbatch.cmd</code>, which is very useful for deferring the heavy computation that does not require user interaction.</dd>
+<dt>Jpeg Quality</dt>
+	<dd>100 maximum quality, 90 is very good by most standards, 80 is still decent</dd>
+<dt>HSH Order</dt>
+	<dd>Can be 1, 2, or 3. Many consider 2 to be a nice balance of quality and file size. The maximum (3) will create a more precise and detailed representation of how the light changes.</dd>
+<dt>HSH Threads</dt>
+	<dd>Allows the HSH fitter to use multiple CPU threads in parallel. For <code>hshfitter</code> compiled on Linux use 1.</dd>
+<dt>Web RTI Maker</dt>
+	<dd>The path to <code>webGLRtiMaker.exe</code> on Windows/Wine or <code>webGLRtiMaker</code> on Linux</dd>
+	<dd>Necessary for WebRTI, not RTI files or Static Raking</dd>
+<dt>Short File Names</dt>
+	<dd>true or false</dd>
+	<dd>If “false” the full path to the file will be displayed in prompts such as the selection of Static Raking positions. 
+	If “true” the filename is displayed without the path.</dd>
+</dl>
+
 <a href="staticimages/AdjustBrightness.png" target="images"><img alt="Select Tasks" src="staticimages/AdjustBrightness.png"></a>
 <h2 id="brightness">Adjust brightness</h2>
 <p class="prompt"><b>Adjust brightness of hemisphere captures?</b>
 <br>Adjust brightness of hemisphere captures?</p>
-<p class="note">Advanced - Settings should be left as default in most cases</p>
-<p>The hemisphere captures use the same exposure settings for all light positions, which is valuable for rendering RTI images, but leaves the static raking images too dark.</p>
+<!--<p class="note">Advanced - Settings should be left as default in most cases</p>-->
+<p>The hemisphere captures use the same exposure settings for all light positions, which is valuable for rendering RTI images, but leaves the static raking images too dark.
+Most users will want to normalize each image to a selected area for Static Raking images only.</p>
 <ul>
 	<li><b>No</b> Use this option if brightness of the hemisphere captures is good for RTI and you do not want static raking images (or don't mind them being dark)</li>
 	<li><b>Yes, by normalizing each image to a selected area</b> (recommended) Use this option if the brightness of the hemisphere captures is good for RTI but the static raking images should be brighter.</li>
