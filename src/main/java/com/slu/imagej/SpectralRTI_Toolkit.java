@@ -254,16 +254,7 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean csRakingDesired = false;
             Boolean acRakingDesired = false;
             Boolean xsRakingDesired = false;
-            
-            File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
-            File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
-            File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
-            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
-            File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
-            File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
-            File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
-            File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
-            
+
             File[] listOfAccurateColorSources = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
             File[] listOfHemisphereCaptures = new File[0];
@@ -320,6 +311,20 @@ public class SpectralRTI_Toolkit implements Command {
             projectDirectory = projectDirectory.substring(0, projectDirectory.length() - 1); //always has a trailing '/'
             projectDirectory = projectDirectory + File.separator; //make sure it ends with the proper trailing slash for the OS
             logService.log().info("Project directory: "+projectDirectory);
+            
+            File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
+            File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
+            File accurate_colorrti_dir = new File(projectDirectory+"AccurateColorRTI"+File.separator);
+            File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
+            if(narrow_band_dir.exists()){
+                listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                Arrays.sort(listOfNarrowbandCaptures, NameFileComparator.NAME_COMPARATOR);
+            }
+            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
+            File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+            File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
+            File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
+            File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
             /**
              * Second, consult with the user about their desired tasks.  This will help us know what to ask them throughout the plugin.
              * We cannot continue without a task.
@@ -361,7 +366,7 @@ public class SpectralRTI_Toolkit implements Command {
             if (!light_position_dir.exists() || light_position_dir.listFiles().length == 0) { 
                 ch1.setSelected(true);
             }
-            if (!accurate_color_dir.exists() || accurate_color_dir.listFiles().length == 0){
+            if (!accurate_colorrti_dir.exists() || !accurate_color_dir.exists() || accurate_color_dir.listFiles().length == 0){
                 ch2.setSelected(true);
             }
             if(!extended_spectrum_dir.exists() || extended_spectrum_dir.listFiles().length == 0){
@@ -370,9 +375,9 @@ public class SpectralRTI_Toolkit implements Command {
             if(!pseudo_color_dir.exists() || pseudo_color_dir.listFiles().length == 0){
                 ch5.setSelected(true);
             }
-            if(listOfNarrowbandCaptures.length >= 9){
-                ch3.setSelected(true);
-                ch5.setSelected(true);
+            if(listOfNarrowbandCaptures.length < 9){
+                ch3.setSelected(false);
+                ch5.setSelected(false);
             }
             
             //FIXME:This is a bit of a hack.  If the shortFileName is not the last preference in the prefs file, this will break.
