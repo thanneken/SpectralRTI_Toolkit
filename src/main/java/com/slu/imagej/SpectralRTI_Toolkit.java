@@ -255,6 +255,15 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean acRakingDesired = false;
             Boolean xsRakingDesired = false;
             
+            File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
+            File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
+            File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
+            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
+            File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
+            File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
+            File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
+            File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+            
             File[] listOfAccurateColorSources = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
             File[] listOfHemisphereCaptures = new File[0];
@@ -316,6 +325,11 @@ public class SpectralRTI_Toolkit implements Command {
              * We cannot continue without a task.
              */
             //Hmm this feels like it should be some kind of defined private array or something somwhere, not just defined all willy nilly here.  
+            //Original macro task defaulting behavior
+                
+                
+                
+
             JCheckBox[] tasks = new JCheckBox[11];
             JCheckBox ch1 = new JCheckBox("Light Position Data");
             ch1.setToolTipText("Generate light position data.  You will need a Fitter to perform this task.");
@@ -342,6 +356,24 @@ public class SpectralRTI_Toolkit implements Command {
             snL.setBorder(new EmptyBorder(15,0,0,0)); //put some margin/padding around a label
             JCheckBox ch10 = new JCheckBox("Short File Names");
             ch10.setToolTipText("A preferece as to whether you want to see the full file path or just the file name throughout the plugin.");
+            
+            //original macro defaulting behavior
+            if (!light_position_dir.exists() || light_position_dir.listFiles().length == 0) { 
+                ch1.setSelected(true);
+            }
+            if (!accurate_color_dir.exists() || accurate_color_dir.listFiles().length == 0){
+                ch2.setSelected(true);
+            }
+            if(!extended_spectrum_dir.exists() || extended_spectrum_dir.listFiles().length == 0){
+                ch3.setSelected(true);
+            }
+            if(!pseudo_color_dir.exists() || pseudo_color_dir.listFiles().length == 0){
+                ch5.setSelected(true);
+            }
+            if(listOfNarrowbandCaptures.length >= 9){
+                ch3.setSelected(true);
+                ch5.setSelected(true);
+            }
             
             //FIXME:This is a bit of a hack.  If the shortFileName is not the last preference in the prefs file, this will break.
             int last_pref = prefs.length - 1;
@@ -610,6 +642,16 @@ public class SpectralRTI_Toolkit implements Command {
                             shortName = (value2.equals("true") || value2.equals("yes"));
                             value2 = ""+shortName;
                         }
+                        if(key.equals("jpegQuality")){
+                            int jpq = Integer.parseInt(value2);
+                            if (jpq > 0){
+                                jpegQuality = jpq;
+                            }
+                            else{
+                                jpegQuality = ij.plugin.JpegWriter.getQuality();
+                            }
+                            value2 = Integer.toString(jpegQuality);
+                        }
                         theList.put(key,value2);
                         value2 = value2.replace("\\", "/"); //Always store dirs to prefs file with backslash.
                         prefsFileAsText = prefsFileAsText.replaceFirst(key+"=.*\\"+System.lineSeparator(), key+"="+value2+System.lineSeparator()); //replace the prefs var
@@ -640,28 +682,8 @@ public class SpectralRTI_Toolkit implements Command {
             }
             logService.log().info("These are the provided preferences: ");
             logService.log().info(theList.toString());
-            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file
-
-            jpegQuality = ij.plugin.JpegWriter.getQuality();
-            int jpq = Integer.parseInt(theList.get("jpegQuality"));
-            if (jpq > 0){
-                jpegQuality = jpq;
-            }
-            else{
-                /**
-                 * Don't actually write this to the file, force the user to edit the preference file themselves.
-                 * @see appendString variable
-                 */
-            }
-            IJ.run("Input/Output...","jpeg="+jpegQuality);
-            File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
-            File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
-            File narrow_band_dir = new File(projectDirectory+"Captures-Narrowband-NoGamma"+File.separator);
-            File pseudo_color_dir = new File(projectDirectory+"PseudoColorRTI"+File.separator);
-            File extended_spectrum_dir = new File(projectDirectory+"ExtendedSpectrumRTI"+File.separator);
-            File static_ranking_dir = new File(projectDirectory+"StaticRaking"+File.separator);
-            File transmissive_gamma_dir = new File(projectDirectory+"Captures-Transmissive-Gamma"+File.separator);
-            File hemi_gamma_dir = new File(projectDirectory+"Captures-Hemisphere-Gamma"+File.separator);
+            Files.write(spectralPrefsFile.toPath(), prefsFileAsText.getBytes()); //rewrite the prefs file       
+            IJ.run("Input/Output...","jpeg="+jpegQuality);          
             if (!hemi_gamma_dir.exists()) {
                 Path createPath = hemi_gamma_dir.toPath();
                 Files.createDirectory(createPath);
@@ -692,14 +714,13 @@ public class SpectralRTI_Toolkit implements Command {
             if (!accurate_color_dir.exists() ){
                 Files.createDirectory(accurate_color_dir.toPath());
             }
-            if(!transmissive_gamma_dir.exists()){
-                Files.createDirectory(transmissive_gamma_dir.toPath());
-            }
+
             if(!narrow_band_dir.exists()){
                 Files.createDirectory(narrow_band_dir.toPath());
             }
             else{
                 listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                Arrays.sort(listOfNarrowbandCaptures, NameFileComparator.NAME_COMPARATOR);
             }
             /** DEBUGGING **/
             logService.log().info("Variable States listed below!");
@@ -971,6 +992,7 @@ public class SpectralRTI_Toolkit implements Command {
                     int datasetResult = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if (datasetResult == JOptionPane.OK_OPTION){
                         listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                        Arrays.sort(listOfNarrowbandCaptures, NameFileComparator.NAME_COMPARATOR);
                     }
                     else {
                          //@userHitCancel
@@ -1207,11 +1229,9 @@ public class SpectralRTI_Toolkit implements Command {
             if (psRtiDesired || psRakingDesired){
                 //identify 2 source images for pca pseudocolor
                 File listOfPseudoColorSources_dir = new File(projectDirectory+"PCA"+File.separator);
-                //This dir is never written to so it is always empty.  Not exactly sure what processed images should be saved into this directory. Yikes.
-                if(!listOfPseudoColorSources_dir.exists()){
-                    //JOptionPane.showMessageDialog(null, "PseudoColor Directory Not Found", "A Pseudo Color folder has been created for you in your project directory.", JOptionPane.PLAIN_MESSAGE);
-                    Files.createDirectory(listOfPseudoColorSources_dir.toPath());
-                    logService.log().info("A directory has been created for PCA images at "+projectDirectory+"PCA");
+                File[] listOfPseudoColorSources = new File[0];
+                if(listOfPseudoColorSources_dir.exists()){
+                    listOfPseudoColorSources = listOfPseudoColorSources_dir.listFiles();
                 }
                 while(listOfNarrowbandCaptures.length<9){
                     contentPane = new JPanel();
@@ -1225,6 +1245,7 @@ public class SpectralRTI_Toolkit implements Command {
                     int datasetResult = JOptionPane.showOptionDialog(null, contentPane, "Source Dataset Too Small", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, btns, btns[0]);
                     if (datasetResult == JOptionPane.OK_OPTION){
                         listOfNarrowbandCaptures = narrow_band_dir.listFiles();
+                        Arrays.sort(listOfNarrowbandCaptures, NameFileComparator.NAME_COMPARATOR);
                     }
                     else {
                          //@userHitCancel
@@ -1243,10 +1264,10 @@ public class SpectralRTI_Toolkit implements Command {
                     IJ.error("You must have 9 or more narrow band captures for Pseudocolor!  Exiting...");
                     throw new Throwable("You must have 9 or more narrow band captures for Extended Spectrum!");
                 }
-                File[] listOfPseudoColorSources = listOfPseudoColorSources_dir.listFiles();
-                String defaultPca = "";
-                if (listOfPseudoColorSources.length > 1) defaultPca = "Open pregenerated images" ;
-                else defaultPca = "Generate and select using defaults";
+                
+                int defaultPca = 2;
+                if (listOfPseudoColorSources.length > 1) defaultPca = 2 ;
+                else defaultPca = 1;
                 String[] listOfPcaMethods = new String[3];
                 listOfPcaMethods[0]="Generate and select using defaults";
                 listOfPcaMethods[1]="Generate and manually select two";
@@ -1270,7 +1291,7 @@ public class SpectralRTI_Toolkit implements Command {
                     //String defaultRange;
                     JRadioButton radioOption = new JRadioButton(listOfPcaMethods[i]);
                     radioOption.setActionCommand(listOfPcaMethods[i]);
-                    if(i==0){
+                    if(i==defaultPca){
                         radioOption.setSelected(true);
                     }
                     capture_radios.add(radioOption);
@@ -2726,7 +2747,7 @@ public class SpectralRTI_Toolkit implements Command {
                 //String defaultRange;
                 JRadioButton radioOption = new JRadioButton(brightnessAdjustOptions[i]);
                 radioOption.setActionCommand(brightnessAdjustOptions[i]);
-                if(i==0){
+                if(i==1){
                     radioOption.setSelected(true);
                 }
                 adjust_radios.add(radioOption);
@@ -2940,7 +2961,8 @@ public class SpectralRTI_Toolkit implements Command {
             logService.log().info("Preferred fitter is "+preferredFitter);
             appendString = "preferredFitter="+preferredFitter+System.lineSeparator();
             boolean noRun = false;
-            if (preferredFitter.endsWith("hshfitter.exe")) { // use HSH fitter
+            String preferredFitterCheck = preferredFitter.toLowerCase();
+            if (preferredFitterCheck.endsWith("hshfitter.exe") || preferredFitterCheck.endsWith("hshfitter")) { // use HSH fitter
                 preferredFitter =preferredFitter.replace("\\", "/"); //write dir to prefs file with backslash
                 String fitterString= "preferredFitter="+preferredFitter+System.lineSeparator();
                 prefsFileAsText = prefsFileAsText.replaceFirst("preferredFitter=.*\\"+System.lineSeparator(), fitterString); //replace the prefs var
@@ -2968,6 +2990,9 @@ public class SpectralRTI_Toolkit implements Command {
                 fitterNoticeFrame.setVisible(true);
                 String commandString = "";
                 if(isWindows){
+//                    if(preferredFitter.endsWith("hshfitter")){
+//                        preferredFitter = preferredFitter.replace("hshfitter", "hshfitter.exe");
+//                    }
                     //preferredfitter is hshFitter.exe (or some other executable).  The args used are from those.  It should be platform independent
                     commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     logService.log().info("Running the following fitter command...");
@@ -2979,6 +3004,9 @@ public class SpectralRTI_Toolkit implements Command {
                     contentPane.removeAll();
                 }
                 else{
+//                    if(preferredFitter.endsWith("hshfitter.exe")){
+//                        preferredFitter = preferredFitter.replace("hshfitter.exe", "hshfitter");
+//                    }
                     commandString = preferredFitter+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp"+" "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti";
                     appendString += "Executing command "+commandString;
                     p = Runtime.getRuntime().exec(commandString);
@@ -3017,11 +3045,11 @@ public class SpectralRTI_Toolkit implements Command {
                 appendString += "Jpeg Quality: "+jpegQuality+" (edit SpectralRTI_Toolkit-prefs.txt to change)"+System.lineSeparator();
                 appendString += "Deferring fitter command hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
                 commandString += "hshfitter "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI.lp "+hshOrder+" "+hshThreads+" "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti"+System.lineSeparator();
-                commandString += "webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
+                commandString += "webGLRtiMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
                 if (webRtiDesired) {
                     //String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
                     String webRtiString = "Creating .wrti file"+System.lineSeparator();
-                    webRtiString += "deferring Web RTI Maker command webGLRTIMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
+                    webRtiString += "deferring Web RTI Maker command webGLRtiMaker "+projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".rti -q "+jpegQualityWebRTI+" -r "+ramWebRTI+System.lineSeparator();
                     //webRtiString += "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"RTI</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"RTI_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>"+System.lineSeparator();
                     appendString += webRtiString;
                 }
@@ -3258,12 +3286,12 @@ public class SpectralRTI_Toolkit implements Command {
                     webRtiMaker = webRtiMaker.replace("\\", File.separator); //ensure dir has correct slash for OS
                     File webRTIFile = new File(webRtiMaker);
                     while(webRtiMaker.equals("") || !webRTIFile.exists()) {
-                        OpenDialog dialog2 = new OpenDialog("Locate webGLRTIMaker.exe");
+                        OpenDialog dialog2 = new OpenDialog("Locate webGLRtiMaker.exe");
                         if(null==dialog2.getPath()){
                             //@userHitCancel
                             WindowManager.closeAllWindows();
-                            IJ.error("You must provide the webGLRTIMaker.exe location to continue.  Exiting...");
-                            throw new Throwable("You must provide the webGLRTIMaker.exe location to continue.");
+                            IJ.error("You must provide the webGLRtiMaker.exe location to continue.  Exiting...");
+                            throw new Throwable("You must provide the webGLRtiMaker.exe location to continue.");
                         }
                         webRtiMaker = dialog2.getPath();
                         webRTIFile = new File(webRtiMaker);
