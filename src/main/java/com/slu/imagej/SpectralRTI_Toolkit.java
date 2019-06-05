@@ -136,8 +136,8 @@ public class SpectralRTI_Toolkit implements Command {
         //SRTI vars
         private Process p;
         private Process p2;
-        private int jpegQuality = 100; //maximize quality for non-distribution phases
-        private final int jpegQualityWebRTI = 100; //lower for final distribution
+        private int jpegQuality = 90; //maximize quality for non-distribution phases
+        private final int jpegQualityWebRTI = 90; //lower for final distribution
         private final int ramWebRTI = 8192;
         private String brightnessAdjustOption = "";
         private String brightnessAdjustApply = "";
@@ -183,7 +183,7 @@ public class SpectralRTI_Toolkit implements Command {
             theList.put("preferredCompress", "");
             theList.put("preferredJp2Args", "");
             theList.put("preferredFitter", "");
-            theList.put("jpegQuality", "0");
+            theList.put("jpegQuality", "90");
             theList.put("hshOrder", "0");
             theList.put("hshThreads", "0");
             theList.put("webRtiMaker", "");
@@ -199,8 +199,8 @@ public class SpectralRTI_Toolkit implements Command {
         private void plugin() throws IOException, Throwable{
             //want these variables to be accessible across functions and to reset each time the macro is run
             startTime = timestamp();
-            //The warn() here is a quick fix to force the log and console to pop up how we want.
-            logService.log().warn("Starting SpectralRTI Plugin at "+startTime);
+            //The log.warn() is a quick fix to force the log and console to pop up without user interaction.
+            logService.log().info("Starting SpectralRTI Plugin at "+startTime);
             logService.log().info("Detected OS "+System.getProperty("os.name")+".  Treat as Windows = "+isWindows);
             File accurateColorSource = null; //may be a better way to do this without the null.
             String[] prefs = null;
@@ -427,12 +427,16 @@ public class SpectralRTI_Toolkit implements Command {
             contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
             JPanel labelPanel = new JPanel();
             JPanel labelPanel2 = new JPanel();
+            JPanel labelPanel3 = new JPanel();
             JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
             JLabel prefsLabel2 = new JLabel("Edit or clear as desired.  Required information is bolded.");
+            JLabel prefsLabel3 = new JLabel("Select Window > Console in the ImageJ panel during processing to watch the logs.");
             labelPanel.add(prefsLabel);
             labelPanel2.add(prefsLabel2);
+            labelPanel3.add(prefsLabel3);
             contentPane.add(labelPanel);
             contentPane.add(labelPanel2);
+            contentPane.add(labelPanel3);
             //If there was no prefs file when the plugin first ran, it created a prefs file with the default values, which will be read out here.  
             //Otherwise, it found a prefs file and will read out what it had stored from last time.
             logService.log().info(Arrays.toString(prefs));
@@ -1924,7 +1928,7 @@ public class SpectralRTI_Toolkit implements Command {
                         contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.PAGE_AXIS));
                         labelPanel = new JPanel();
                         labelPanel2 = new JPanel();
-                        JPanel labelPanel3 = new JPanel();
+                        labelPanel3 = new JPanel();
                         JPanel sliceCountPanel = new JPanel();
                         JLabel directions = new JLabel("Delete slices from the PCA stack until two remain.");
                         JLabel directions2 = new JLabel("Navigate to the slice in the stack you want to delete using the buttons below.");
