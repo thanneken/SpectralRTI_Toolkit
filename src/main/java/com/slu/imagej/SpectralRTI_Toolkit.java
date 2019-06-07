@@ -430,7 +430,7 @@ public class SpectralRTI_Toolkit implements Command {
             JPanel labelPanel3 = new JPanel();
             JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
             JLabel prefsLabel2 = new JLabel("Edit or clear as desired.  Required information is bolded.");
-            JLabel prefsLabel3 = new JLabel("Select Window > Console in the ImageJ panel during processing to watch the logs.");
+            JLabel prefsLabel3 = new JLabel("Tip: Select Window > Console in the ImageJ panel during processing for more information.");
             labelPanel.add(prefsLabel);
             labelPanel2.add(prefsLabel2);
             labelPanel3.add(prefsLabel3);
