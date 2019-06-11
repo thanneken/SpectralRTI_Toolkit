@@ -38,7 +38,7 @@
   * </ul> 
 */
 
-package com.slu.imagej;
+package toolkit;
 
 //ImageJ specific imports
 import ij.IJ;

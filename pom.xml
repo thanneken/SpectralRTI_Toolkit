@@ -41,7 +41,8 @@
 	</developers>
 	<contributors>
 		<contributor>
-			<name>Todd Hanneken</name>
+                    <name>Todd Hanneken</name>
+                    <url>https://github.com/thanneken</url>
 		</contributor>
 	</contributors>
 
@@ -61,13 +62,25 @@
 		<system>GitHub Issues</system>
 		<url>http://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit/issues</url>
 	</issueManagement>
+<!--        
+        <scm>
+		<connection>scm:git:git://github.com/thanneken/SpectralRTI_Toolkit</connection>
+		<developerConnection>scm:git:git@github.com:thanneken</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/thanneken/SpectralRTI_Toolkit</url>
+	</scm>
+        <issueManagement>
+		<system>GitHub Issues</system>
+		<url>http://github.com/thanneken/SpectralRTI_Toolkit/issues</url>
+	</issueManagement>
+-->
 	<ciManagement>
 		<system>None</system>
 	</ciManagement>
 
 	<properties>
 		<main-class>HelloWorld</main-class>
-		<license.licenseName>GNU</license.licenseName>
+		<license.licenseName>cc0</license.licenseName>
 		<license.copyrightOwners>N/A</license.copyrightOwners>
 		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
 	</properties>
