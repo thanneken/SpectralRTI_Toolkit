@@ -14,10 +14,10 @@
 
 	<groupId>slu.edu</groupId>
 	<artifactId>SpectralRTI_Toolkit</artifactId>
-	<version>0.0.9</version>
+	<version>1.0.0</version>
 
 	<name>SpectralRTI</name>
-	<description>Do Spectral Imaging on RTI images.</description>
+	<description>Create RTI and Spectral RTI from source images and capture data.</description>
 	<url>https://www.slu.edu</url>
 	<inceptionYear>2017</inceptionYear>
 	<organization>
@@ -26,8 +26,8 @@
 	</organization>
 	<licenses>
 		<license>
-			<name>CC0 1.0 Universal License</name>
-			<url>http://creativecommons.org/publicdomain/zero/1.0/</url>
+			<name>GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007</name>
+			<url>http://www.gnu.org/licenses/</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -41,7 +41,7 @@
 	</developers>
 	<contributors>
 		<contributor>
-			<name>None</name>
+			<name>Todd Hanneken</name>
 		</contributor>
 	</contributors>
 
@@ -51,7 +51,6 @@
 			<archive>http://forum.imagej.net/</archive>
 		</mailingList>
 	</mailingLists>
-
 	<scm>
 		<connection>scm:git:git://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit</connection>
 		<developerConnection>scm:git:git@github.com:CenterForDigitalHumanities</developerConnection>
@@ -68,7 +67,7 @@
 
 	<properties>
 		<main-class>HelloWorld</main-class>
-		<license.licenseName>cc0</license.licenseName>
+		<license.licenseName>GNU</license.licenseName>
 		<license.copyrightOwners>N/A</license.copyrightOwners>
 		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
 	</properties>
