@@ -249,16 +249,28 @@ public class SpectralRTI_Toolkit implements Command {
              */
             while(projectDirectory == null || projectDirectory.equals("") || null == projectFile || !projectFile.exists()){
                 file_dialog = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
-                projectDirectory = file_dialog.getDirectory();
-                if(null==projectDirectory){
+                if(null==file_dialog.getDirectory()){
                     //@userHitCancel
                     IJ.error("You must provide a project directory to continue.  Exiting...");
                     throw new Throwable("You must provide a project directory."); //DIE if no directory provided
                 }
+                projectDirectory = file_dialog.getDirectory();
+                if(projectDirectory.equals("")){
+                  JOptionPane.showMessageDialog(null,
+                  "You must provide a project directory.", "Try Again",
+                  JOptionPane.PLAIN_MESSAGE);
+                }
+                else if(projectDirectory.contains(" ")){
+                     JOptionPane.showMessageDialog(null,
+                     "Project directory path contains a space.  Please remove all spaces from the directories in the path '"+
+                     projectDirectory+"' to avoid errors in third party software.", "Try Again",
+                     JOptionPane.PLAIN_MESSAGE);
+                     projectDirectory = "";
+                }
                 projectFile = new File(projectDirectory);
             }
             if(projectDirectory == null || projectDirectory.equals("")){
-                IJ.error("You must provide a project directory to continue.  Exiting...");
+                IJ.error("You must provide a proper project directory path to continue.  Exiting...");
                 throw new Throwable("You must provide a project directory."); //DIE if no directory provided
             }
             else{
@@ -267,7 +279,6 @@ public class SpectralRTI_Toolkit implements Command {
             projectDirectory = projectDirectory.substring(0, projectDirectory.length() - 1); //always has a trailing '/'
             projectDirectory = projectDirectory + File.separator; //make sure it ends with the proper trailing slash for the OS
             logService.log().info("Project directory: "+projectDirectory);
-            
             File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
             File accurate_color_dir = new File(projectDirectory+"AccurateColor"+File.separator);
             File accurate_colorrti_dir = new File(projectDirectory+"AccurateColorRTI"+File.separator);
@@ -544,12 +555,29 @@ public class SpectralRTI_Toolkit implements Command {
                     chooseBtn.addActionListener(new ActionListener() { 
                     public void actionPerformed(ActionEvent e) { 
                             //prefFileChooser();
-                            int returnVal = chooser.showOpenDialog(null);
-                            if(returnVal == JFileChooser.APPROVE_OPTION) {
-                                fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
-                            }
-                            else{
-                                fieldToAdd.setText("");
+                            Boolean goodPath = false;
+                            String chosenPath = "";
+                            while(!goodPath){
+                              int returnVal = chooser.showOpenDialog(null);
+                              if(returnVal == JFileChooser.APPROVE_OPTION) {
+                                  chosenPath = chooser.getSelectedFile().getAbsolutePath();
+                                  if(chosenPath.contains(" ")){
+                                     goodPath = false;
+                                     JOptionPane.showMessageDialog(null,
+                                     "File path contains a space.  Please remove all spaces from the directories in the path '"+
+                                     chosenPath+"' to avoid errors in third party software.", "Try Again",
+                                     JOptionPane.PLAIN_MESSAGE);
+                                     fieldToAdd.setText("");
+                                  }
+                                  else{
+                                     goodPath = true;
+                                     fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
+                                  }
+                              }
+                              else{
+                                  goodPath = true;
+                                  fieldToAdd.setText("");
+                              }
                             }
                         } 
                     });
@@ -699,10 +727,17 @@ public class SpectralRTI_Toolkit implements Command {
                             throw new Throwable("You must provide an RTI Image for processing to continue.");
                         }
                         rtiImageToUse = rti_image.getPath();
-                        if(null == rtiImageToUse || rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti")){
+                        if(rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti")){
                             JOptionPane.showMessageDialog(null,
                             "You must provide an RTI image.", "Try Again",
                             JOptionPane.PLAIN_MESSAGE);
+                        }
+                        else if(rtiImageToUse.contains(" ")){
+                            JOptionPane.showMessageDialog(null,
+                            "RTI image file path contains a space.  Please remove all spaces from the directories in the path '"+
+                            rtiImageToUse+"' to avoid errors in third party software.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                            rtiImageToUse = "";
                         }
                     }
                     createWebRTIFiles("", rtiImageToUse, false);
@@ -1289,10 +1324,17 @@ public class SpectralRTI_Toolkit implements Command {
                         throw new Throwable("You must provide a custom source to continue.");
                     }
                     csSource = csSourceDialog.getPath();
-                    if(null == csSource || csSource.equals("")){
+                    if(csSource.equals("")){
                         JOptionPane.showMessageDialog(null,
                         "You must provide a custom source.", "Try Again",
                         JOptionPane.PLAIN_MESSAGE);
+                    }
+                    else if(csSource.contains(" ")){
+                        JOptionPane.showMessageDialog(null,
+                        "Custom Source file path contains a space.  Please remove all spaces from the directories in the path '"+
+                        csSource+"' to avoid errors in third party software.", "Try Again",
+                        JOptionPane.PLAIN_MESSAGE);
+                        csSource = "";
                     }
                 }
                 logService.log().info("Should have custom source");
@@ -2443,6 +2485,18 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must provide the jp2 compressor location to continue!");
                 }
                 preferredCompress = dialog.getPath();
+                if(preferredCompress.equals("")){
+                     JOptionPane.showMessageDialog(null,
+                     "You must provide a compressor.", "Try Again",
+                     JOptionPane.PLAIN_MESSAGE);
+                }
+                else if(preferredCompress.contains(" ")){
+                     JOptionPane.showMessageDialog(null,
+                     "Compressor file path contains a space.  Please remove all spaces from the directories in the path '"+
+                     preferredCompress+"' to avoid errors in the Compressor software.", "Try Again",
+                     JOptionPane.PLAIN_MESSAGE);
+                     preferredCompress = "";
+                }
                 preferredCompressFile = new File(preferredCompress);
             }
             theList.put("preferredCompress", preferredCompress); //always keep dirs locally with correct slash for OS
@@ -2787,6 +2841,18 @@ public class SpectralRTI_Toolkit implements Command {
                     throw new Throwable("You must provide the location for the RTI Fitter or cmd file to continue.");
                 }
                 preferredFitter = dialog.getPath();
+                if(preferredFitter.equals("")){
+                     JOptionPane.showMessageDialog(null,
+                     "You must provide a Fitter.", "Try Again",
+                     JOptionPane.PLAIN_MESSAGE);
+                }
+                else if(preferredFitter.contains(" ")){
+                     JOptionPane.showMessageDialog(null,
+                     "Fitter file path contains a space.  Please remove all spaces from the directories in the path '"+
+                     preferredFitter+"' to avoid errors in the Fitter software.", "Try Again",
+                     JOptionPane.PLAIN_MESSAGE);
+                     preferredFitter = "";
+                }
             }
             theList.put("preferredFitter", preferredFitter);
             JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
@@ -2990,8 +3056,19 @@ public class SpectralRTI_Toolkit implements Command {
                             IJ.error("You must provide the location for the light position source file to continue.  Exiting...");
                             throw new Throwable("You must provide the location for the light position source file to continue.");
                         }
-                        logService.log().info("Selected lp source of "+dialog.getPath());
                         lpSource = dialog.getPath();
+                        if(lpSource.equals("")){
+                           JOptionPane.showMessageDialog(null,
+                           "You must provide an LP file.", "Try Again",
+                           JOptionPane.PLAIN_MESSAGE);
+                        }
+                        else if(lpSource.contains(" ")){
+                           JOptionPane.showMessageDialog(null,
+                           "Light Position file path contains a space.  Please remove all spaces from the directories in the path '"+
+                           lpSource+"' to avoid errors in third party software.", "Try Again",
+                           JOptionPane.PLAIN_MESSAGE);
+                           lpSource = "";
+                        }
                     }
                     else{
                         contentPane = new JPanel();
@@ -3101,7 +3178,7 @@ public class SpectralRTI_Toolkit implements Command {
                 colorProcess += "RTI";
                 webRTIFolder = new File(projectDirectory+colorProcess+File.separator);
             }
-            logService.log().info("Do I have color process name? " + colorProcess);
+//            logService.log().info("Do I have color process name? " + colorProcess);
             String webRtiMaker = "";
             JFrame noticeFrame = new JFrame("WebRTI Maker Working...");
             contentPane = new JPanel();
@@ -3143,6 +3220,18 @@ public class SpectralRTI_Toolkit implements Command {
                             throw new Throwable("You must provide the webGLRtiMaker.exe location to continue.");
                         }
                         webRtiMaker = dialog2.getPath();
+                        if(webRtiMaker.equals("")){
+                           JOptionPane.showMessageDialog(null,
+                           "You must provide Web RTI maker file.", "Try Again",
+                           JOptionPane.PLAIN_MESSAGE);
+                        }
+                        else if(webRtiMaker.contains(" ")){
+                            JOptionPane.showMessageDialog(null,
+                            "Web RTI maker file path contains a space.  Please remove all spaces from the directories in the path '"+
+                            webRtiMaker+"' to avoid errors in the RTI Maker software.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                            webRtiMaker = "";
+                        }
                         webRTIFile = new File(webRtiMaker);
                     }
                     webRTIDir = new File(webRtiMaker).getParent();
@@ -3210,7 +3299,7 @@ public class SpectralRTI_Toolkit implements Command {
 	 */
 	public static void main(String[] args) {
             // set the plugins.dir property to make the plugin appear in the Plugins menu
-            System.out.println("Hello Word 1");
+            System.out.println("Beginning Spectral RTI Plugin");
             long startTime = System.nanoTime();
             Class<?> clazz = SpectralRTI_Toolkit.class;
             String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
@@ -3220,7 +3309,7 @@ public class SpectralRTI_Toolkit implements Command {
             IJinstance.command().run(SpectralRTI_Toolkit.class, false);
             long endTime = System.nanoTime();
             long totalTime = endTime - startTime;
-            System.out.println("Finished processing MAIN");
+            System.out.println("Finished Spectral RTI Plugin");
             System.out.println("It took "+(totalTime/1000)+" seconds.");
 	}
       
