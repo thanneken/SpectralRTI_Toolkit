@@ -113,7 +113,6 @@ import org.apache.commons.io.comparator.NameFileComparator;
 import ui.*;
 
 /**
- * @author Bryan Haberberge
  * @see the @Plugin tag here, it allows me to define where I want this to show up in the ImageJ menu.
  * The class to be be implemented as an ImageJ command.  Does not need an image opened already.  
  * This is compliant with ImageJ2 and intended to be used with the Fiji version of ImageJ.
@@ -213,7 +212,6 @@ public class SpectralRTI_Toolkit implements Command {
             Boolean csRakingDesired = false;
             Boolean acRakingDesired = false;
             Boolean xsRakingDesired = false;
-
             File[] listOfAccurateColorSources = new File[0];
             File[] listOfNarrowbandCaptures = new File[0];
             File[] listOfHemisphereCaptures = new File[0];
@@ -548,7 +546,7 @@ public class SpectralRTI_Toolkit implements Command {
                 JButton chooseBtn = new JButton("Choose File");
                 fields[i] = fieldToAdd;
                 if(key.equals("HSH Fitter") || key.equals("JP2 Compressor") || key.equals("Web RTI Maker")){
-                    //We want to offer the user a file picker to populate these text fields alongside the textfield
+                    //We want to offer the user a button to open the file picker for these
                     JPanel chooserArea = new JPanel();
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -917,14 +915,6 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     else {
                         //@userHitCancel
-                        //How should i handle (@userHitCancel).  Make them all false?
-                        /*
-                        listOfRakingDirections = new ArrayList<>();
-                        for(JCheckBox check : positions){
-                            listOfRakingDirections.add(Boolean.FALSE);
-                        }
-                        */
-                        //WindowManager.closeAllWindows();
                         IJ.error("You must make at least one selection to continue!  Exiting...");
                         throw new Throwable("You must make at least one selection to continue!");
                     }
@@ -2459,8 +2449,7 @@ public class SpectralRTI_Toolkit implements Command {
             File[] listOfFiles = folder.listFiles();
             return listOfFiles;
         }
-        
-       
+
         /** 
         * Create a JP2000 by compressing a .tiff
         * @param inFile The directory to check
