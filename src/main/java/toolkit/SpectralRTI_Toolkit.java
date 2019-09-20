@@ -550,12 +550,16 @@ public class SpectralRTI_Toolkit implements Command {
                     JPanel chooserArea = new JPanel();
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    chooseBtn.putClientProperty("which", key);
                     chooseBtn.addActionListener(new ActionListener() { 
                     public void actionPerformed(ActionEvent e) { 
                             //prefFileChooser();
                             Boolean goodPath = false;
                             String chosenPath = "";
-                            while(!goodPath){
+                            File check = new File("");
+                            while(!goodPath || !check.exists()){
+                              String titleHelper = (String)((JButton)e.getSource()).getClientProperty("which");
+                              chooser.setDialogTitle("Choose The "+titleHelper+" File");
                               int returnVal = chooser.showOpenDialog(null);
                               if(returnVal == JFileChooser.APPROVE_OPTION) {
                                   chosenPath = chooser.getSelectedFile().getAbsolutePath();
@@ -568,8 +572,15 @@ public class SpectralRTI_Toolkit implements Command {
                                      fieldToAdd.setText("");
                                   }
                                   else{
+                                     check = new File(chosenPath);
                                      goodPath = true;
-                                     fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
+                                     if(check.exists()){
+                                        fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
+                                     }
+                                     else{
+                                        goodPath = false;
+                                        fieldToAdd.setText(""); 
+                                     }
                                   }
                               }
                               else{
@@ -717,7 +728,8 @@ public class SpectralRTI_Toolkit implements Command {
                      * If this is the only option selected, allow the user to tell us where the RTI image is for processing
                      */
                     String rtiImageToUse = "";
-                    while(null == rtiImageToUse || rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti") ){
+                    File rtiImageFile = new File("");
+                    while(null == rtiImageToUse || rtiImageToUse.equals("") || !rtiImageToUse.endsWith(".rti") || !rtiImageFile.exists() ){
                         OpenDialog rti_image = new OpenDialog("Locate the RTI image (.rti extension) to make into WebRTI.");
                         if(null== rti_image.getPath()){
                             //@UserHitCanvel
@@ -737,6 +749,7 @@ public class SpectralRTI_Toolkit implements Command {
                             JOptionPane.PLAIN_MESSAGE);
                             rtiImageToUse = "";
                         }
+                        rtiImageFile = new File(rtiImageToUse);
                     }
                     createWebRTIFiles("", rtiImageToUse, false);
                 }
@@ -1306,7 +1319,8 @@ public class SpectralRTI_Toolkit implements Command {
                 }
             }
             if (csRtiDesired || csRakingDesired) { //interaction phase jhg 
-                while(null == csSource || csSource.equals("")){
+                File csFile = new File("");
+                while(null == csSource || csSource.equals("") || !csFile.exists()){
                     OpenDialog csSourceDialog = new OpenDialog("Choose a Source for Custom Process");
                     if(null == csSourceDialog.getPath()){
                         //@userHitCanvel
@@ -1326,8 +1340,9 @@ public class SpectralRTI_Toolkit implements Command {
                         JOptionPane.PLAIN_MESSAGE);
                         csSource = "";
                     }
+                    csFile = new File(csSource);
                 }
-                logService.log().info("Should have custom source");
+                logService.log().info("Custom source");
                 logService.log().info(csSource);
             }
             /**
@@ -2430,9 +2445,8 @@ public class SpectralRTI_Toolkit implements Command {
         @Override
 	public void run() {
             try {
-               plugin();
-            } catch (IOException ex) {
-                Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
+               //plugin();
+               tester();
             } catch (Throwable ex) {
                 Logger.getLogger(SpectralRTI_Toolkit.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -3277,6 +3291,138 @@ public class SpectralRTI_Toolkit implements Command {
                 //webRTIDesired was false.  Give a message? 
             }
         }
+        
+        /**
+	 * Main method so imageJ can start up the plugin.
+	 *
+	 * For debugging, it is convenient to have a method that starts ImageJ, loads
+	 * an image and calls the plugin, e.g. after setting breakpoints.
+	 *
+	 * @param args unused
+	 */
+	public static void tester() {
+            // set the plugins.dir property to make the plugin appear in the Plugins menu
+            System.out.println("TEST STAETED");
+            JTextField fieldToAdd = new JTextField("J File Chooser", 50);
+            JTextField fieldToAdd2 = new JTextField("Open Dialog Chooser", 50);
+            JTextField fieldToAdd3 = new JTextField("Directory Chooser", 50);
+            
+            JButton chooseBtn = new JButton("Choose 1");
+            JButton chooseBtn2 = new JButton("Choose 2");
+            JButton chooseBtn3 = new JButton("Choose 3");
+            //We want to offer the user a button to open the file picker for these
+            JFrame areaFrame = new JFrame("This is a test.");
+            JPanel chooserArea = new JPanel();
+            JLabel fieldLabel = new JLabel("A label");
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            
+            chooserArea.add(chooseBtn);
+            chooserArea.add(fieldToAdd);
+            
+            chooserArea.add(chooseBtn2);
+            chooserArea.add(fieldToAdd2);
+            
+            chooserArea.add(chooseBtn3);
+            chooserArea.add(fieldToAdd3);
+            
+            fieldLabel.setLabelFor(chooserArea);
+            chooseBtn.putClientProperty("which", "THIS");
+            
+            chooseBtn.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) { 
+                    //prefFileChooser();
+                    Boolean goodPath = false;
+                    String chosenPath = "";
+                    String titleHelper = (String)((JButton)e.getSource()).getClientProperty("which");
+                    chooser.setDialogTitle(titleHelper + " is the TITLE");
+                    while(!goodPath){
+                      int returnVal = chooser.showOpenDialog(null);
+                      if(returnVal == JFileChooser.APPROVE_OPTION) {
+                          chosenPath = chooser.getSelectedFile().getAbsolutePath();
+                          if(chosenPath.contains(" ")){
+                             goodPath = false;
+                             JOptionPane.showMessageDialog(null,
+                             "File path contains a space.  Please remove all spaces from the directories in the path '"+
+                             chosenPath+"' to avoid errors in third party software.", "Try Again",
+                             JOptionPane.PLAIN_MESSAGE);
+                             fieldToAdd.setText("");
+                          }
+                          else{
+                             goodPath = true;
+                             fieldToAdd.setText(chooser.getSelectedFile().getAbsolutePath());
+                          }
+                      }
+                      else{
+                          goodPath = true;
+                          fieldToAdd.setText("");
+                      }
+                    }
+                } 
+            });
+            
+            chooseBtn2.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) { 
+                    //prefFileChooser();
+                    OpenDialog chooser2 = new OpenDialog("LocateFile With This OpenDialog");
+                    Boolean goodPath = false;
+                    String chosenPath = "";
+                    while(!goodPath){
+                      if(null==chooser2.getPath()){
+                            //@userHitCancel
+                            IJ.error("You must provide the webGLRtiMaker.exe location to continue.  Exiting...");
+                        }
+                        chosenPath = chooser2.getPath();
+                        if(chosenPath.equals("")){
+                           JOptionPane.showMessageDialog(null,
+                           "You must provide Web RTI maker file.", "Try Again",
+                           JOptionPane.PLAIN_MESSAGE);
+                        }
+                        else if(chosenPath.contains(" ")){
+                            JOptionPane.showMessageDialog(null,
+                            "Web RTI maker file path contains a space.  Please remove all spaces from the directories in the path '"+
+                            chosenPath+"' to avoid errors in the RTI Maker software.", "Try Again",
+                            JOptionPane.PLAIN_MESSAGE);
+                            chosenPath = "";
+                        }
+                    }
+                } 
+            });
+            
+            chooseBtn3.addActionListener(new ActionListener() { 
+            public void actionPerformed(ActionEvent e) { 
+                    //prefFileChooser();
+                    Boolean goodPath = false;
+                    String chosenPath = "";
+                    while(!goodPath){
+                        DirectoryChooser chooser3 = new DirectoryChooser("Choose the Project Directory"); //The first thing the user does is provide the project directory.
+                        if(null==chooser3.getDirectory()){
+                            //@userHitCancel
+                            IJ.error("You must provide a project directory to continue.  Exiting...");
+                        }
+                        String dir = chooser3.getDirectory();
+                        if(dir.equals("")){
+                          JOptionPane.showMessageDialog(null,
+                          "You must provide a project directory.", "Try Again",
+                          JOptionPane.PLAIN_MESSAGE);
+                        }
+                        else if(dir.contains(" ")){
+                             JOptionPane.showMessageDialog(null,
+                             "Project directory path contains a space.  Please remove all spaces from the directories in the path '"+
+                             dir+"' to avoid errors in third party software.", "Try Again",
+                             JOptionPane.PLAIN_MESSAGE);
+                             dir = "";
+                        }
+                    }
+                } 
+            });
+            areaFrame.add(chooserArea);
+            areaFrame.setVisible(true);
+            System.out.println("TEST Finished");
+            
+	}
+        
+        
         
 	/**
 	 * Main method so imageJ can start up the plugin.
