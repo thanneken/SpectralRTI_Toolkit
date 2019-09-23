@@ -47,6 +47,7 @@ import ij.gui.GenericDialog;
 import ij.gui.WaitForUserDialog;
 import ij.io.Opener;
 import ij.ImagePlus; // this is IJ 1.x but still needs to be used for the complexity found here.  IJ2 and ImgLib2 and ImgPlus are not fully supported quite yet.
+import static ij.measure.CurveFitter.f;
 import ij.plugin.Concatenator;
 
 //ImageJ2 specific imports
@@ -94,6 +95,7 @@ import javax.swing.SwingUtilities;
 import java.awt.Dialog;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import javax.activation.MimetypesFileTypeMap;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -273,7 +275,6 @@ public class SpectralRTI_Toolkit implements Command {
             else{
                 projectName = projectFile.getName();
             }
-            projectDirectory = projectDirectory.substring(0, projectDirectory.length() - 1); //always has a trailing '/'
             projectDirectory = projectDirectory + File.separator; //make sure it ends with the proper trailing slash for the OS
             logService.log().info("Project directory: "+projectDirectory);
             File light_position_dir = new File(projectDirectory+"LightPositionData"+File.separator);
@@ -556,7 +557,7 @@ public class SpectralRTI_Toolkit implements Command {
                         File check = new File("");
                         while(!goodPath || !check.exists()){
                             String titleHelper = (String)((JButton)e.getSource()).getClientProperty("which");
-                            chooser.setDialogTitle("Choose The "+titleHelper+" File");
+                            chooser.setDialogTitle("Locate the "+titleHelper+" file");
                             int returnVal = chooser.showOpenDialog(null);
                             if(returnVal == JFileChooser.APPROVE_OPTION) {
                                 chosenPath = chooser.getSelectedFile().getAbsolutePath();
@@ -581,8 +582,7 @@ public class SpectralRTI_Toolkit implements Command {
                                 }
                             }
                             else{ 
-                                goodPath = true;
-                                fieldToAdd.setText("");
+                                break;
                             }
                         }
                     });
@@ -1318,7 +1318,7 @@ public class SpectralRTI_Toolkit implements Command {
                 while(null == csSource || csSource.equals("") || !csFile.exists()){
                     JFileChooser csSourceDialog = new JFileChooser();
                     csSourceDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    csSourceDialog.setDialogTitle("Choose a Source for Custom Process");
+                    csSourceDialog.setDialogTitle("Choose an Image Source for the Custom Process");
                     int returnVal = csSourceDialog.showOpenDialog(null);
                     if(returnVal == JFileChooser.CANCEL_OPTION){
                         //@userHitCanvel
@@ -1339,6 +1339,19 @@ public class SpectralRTI_Toolkit implements Command {
                         csSource = "";
                     }
                     csFile = new File(csSource);
+                    if(csFile.exists()){
+                        String mimetype= new MimetypesFileTypeMap().getContentType(csFile);
+                        String type = mimetype.split("/")[0];
+                        if(!type.equals("image")){
+                            JOptionPane.showMessageDialog(null,
+                            "Could not determine if the Custom Source file provided was an image. Make sure '"+
+                            csSource+"' is an image to avoid errors.", "Warning",
+                            JOptionPane.PLAIN_MESSAGE);
+                        }
+                    }
+                    else{
+                        csSource = "";
+                    }
                 }
                 logService.log().info("Custom source");
                 logService.log().info(csSource);
@@ -2268,6 +2281,10 @@ public class SpectralRTI_Toolkit implements Command {
                 logService.log().info("Open the custom source");
                 imp = opener.openImage(csSource);
                 logService.log().info("Process custom source");
+                if(null == imp){
+                    IJ.error("The file you provided as a custom source could not be processed as an image.  ---  Exiting...");
+                    throw new Throwable("The file you provided as a custom source could not be processed as an image."); 
+                }
 		if ((imp.getImageStackSize() == 1)&&(imp.getBitDepth()<24)) {
                     if (csRakingDesired) {
                         noClobber(projectDirectory+"StaticRaking"+File.separator+projectName+"_"+csProcessName+"_00"+".tiff");
@@ -2471,7 +2488,7 @@ public class SpectralRTI_Toolkit implements Command {
             JFileChooser dialog = new JFileChooser();  //For files
             String returnString = "/new/JP2file";
             File preferredCompressFile = new File(preferredCompress);
-            while(preferredCompress.equals("")  || !preferredCompressFile.exists()){
+            while(preferredCompress.equals("")  || !preferredCompressFile.exists() || preferredCompress.contains(" ")){
                 dialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 dialog.setDialogTitle("Locate kdu_compress or ojp_compress");
                 int returnVal = dialog.showOpenDialog(null);
@@ -2823,11 +2840,12 @@ public class SpectralRTI_Toolkit implements Command {
             File preferredHSH;
             String hshLocation = "";
             File fitterFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
+            File preferredFitterFile = new File(preferredFitter);
             if(!fitterFile.exists()){
                 Files.createFile(fitterFile.toPath());
             }
             String appendString = "";
-            while(preferredFitter.equals("")){ //|| !(preferredFitter.endsWith("hshfitter.exe") || preferredFitter.endsWith("cmd") || preferredFitter.endsWith("bash"))
+            while(preferredFitter.equals("") || preferredFitter.contains(" ") || !preferredFitterFile.exists() ){ 
                 JFileChooser dialog = new JFileChooser();
                 dialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 dialog.setDialogTitle("Locate Preferred RTI Fitter or cmd file for batch processing");
@@ -2845,11 +2863,12 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else if(preferredFitter.contains(" ")){
                      JOptionPane.showMessageDialog(null,
-                     "Fitter file path contains a space.  Please remove all spaces from the directories in the path '"+
+                     "File path contains a space.  Please remove all spaces from the directories in the path '"+
                      preferredFitter+"' to avoid errors in the Fitter software.", "Try Again",
                      JOptionPane.PLAIN_MESSAGE);
                      preferredFitter = "";
                 }
+                preferredFitterFile = new File(preferredFitter);
             }
             theList.put("preferredFitter", preferredFitter);
             JFrame fitterNoticeFrame = new JFrame("Fitter Working...");
@@ -3208,7 +3227,7 @@ public class SpectralRTI_Toolkit implements Command {
                     webRtiMaker = webRtiMaker.replace("/", File.separator); //ensure dir has correct slash for OS
                     webRtiMaker = webRtiMaker.replace("\\", File.separator); //ensure dir has correct slash for OS
                     File webRTIFile = new File(webRtiMaker);
-                    while(webRtiMaker.equals("") || !webRTIFile.exists()) {
+                    while(webRtiMaker.equals("") || !webRTIFile.exists() || webRtiMaker.contains(" ")) {
                         JFileChooser dialog2 = new JFileChooser();
                         dialog2.setFileSelectionMode(JFileChooser.FILES_ONLY);
                         dialog2.setDialogTitle("Locate webGLRtiMaker.exe");
