@@ -514,7 +514,7 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
                     if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
-                    //We will need to know the fitter
+                        //We will need to know the fitter
                         Font font = fieldLabel.getFont();
                         // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
@@ -557,7 +557,7 @@ public class SpectralRTI_Toolkit implements Command {
                         while(!goodPath || !check.exists()){
                             String titleHelper = (String)((JButton)e.getSource()).getClientProperty("which");
                             chooser.setDialogTitle("Locate the "+titleHelper+" file");
-                            int returnVal = chooser.showOpenDialog(null);
+                            int returnVal = chooser.showOpenDialog(contentPane);
                             if(returnVal == JFileChooser.APPROVE_OPTION) {
                                 chosenPath = chooser.getSelectedFile().getAbsolutePath();
                                 if(chosenPath.contains(" ")){
