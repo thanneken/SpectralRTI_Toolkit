@@ -245,7 +245,7 @@ public class SpectralRTI_Toolkit implements Command {
                 JFileChooser file_dialog = new JFileChooser();
                 file_dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 file_dialog.setDialogTitle("Choose the Project Directory");
-                int returnVal = file_dialog.showOpenDialog(null);
+                int returnVal = file_dialog.showOpenDialog(contentPane);
                 if(returnVal == JFileChooser.CANCEL_OPTION){
                     //@userHitCancel
                     IJ.error("You must provide a project directory to continue --- Exiting...");
@@ -435,7 +435,7 @@ public class SpectralRTI_Toolkit implements Command {
             JPanel labelPanel2 = new JPanel();
             JPanel labelPanel3 = new JPanel();
             JLabel prefsLabel = new JLabel("The following settings are in the configuration file.");
-            JLabel prefsLabel2 = new JLabel("Edit or clear as desired.  Required information is bolded.");
+            JLabel prefsLabel2 = new JLabel("Edit or clear as desired.  Required information is marked with '*'.");
             JLabel prefsLabel3 = new JLabel("Tip: Select Window > Console in the ImageJ panel during processing for more information.");
             labelPanel.add(prefsLabel);
             labelPanel2.add(prefsLabel2);
@@ -509,34 +509,43 @@ public class SpectralRTI_Toolkit implements Command {
                 String value1 = prefs[i].substring(prefs[i].indexOf("=")+1); //Pre-populate choices
                 value1 = value1.replace("/", File.separator); //ensure dir values are displayed with the correct slashes
                 value1 = value1.replace("\\", File.separator); //ensure dir values are displayed with the correct slashes
-                if(key.equals("Shot File Names")){
+                String currentText = "";
+                if(key.equals("Short File Names")){
                     value1 = ""+shortName;
                 }
                 if(key.equals("HSH Fitter") || key.equals("HSH Order") || key.equals("HSH Threads")){
                     if(acRtiDesired || xsRtiDesired || psRtiDesired || csRtiDesired){
                         //We will need to know the fitter
+                        currentText = fieldLabel.getText();
+                        currentText+=" *";
                         Font font = fieldLabel.getFont();
                         // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
                         fieldLabel.setFont(boldFont);
+                        fieldLabel.setText(currentText);
                     }
                 }
                 if(key.equals("JP2 Arguments") || key.equals("JP2 Compressor") || key.equals("JPEG Quality")){
                     if(acRakingDesired || xsRakingDesired || psRakingDesired || csRakingDesired){
-                    //We will need to know the compressor and arguments
+                        //We will need to know the compressor and arguments
+                        currentText = fieldLabel.getText();
+                        currentText+=" *";
                         Font font = fieldLabel.getFont();
-                        // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
                         fieldLabel.setFont(boldFont);
+                        fieldLabel.setText(currentText);
                     }
                 }
                 if(key.equals("Web RTI Maker")){
                     if(webRtiDesired){
                     //We will need to know the web RTI Maker
+                        currentText = fieldLabel.getText();
+                        currentText+=" *";
                         Font font = fieldLabel.getFont();
                         // same font but bold
                         Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
                         fieldLabel.setFont(boldFont);
+                        fieldLabel.setText(currentText);
                     }
                 }
                 scrollGrid.add(fieldLabel);
@@ -728,7 +737,7 @@ public class SpectralRTI_Toolkit implements Command {
                         JFileChooser rti_image = new JFileChooser();
                         rti_image.setFileSelectionMode(JFileChooser.FILES_ONLY);
                         rti_image.setDialogTitle("Choose RTI image to process into Web RTI");
-                        int returnVal = rti_image.showOpenDialog(null);
+                        int returnVal = rti_image.showOpenDialog(contentPane);
                         if(returnVal == JFileChooser.CANCEL_OPTION){
                             //@UserHitCanvel
                             IJ.error("You must provide an RTI Image for processing to continue --- Exiting...");
@@ -1318,7 +1327,7 @@ public class SpectralRTI_Toolkit implements Command {
                     JFileChooser csSourceDialog = new JFileChooser();
                     csSourceDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
                     csSourceDialog.setDialogTitle("Choose an Image Source for the Custom Process");
-                    int returnVal = csSourceDialog.showOpenDialog(null);
+                    int returnVal = csSourceDialog.showOpenDialog(contentPane);
                     if(returnVal == JFileChooser.CANCEL_OPTION){
                         //@userHitCanvel
                         IJ.error("You must provide a custom source to continue --- Exiting...");
@@ -1339,7 +1348,33 @@ public class SpectralRTI_Toolkit implements Command {
                     }
                     csFile = new File(csSource);
                     if(csFile.exists()){
-                        String mimetype= new MimetypesFileTypeMap().getContentType(csFile);
+                        //Check if it is an image or not.  If it is not an image, the plugin will most likely error out in processing.
+                        /*
+                          
+                        
+                        try {
+                              Image image = ImageIO.read(csFile);
+                              if (image == null) {
+                                    JOptionPane.showMessageDialog(null,
+                                    "Could not determine if the Custom Source file provided was an image. Make sure '"+
+                                    csSource+"' is an image file to avoid errors.", "Warning",
+                                    JOptionPane.PLAIN_MESSAGE);
+                                    //csSource = ""; //Keep the user in the file choosing interface
+                              }
+                              else{
+                                    image.flush();
+                              }
+                        } 
+                        catch(IOException ex) {
+                            JOptionPane.showMessageDialog(null,
+                            "Could not determine if the Custom Source file provided was an image. Make sure '"+
+                            csSource+"' is an image file to avoid errors.", "Warning",
+                            JOptionPane.PLAIN_MESSAGE);
+                            //csSource = ""; //Keep the user in the file choosing interface
+                        }  
+                          
+                          */
+                        String mimetype = new MimetypesFileTypeMap().getContentType(csFile);
                         String type = mimetype.split("/")[0];
                         if(!type.equals("image")){
                             JOptionPane.showMessageDialog(null,
@@ -2490,7 +2525,7 @@ public class SpectralRTI_Toolkit implements Command {
             while(preferredCompress.equals("")  || !preferredCompressFile.exists() || preferredCompress.contains(" ")){
                 dialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 dialog.setDialogTitle("Locate kdu_compress or ojp_compress");
-                int returnVal = dialog.showOpenDialog(null);
+                int returnVal = dialog.showOpenDialog(contentPane);
                 if(returnVal == JFileChooser.CANCEL_OPTION){
                     //@userHitCanvel
                     IJ.error("You must provide the jp2 compressor location to continue --- Exiting...");
@@ -2848,7 +2883,7 @@ public class SpectralRTI_Toolkit implements Command {
                 JFileChooser dialog = new JFileChooser();
                 dialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 dialog.setDialogTitle("Locate Preferred RTI Fitter or cmd file for batch processing");
-                int returnVal = dialog.showOpenDialog(null);
+                int returnVal = dialog.showOpenDialog(contentPane);
                 if(returnVal == JFileChooser.CANCEL_OPTION){
                    //@userHitCancel
                     IJ.error("You must provide the location for the RTI Fitter or cmd file to continue --- Exiting...");
@@ -3063,7 +3098,7 @@ public class SpectralRTI_Toolkit implements Command {
                         JFileChooser dialog = new JFileChooser();
                         dialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
                         dialog.setDialogTitle("Locate Light Position Source File");
-                        int returnVal = dialog.showOpenDialog(null);
+                        int returnVal = dialog.showOpenDialog(contentPane);
                         if(returnVal == JFileChooser.CANCEL_OPTION){
                            //@userHitCancel
                             IJ.error("You must provide the location for the RTI Fitter or cmd file to continue --- Exiting...");
@@ -3228,7 +3263,7 @@ public class SpectralRTI_Toolkit implements Command {
                         JFileChooser dialog2 = new JFileChooser();
                         dialog2.setFileSelectionMode(JFileChooser.FILES_ONLY);
                         dialog2.setDialogTitle("Locate webGLRtiMaker.exe");
-                        int returnVal = dialog2.showOpenDialog(null);
+                        int returnVal = dialog2.showOpenDialog(contentPane);
                         if(returnVal == JFileChooser.CANCEL_OPTION){
                             //@userHitCancel
                             IJ.error("You must provide the webGLRtiMaker.exe location to continue --- Exiting...");
