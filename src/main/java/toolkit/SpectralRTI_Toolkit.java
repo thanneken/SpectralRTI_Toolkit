@@ -224,7 +224,7 @@ public class SpectralRTI_Toolkit implements Command {
              */
             if (!spectralPrefsFile.exists()){ //If this exists, overwrite the labels and show a dialog with the settings
                 JOptionPane.showMessageDialog(null, "A prefs file will be created for you in the ImageJ directory to store your choices for later sessions.", "No Preference File Found", JOptionPane.PLAIN_MESSAGE);
-                logService.log().info("We are making a new prefs file with the empty defaults.");
+                logService.log().info("Making a new prefs file with the empty defaults.");
                 /**
                     *This will put the prefs file the folder that ImageJ.exe is run out of.  Do we want a prefs directory inside a project folder instead? 
                     *@see projectDirectory 
@@ -928,7 +928,6 @@ public class SpectralRTI_Toolkit implements Command {
             else { //We already have the list initiated, fill it with false.
                 listOfRakingDirections = new ArrayList<>();
                 while(listOfRakingDirections.size() < listOfHemisphereCaptures.length) listOfRakingDirections.add(Boolean.FALSE);
-                logService.log().info("Raking is not desired.");
             }
             logService.log().info("Gathered "+listOfRakingDirections.size()+" raking image selections.");
             logService.log().info(listOfRakingDirections);
@@ -1595,7 +1594,7 @@ public class SpectralRTI_Toolkit implements Command {
                 cb.hide();
                 cr.hide();
 		//Luminance from transmissive
-                logService.log().info("What is transmissive source "+transmissiveSource);
+                logService.log().info("Transmissive source "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource ); 
                     imp.setTitle("TransmissiveLuminance");
@@ -1790,7 +1789,7 @@ public class SpectralRTI_Toolkit implements Command {
                 cb.hide();
                 cr.hide();
                 ImagePlus keptPieces = con.concatenate(cb, cr, true);
-                logService.log().info("What is transmissive source "+transmissiveSource);
+                logService.log().info("Transmissive source "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource );
                     imp.setTitle("TransmissiveLuminance");
@@ -2313,7 +2312,7 @@ public class SpectralRTI_Toolkit implements Command {
                     cr.hide();
 		}
                 imp.close();
-                logService.log().info("What is transmissive source "+transmissiveSource);
+                logService.log().info("Transmissive source "+transmissiveSource);
 		if (!transmissiveSource.equals("")){
                     imp = opener.openImage( transmissiveSource );
                     IJ.run(imp, "8-bit", "");
@@ -3150,7 +3149,6 @@ public class SpectralRTI_Toolkit implements Command {
          *@throws java.lang.Throwable
         */
         private void createWebRTIFiles(String colorProcess, String rtiImage, boolean noRun) throws IOException, InterruptedException, Throwable{
-            logService.log().info("Create WebRTI for color process "+colorProcess+"...");
             File webRTIFolder;
             File fitterFile = new File(projectDirectory+colorProcess+"RTI"+File.separator+projectName+"_"+colorProcess+"RTI_"+startTime+".txt");
             if(!rtiImage.equals("")){
@@ -3183,6 +3181,7 @@ public class SpectralRTI_Toolkit implements Command {
             noticeFrame.setLocation(screenSize.width/2-noticeFrame.getSize().width/2, screenSize.height/2-noticeFrame.getSize().height/2);
             String webRtiString = "<html lang=\"en\" xml:lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /> <title>WebRTI "+projectName+"_"+colorProcess+"</title> <link type=\"text/css\" href=\"css/ui-lightness/jquery-ui-1.10.3.custom.css\" rel=\"Stylesheet\"> <link type=\"text/css\" href=\"css/webrtiviewer.css\" rel=\"Stylesheet\"> <script type=\"text/javascript\" src=\"js/jquery.js\"></script> <script type=\"text/javascript\" src=\"js/jquery-ui.js\"></script> <script type=\"text/javascript\" src=\"spidergl/spidergl_min.js\"></script> <script type=\"text/javascript\" src=\"spidergl/multires_min.js\"></script> </head> <body> <div id=\"viewerContainer\"> <script  type=\"text/javascript\"> createRtiViewer(\"viewerContainer\", \""+projectName+"_"+colorProcess+"_"+startTime+"\", $(\"body\").width(), $(\"body\").height()); </script> </div> </body> </html>";
             if (webRtiDesired) {
+                logService.log().info("Create WebRTI for color process "+colorProcess+"...");
                 if(noRun){
                     /* 
                        The user has deferred creating their RTI file.  This means we can't run the webGLRTIMaker command because it will fail without an .rti image creates
@@ -3193,7 +3192,6 @@ public class SpectralRTI_Toolkit implements Command {
                 }
                 else{
                     noticeFrame.setVisible(true);  
-                    logService.log().info("I have found a desire for WebRTI...input");
                     String webString;
                     String webRTIDir;
                     webRtiMaker = theList.get("webRtiMaker");
@@ -3230,7 +3228,6 @@ public class SpectralRTI_Toolkit implements Command {
                     if(rtiImage.equals("")){
                         rtiImage = projectDirectory+colorProcess+File.separator+projectName+"_"+colorProcess+"_"+startTime+".rti";
                     }
-                    logService.log().info("I need to know what the webRTI maker is..."+webRtiMaker);
                     if (!webRTIFolder.exists() && rtiImage.equals("")) {
                         //Make sure the directory we want to use exists if it is a user provided rti file.
                         Path createPath = webRTIFolder.toPath();
