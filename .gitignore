@@ -1,0 +1,10 @@
+catalog.xml
+nbproject/
+build/
+dist/
+build.xml
+*.properties
+target/
+/target/
+nb-configuration.xml
+nbactions.xml
