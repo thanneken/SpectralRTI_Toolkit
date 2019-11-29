@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Capture Procedures for Spectral RTI</title>
 <link rel="stylesheet" type="text/css" href="styles.css">
+<meta name="Author" content="T. R. Hanneken">
+<meta name="Subject" content="Guide to Creating Spectral RTI Images">
+<meta name="Copyright" content="Jubilees Palimpsest Project">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
 </head>
 <body>
 <h1 class="title">Capture Procedures for Spectral RTI</h1>
@@ -78,27 +82,27 @@ For the dome and arc methods, it can still be beneficial to place one or two sph
 Rather, a calibration sequence is performed with a marble in the center of the frame (and typically additional marbles in the corners and references for focus, spatial resolution, and color).
 It is important that the center marble has a glare in each of the calibration shots (that is, is never in a shadow).
 As long as the dome or arc is stable, the light position calculations from the calibration sequence can be used for each object sequence.
-See "Reuse LP files" under "Tips for frequent use" <a href="processing.html#frequentuse" class="small">(LINK)</a>.</p>
+See “Reuse LP files” under “Tips for frequent use” <a href="processing.html#frequentuse" class="small">(LINK)</a>.</p>
 <p>Standard RTI procedure calls for using two reflective spheres in the frame.
 This could function as a backup if one is more plagued by shadows than the other.
-The principal reason for using two spheres is so that--in the future--the angle of the light striking any pixel can be triangulated from two known areas.
+The principal reason for using two spheres is so that—in the future—the angle of the light striking any pixel can be triangulated from two known areas.
 In the meantime, the best way to minimize aberration due to variation in angle of light hitting different parts of the image frame is for the hemisphere illuminators to be as far from the object as possible (without introducing other problems).
 It is generally accepted that an illuminator radius of four times the object radius is safe.
 For this reason, it is also best to place the primary reflective sphere as close to the center as possible.
 For calibration shots it can be roughly the exact center.
 For the hand-held flash method, it should be as close to the center without the shadow of the sphere degrading visibility of the object.
-Furthermore, the sphere should be as coplanar with the image plane as possible. </p>
+Furthermore, the sphere should be as coplanar with the object plane as possible. </p>
 
 <h2 id="hemisphere">Hemisphere captures for RTI</h2>
 <p>It is important that the hemisphere captures have the same registration as the spectral captures.
 That is, the camera and object must remain immobile throughout the spectral and RTI captures.</p>
 <p>The lights should all be equidistant from the center of the object being imaged.
-When using a dome, the equator of the dome should be on the focal plane.
-When using an arc, the equator of the virtual hemisphere should be on the focal plane.
+When using a dome, the equator of the dome should be on the object plane.
+When using an arc, the equator of the virtual hemisphere should be on the object plane.
 When using a hand-held flash, a string or laser distance finder should be used to position the flash for each capture.</p>
 <p>The primary goal of positioning the lights should be an even distribution of light positions around the hemisphere.
 An additional consideration is to minimize shadows from the camera or copy stand.
-For example, in the MegaVision arc, which swings over the camera and copy stand on an axis on the focal plane, there are no lights in the dead center of the arc.
+For example, in the MegaVision arc, which swings over the camera and copy stand on an axis on the object plane, there are no lights in the dead center of the arc.
 If there were, those lights would be blocked by the camera and copy stand in four of the seven arc positions.
 Thus, the center-most lights are slid down the arc such that the copy stand shadow does not pass through the center of the image.
 If it not fatal, however, if part of the image is shadowed by the copy stand or other side of a codex. </p>
@@ -130,7 +134,7 @@ It would be much more difficult to perform stitching if the measured reflectance
 <p>The second significant kind of illumination irregularities particular to hemisphere captures is shadows from the copy stand.
 If a shadow comes from part of the object not present in the sequence to calibrate flats the shadow will appear even in the flattened image.
 However, if the shadow was present in the sequence to calibrate flats that shadow can be removed in the flattened images.
-The only traces of the shadow are thin lines of brightness or darkness along the edges of the shadow (which are minimal if the light positions are stable and the image plane identical) and sometimes a slight difference in brightness based on how much indirect light is scattered by the object.
+The only traces of the shadow are thin lines of brightness or darkness along the edges of the shadow (which are minimal if the light positions are stable and the object plane identical) and sometimes a slight difference in brightness based on how much indirect light is scattered by the object.
 Thus, flattening gathers more information about the artifact, but it can be eerie in that the eye is accustomed to rejecting information loss due to shadow but not accustomed to ghostly artifacts.
 The information gathered in the shadow indicates reflectance properties in indirect light, rather than direct light which is the assumption of RTI processing.
 That data will not help the hemispherical harmonic and should be dismissed as an outlier regardless of whether it is an outlier because it is completely dark or an outlier because it shows only indirect light reflectance properties.</p>
@@ -139,7 +143,7 @@ It is in the nature of RTI that it is a visualization tool that approximates app
 Eventually, the eye will grow accustomed to ignoring artifacts in RTI images as in other areas of perception. </p>
 
 <h3>Accurate Color</h3>
-<p>A spectral imaging capture software such as MegaVision PhotoShoot or PhaseOne CaptureOne has the ability to generate color images using all the visible bands.
+<p>Spectral imaging capture software such as MegaVision PhotoShoot or PhaseOne CaptureOne has the ability to generate color images using all the visible bands.
 Furthermore, these color images are created without the use of distorting filters, such as a Bayer filter.
 However, the Accurate Color images created by PhotoShoot use a color space that is not correctly interpreted by ImageJ.
 For this reason it is important to convert the color space to sRGB before processing with the SpectralRTI_Toolkit.
@@ -149,12 +153,14 @@ For example, the relevant command using ImageMajick is <code>convert infile_PSC.
 <a href="staticimages/Ambrosiana_C73inf_115_RTI-A05_045-nogamma.png" target="images"><img alt="no gamma" src="staticimages/Ambrosiana_C73inf_115_RTI-A05_045-nogamma.png" style="width:15%;clear:none;"></a>
 <div class="caption">Especially for the low, dark angles, the difference between images without (left) and with (right) gamma correction is significant.</div>
 <h3>Gamma correction for hemisphere captures</h3>
-<p>Gamma correction is appropriate when the final consumer of brightness is the human eye, that is for the hemisphere captures but not the narrowband captures.
+<p>Gamma correction is appropriate when the final consumer of brightness is the human eye. 
+That is the case for the hemisphere captures but not the narrowband captures.
 The silicon sensor in the camera captures the amount of light reaching the sensor on a linear scale.
 However, human perception is non-linear, biased toward distinguishing darker tones.
 A raw linear image viewed without gamma correction will appear dark and lacking detail in the dark regions.
 Gamma correction increases the intensity of darker pixels to match human perception.
-The gamma correction built into PhotoShoot is more nuanced than the simple gamma correction available in ImageJ.
+The gamma correction built into PhotoShoot (lookup table) is more nuanced than the simple mathematical gamma correction available in ImageJ or ImageMagick.
+The ImageMagick command is <code>convert infile.tif -gamma 2.2 outfile.tif</code>.
 However it is done, the ImageJ plugin described on the next page will assume that the hemisphere captures are already fit for human consumption (with gamma correction). </p>
 </body>
 </html>

@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Provide Access to Spectral RTI Images</title>
 <link rel="stylesheet" type="text/css" href="styles.css">
+<meta name="Author" content="T. R. Hanneken">
+<meta name="Subject" content="Guide to Creating Spectral RTI Images">
+<meta name="Copyright" content="Jubilees Palimpsest Project">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
 </head>
 <body>
 <h1 class="title">Provide Access to Spectral RTI Images</h1>
@@ -65,7 +69,7 @@
 
 <a href="staticimages/RTIViewer.png" target="images"><img alt="RTI Viewer" src="staticimages/RTIViewer.png"></a>
 <h2 id="rtifiles">RTI files</h2>
-<p>The Toolkit creates folders in the project directory that end in "RTI" (e.g., <code>AccurateColorRTI</code>). One RTI file (and 56 or so intermediate jpeg files) can be found in the folder for each color process (Accurate Color, Extended Spectrum, PCA Pseudocolor, Custom). The files can be distributed through external drives or the Internet, but they are large and require a specialized viewer to open, such as RTIViewer (<a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/View/">http://culturalheritageimaging.org/What_We_Offer/Downloads/View/</a>) or InscriptiFact Standalone Viewer (<a href="http://ruth.usc.edu/ISFStandaloneViewer/">http://ruth.usc.edu/ISFStandaloneViewer/</a>). </p>
+<p>The Toolkit creates folders in the project directory that end in “RTI” (e.g., <code>AccurateColorRTI</code>). One RTI file (and 56 or so intermediate jpeg files) can be found in the folder for each color process (Accurate Color, Extended Spectrum, PCA Pseudocolor, Custom). The files can be distributed through external drives or the Internet, but they are large and require a specialized viewer to open, such as RTIViewer (<a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/View/">http://culturalheritageimaging.org/What_We_Offer/Downloads/View/</a>) or InscriptiFact Standalone Viewer (<a href="http://ruth.usc.edu/ISFStandaloneViewer/">http://ruth.usc.edu/ISFStandaloneViewer/</a>). </p>
 <p>Advantages</p>
 <ul>
 	<li>Once the viewer is installed and the RTI file downloaded and opened in the viewer, the interface is responsive.</li>
@@ -80,7 +84,7 @@
 
 <a href="staticimages/WebRTI.png" target="images"><img alt="Web RTI" src="staticimages/WebRTI.png"></a>
 <h2 id="webrti">WebRTI</h2>
-<p>If WebRTI is selected from "Select Tasks" the folders ending in RTI contain an html file and sub-folder containing many small images files. For example: <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816_wrti.html</code> and <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816</code>. These files can be copied to a webserver, along with the JavaScript and stylesheets for WebRTI (<a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>), and viewed in any web browser.</p>
+<p>If WebRTI is selected from “Select Tasks” the folders ending in RTI contain an html file and sub-folder containing many small images files. For example: <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816_wrti.html</code> and <code>AccurateColorRTI/Ambrosiana_H190inf_036v_AccurateColorRTI_20170710_0816</code>. These files can be copied to a webserver, along with the JavaScript and stylesheets for WebRTI (<a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>), and viewed in any web browser.</p>
 <p>Advantages</p>
 <ul>
 	<li>User experience. This is the simplest experience of interactive lighting for users. It works in any web browser on any operating system (including Android and iOS). It does not require any plugins or downloads.</li>
@@ -95,7 +99,7 @@
 
 <a href="staticimages/MiradorRaking.png" target="images"><img alt="Mirador Raking" src="staticimages/MiradorRaking.png"></a>
 <h2 id="iiif">Tiled and layered Jpeg2000 images for IIIF repositories</h2>
-<p>If Static Raking is selected from "Select Tasks" a folder named "StaticRaking" will be created in the project directory.
+<p>If Static Raking is selected from “Select Tasks” a folder named “StaticRaking” will be created in the project directory.
 The folder contains jpeg2000 (jp2) files for diffuse lighting (numbered 00) and for each light position selected.
 The color processes are abbreviated Ac for Accurate Color, Xs for Extended Spectrum, Ps for PCA Pseudocolor, and custom processes are unabbreviated.
 Once you have a IIIF Image server, it is a simple matter to copy the jp2 files to the appropriate directory.</p>

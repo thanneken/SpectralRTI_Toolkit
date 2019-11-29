@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Guide to the SpectralRTI_Toolkit for ImageJ</title>
 <link rel="stylesheet" type="text/css" href="styles.css">
+<meta name="Author" content="T. R. Hanneken">
+<meta name="Subject" content="Guide to Creating Spectral RTI Images">
+<meta name="Copyright" content="Jubilees Palimpsest Project">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
 </head>
 <body>
 <h1 class="title">Guide to the SpectralRTI_Toolkit for ImageJ</h1>
@@ -65,7 +69,7 @@
 <ul>
 	<li><b>Windows 10:</b> Fully tested and compatible</li>
 	<li><b>Linux:</b> Fully tested, requires Wine or compiling to run HSHfitter and webGLRtiMaker</li>
-	<li><b>MacOS:</b> Needs testing, expected compatibility with all components except optional webGLRtiMaker <a href="volunteer.html"><span class="volunteer">Volunteers needed</span></a></li>
+	<li><b>MacOS:</b> Fully tested, compatible with all components except optional webGLRtiMaker</li>
 </ul>
 <a href="staticimages/Fiji.png" target="images"><img alt="Fiji" src="staticimages/Fiji.png"></a>
 <h3>Fiji distribution of ImageJ</h3>
@@ -81,42 +85,34 @@
 <a href="staticimages/Github.png" target="images"><img alt="Github" src="staticimages/Github.png"></a>
 <h3>SpectralRTI_Toolkit</h3>
 <!--
-<p>The SpectralRTI_Toolkit for ImageJ was originally developed as a macro.
-The Saint Louis University Center for Digital Humanities is actively developing the Toolkit into a plugin written in Java.
-
-The macro is considered stable, but limited in some features, slower, and not being actively developed.
-The plugin makes substantial improvements in user interface and performance.
-It is being actively developed, which is good in the long run but means that bugs might be encountered.
-As of June 2018, the recommendation is to try the Java plugin and revert to the macro in case of trouble. </p>
-<p>Each is available on GitHub. The macro and/or the plugin can be installed from the <code>Plugins... Install</code> command in Fiji.</p>
-<a href="staticimages/JarFilename.png" target="images"><img alt="Jar Filename" src="staticimages/JarFilename.png"></a>
-<ul>
-	<li>Plugin <a href="https://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit">https://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit</a>
-	<br>The plugin itself is <a href="https://github.com/CenterForDigitalHumanities/SpectralRTI_Toolkit/raw/master/SpectralRTI_Toolkit-0.0.1.jar">SpectralRTI_Toolkit-0.0.1.jar</a></li>
-	<li>Macro
-	<br>The macro itself is <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/SpectralRTI_Toolkit.ijm">SpectralRTI_Toolkit.ijm</a></li>
-</ul>
-<p>Additional plugins required for full functionality are collected in the same GitHub repositories.</p>
 <ol>
 	<li><code>ijp-toolkit_bin_2.1.0.zip</code> and unzip to the <code>plugins</code> folder under ImageJ or Fiji (required for all options)</li>
 	<li><code>bij_plugin.zip</code> and unzip to the <code>plugins</code> folder under ImageJ or Fiji (required for Principal Component Analysis, which is required for Extended Spectrum and PCA Pseudocolor)</li>
 	<li>For ImageJ but not Fiji, <code>Stack_Manipulation-2.0.1.zip</code> and unzip to the <code>plugins</code> folder under ImageJ (required for Extended Spectrum and PCA Pseudocolor)</li>
 </ol>
 -->
-<p>For initial installation, download or clone the SpectralRTI_Toolkit from its repository on GitHub:
+<p>Download or clone the SpectralRTI_Toolkit from its repository on GitHub:
 <a href="https://github.com/thanneken/SpectralRTI_Toolkit">https://github.com/thanneken/SpectralRTI_Toolkit</a></p>
 <p>Copy the contents of the folder <code>plugins</code> to the <code>plugins</code> folder in your instance of Fiji.</p>
-<p>To install subsequent updates to the Toolkit the key file for the plugins folder is <a href="https://github.com/thanneken/SpectralRTI_Toolkit/raw/master/plugins/SpectralRTI_Toolkit-0.0.9.jar"><code>SpectralRTI_Toolkit-0.0.9.jar</code></a>.
 <a href="staticimages/RTIBuilder.png" target="images"><img alt="RTIBuilder" src="staticimages/RTIBuilder.png"></a>
 <h3>RTIBuilder</h3>
 <p>The RTIBuilder distributed by Cultural Heritage Imaging is the best way to create an LP file (unless you already have one) and also includes the HSHfitter required for creating RTI files.</p>
-<p>Windows and MacOS installers are available from <a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/Process/index.html">http://culturalheritageimaging.org</a>. 
+<p>Windows and MacOS installers are available from 
+<a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/Process/index.html">http://culturalheritageimaging.org</a>. 
 <p>For Linux, download and extract either version (e.g., <code>7z x RTIbuilder_2_0_2.dmg</code>). 
 The application can be run from a terminal shell by changing to the directory that contains <code>RTIbuilder.jar</code> and entering the command <code>java -jar RTIbuilder.jar</code>. 
 The included fitter <code>hshfitter.exe</code> can be run in Linux with Wine or compiled from <a href="https://github.com/rti-capture/rti-chi/tree/master/components/HSHfitter2">GitHub</a></p>
-<p>The SpectralRTI_Toolkit will prompt when it is time to run RTIBuilder to create an LP file. See below, "Light position data" <a class="small" href="#lpdata">(LINK)</a></p>
+<p>The SpectralRTI_Toolkit will prompt when it is time to run RTIBuilder to create an LP file. 
+See below, “Light position data” <a class="small" href="#lpdata">(LINK)</a>.</p>
 <h3>Optional Jpeg2000 encoding for IIIF Image servers</h3>
-<p>The Toolkit will give the option of creating "Static Raking" images. "Static" contrasts with dynamically relightable RTI images. "Raking" means any angle of light among the hemisphere captures. Utilizing this option avoids lossy jpeg encoding (currently required for RTI) and creates files ready for IIIF Image repositories (tiled and layered). To utilize this feature it is necessary to download a jpeg2000 encoder. The best available is Kakadu. The executables for Windows, MacOS, and Linux can be downloaded from <a href="http://kakadusoftware.com/downloads/">http://kakadusoftware.com/downloads/</a>.</p>
+<p>The Toolkit will give the option of creating “Static Raking” images. 
+“Static” contrasts with dynamically relightable RTI images. 
+“Raking” means any angle of light among the hemisphere captures. 
+Utilizing this option avoids lossy jpeg encoding (currently required for RTI) and creates files ready for IIIF Image repositories (tiled and layered). 
+To utilize this feature it is necessary to download a jpeg2000 encoder. 
+The best available is Kakadu. 
+The executables for Windows, MacOS, and Linux can be downloaded from 
+<a href="http://kakadusoftware.com/downloads/">http://kakadusoftware.com/downloads/</a>.</p>
 <h3>Optional WebRTI</h3>
 <p>To prepare RTI files for WebRTI you will need <code>webGLRTIMaker.exe</code> from <a href="http://vcg.isti.cnr.it/rti/webviewer.php">http://vcg.isti.cnr.it/rti/webviewer.php</a>.
 Linux users have the option of running the Windows executable in Wine or compiling from <a href="https://github.com/jcupitt/webRTIViewer">GitHub</a></p>
@@ -128,18 +124,12 @@ A script downloads a set of the necessary data in the required folder structure.
 The script is available as a <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/sampledata/downloaddataset.bash">bash script</a> (Linux, Mac)
 and <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/sampledata/downloaddataset.cmd">command script</a> (Windows).
 Note that some directories are optional (transmissive, fluorescence, KTK custom).</p>
-<!--
-<p>Data captured by the Jubilees Palimpsest Project is available online for testing the Toolkit prior to application on your own data.
-The file <a href="https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/SpectralRTI_Dataset.bash">
-<code>https://raw.githubusercontent.com/thanneken/SpectralRTI_Toolkit/master/SpectralRTI_Dataset.bash</code></a> can be run directly from a bash terminal in Linux or Windows.
-Running on MacOS may require replacing <code>wget</code> with <code>curl</code>, or you could download the files listed manually.</p>
- -->
 
 <a href="staticimages/FolderStructure.png" target="images"><img alt="Folder Structure" src="staticimages/FolderStructure.png"></a>
 <h3>Folder structure</h3>
-<p>It is strictly necessary that no spaces appear anywhere in the file paths.</p>
-<p>The Toolkit assumes that all input files are in the tiff format. Some adaptation to the Toolkit may be necessary to use other formats supported by ImageJ.</p>
-<p>The Toolkit is indifferent to filenames but requires precise folder names to identify components.
+<p>It is strictly necessary that no spaces appear anywhere in the file paths. 
+The Toolkit assumes that all input files are in the tiff format. 
+The Toolkit is indifferent to filenames but requires precise folder names to identify components.
 Each image set (e.g., page) requires a project folder (e.g. “Ambrosiana_C73inf_115” in the sample data set) and several subfolders, as follows:</p>
 <ol>
 	<li><code>AccurateColor</code> (required for accurate color images, strongly recommended)</li>
@@ -167,7 +157,7 @@ Each image set (e.g., page) requires a project folder (e.g. “Ambrosiana_C73inf
 <p class="prompt"><b>Select Tasks</b> <br>Select the tasks you would like to complete</p>
 <ul>
 	<li><b>Light Position Data</b> Use this option to create the Light Position (lp) files necessary for RTI. Selected by default unless an LP file is detected in the <code>LightPositionData</code> subdirectory.</li>
-	<li><b>Accurate ColorRTI</b> Use this option to create an RTI file from the image in the <code>AccurateColor</code> subdirectory.</li>
+	<li><b>Accurate Color RTI</b> Use this option to create an RTI file from the image in the <code>AccurateColor</code> subdirectory.</li>
 	<li><b>Accurate Color Static Raking</b> Use this option to create static raking images from the image in the <code>AccurateColor</code> subdirectory. This will create tiled and layered Jpeg2000 files for IIIF image repositories without subjecting the data to lossy encoding.</li>
 	<li><b>Extended Spectrum RTI</b> Use this option to create an RTI file from the Extended Spectrum <a class="small" href="glossary.html">(GLOSSARY)</a> processing of the narrowband captures.</li>
 	<li><b>Extended Spectrum Static Raking</b> As above, use this option to create non-RTI images for a IIIF repository.</li>
@@ -213,7 +203,6 @@ The rarely changed preferences are as follows.</p>
 <h2 id="brightness">Adjust brightness</h2>
 <p class="prompt"><b>Adjust brightness of hemisphere captures?</b>
 <br>Adjust brightness of hemisphere captures?</p>
-<!--<p class="note">Advanced - Settings should be left as default in most cases</p>-->
 <p>The hemisphere captures use the same exposure settings for all light positions, which is valuable for rendering RTI images, but leaves the static raking images too dark.
 Most users will want to normalize each image to a selected area for Static Raking images only.</p>
 <ul>
@@ -229,9 +218,7 @@ Most users will want to normalize each image to a selected area for Static Rakin
 <a href="staticimages/BlackWhite.png" target="images"><img alt="Brightest white, darkest black" src="staticimages/BlackWhite.png"></a>
 <p class="prompt"><b>Select area</b> <br>Draw a rectangle containing the brightest white and darkest black desired then press OK
 (hint: use a large area including spectralon and the object, excluding glare)</p>
-<!-- <p class="note">Note: rewrite dialog to read "hint: exclude glare but include the darkest black and whitest white, typically on the color checker chart"</p>-->
 <p>This option appears if “normalizing each image to a selected area” was chosen on the previous dialog.</p>
-<!-- <p class="note">Go back and document interaction if "multiplying all images by a fixed value" was selected.</p>-->
 
 <p class="prompt"><b>Select Transmissive Source</b></p>
 <p>This option appears only if a <code>Captures-Transmissive-Gamma</code> directory is found in the project directory and contains more than one image.
@@ -242,19 +229,19 @@ If the best option is not known, preview the options in another program.</p>
 <a href="staticimages/LightPositions.png" target="images"><img alt="Light Positions" src="staticimages/LightPositions.png"></a>
 <h2 id="staticraking">Static raking option</h2>
 <p class="prompt"><b>Select light positions</b> <br>Select light positions for lossless static raking images</p>
-<p>This option appears if "Static Raking" was selected under "Select Tasks" previously.</p>
+<p>This option appears if “Static Raking” was selected under “Select Tasks” previously.</p>
 <p>The prompt will list the images found in the <code>Captures-Hemisphere-Gamma</code> directory.
 Typically one might want low angles from four directions, minimally impacted by shadow from the copy stand.
 When using the MegaVision Arc for RTI the positions A03, A13, G05, and G13 are good choices.
 Otherwise, preview the options in another program to identify the best raking angles.</p>
 
-<p>Prompts for “Locate Fitter” and “Locate kdu_compress” might appear at this point. See instructions <a href="#locatefitter">below</a></p>
+<p>Prompts for “Locate Fitter” and “Locate kdu_compress” might appear at this point. See instructions <a href="#locatefitter">below</a>.</p>
 
 <a href="staticimages/Assign.png" target="images"><img alt="Assign Narrowband for Xs" src="staticimages/Assign.png"></a>
 <h2 id="extendedspectrum">Options for Extended Spectrum</h2>
 <p class="prompt"><b>Assign Narrowband Captures</b> <br>Assign each narrowband capture to the visible range of R, G, B, or none</p>
-<p>This option appears if "Extended Spectrum" was selected under "Select Tasks" previously.</p>
-<p>The prompt will list the images found in the <code>Captures-Narrowband-NoGamma</code> directory. The default options should work well if the filenames sort from shortest to longest wavelength. Roughly a third of the images with the shortest wavelengths should be assigned to the B (blue) category, the middle wavelengths to the G (green) category, and the longest to R (red) category. Use "none" if that image should not be used for Extended Spectrum processing.</p>
+<p>This option appears if “Extended Spectrum” was selected under “Select Tasks” previously.</p>
+<p>The prompt will list the images found in the <code>Captures-Narrowband-NoGamma</code> directory. The default options should work well if the filenames sort from shortest to longest wavelength. Roughly a third of the images with the shortest wavelengths should be assigned to the B (blue) category, the middle wavelengths to the G (green) category, and the longest to R (red) category. Use “none” if that image should not be used for Extended Spectrum processing.</p>
 <h2 id="roi">Identify region of interest (for Extended Spectrum and Pseudocolor)</h2>
 
 <a href="staticimages/ROIPCA.png" target="images"><img alt="Region of Interest" src="staticimages/ROIPCA.png"></a>
@@ -268,7 +255,7 @@ Otherwise, preview the options in another program to identify the best raking an
 	<li><b>Generate and manually select two</b> This will (later) require the user to go through a stack of principal component images and delete all but the two slices that most elucidate the desired target.</li>
 	<li><b>Open pregenerated images</b>
 		This option takes a two-layer stack already generated in ImageJ or other software.
-		The stack should in a folder called <code>PCA</code> in the project directory.</li>
+		The stack should be in a folder called <code>PCA</code> in the project directory.</li>
 </ul>
 
 <a href="staticimages/CustomProcess.png" target="images"><img alt="Custom Process" src="staticimages/CustomProcess.png"></a>
@@ -284,30 +271,25 @@ The image should be in a subdirectory under the project folder with any name
 	With a handheld flash it must be processed for each set.</p>
 <a href="staticimages/ReflectiveSphere.png" target="images"><img alt="Reflective Sphere" src="staticimages/ReflectiveSphere.png"></a>
 <p class="prompt"><b>Select ROI</b> <br>Draw a rectangle loosely around a reflective hemisphere and press Ok</p>
-<!-- <p class="note">The sequence is counter-intuitive here as a result of efforts to front-load interaction.
-Also, change dialog to "Select Area" to avoid jargon (Region of Interest).
-Also, capitalize OK for consistency.</p>-->
 <p>This is the beginning of the process to create a Light Position (lp) file. Make sure the rectangle includes the entire reflective sphere.</p>
 <p class="prompt"><b>Use RTI Builder to Create LP File</b> <br>Please use RTI Builder to create an LP file based on the reflective hemisphere detail images in [Project Directory\LightPositionData\ <br>Press cancel to discontinue Spectral RTI Toolkit or Ok to continue with other tasks after the lp file has been created.</p>
 <p>Leave this window alone and start RTIBuilder (see above, Software installation)</p>
 <p class="note">RTI Builder has its own <a href="http://culturalheritageimaging.org/What_We_Offer/Downloads/rtibuilder/RTI_hlt_Processing_Guide_v14_beta.pdf">Documentation</a>.
 	A brief summary is offered here.</p>
-<!-- <p class="prompt"><b>RTIbuilder</b> <br>Project Name <br>Operation Sequence</p>-->
 <p>Give the project any name (e.g., shinysphere) and select <code>Highlight Based (HSH Fitter)</code> for the operation sequence. Click <code>Start New Project</code></p>
 <p>Click <code>Open Folder</code> and navigate to your Project directory and select the folder <code>LightPositionData</code>. Be sure to select that directory and not the parent directory or the <code>jpeg-exports</code> folder within it.</p>
 <p>If the capture went well each image should have a highlight (glare spot) on it, but you have the option of deleting failed shots here. Then press <code>Next</code>.</p>
 <p>Again, draw a rectangle around the sphere. Click <code>Add Area</code> then <code>Detect Spheres</code></p>
-<p>The software tries to identify the center and radius of the sphere. Check by clicking on different images, especially "Median." If it is necessary to change the radius or center be sure to click <code>Set New Center</code> before <code>Next</code>.</p>
+<p>The software tries to identify the center and radius of the sphere. Check by clicking on different images, especially “Median.” If it is necessary to change the radius or center be sure to click <code>Set New Center</code> before <code>Next</code>.</p>
 <p>Click <code>Highlight detection</code> and a red cross will appear where the software detected the highlight. Click <code>Next</code>
-<p>If the field "HSH Fitter Location" is not already filled, click <code>Find</code> and navigate to the file HSHfitter. Take note of the location, as you will need it later.
-<p>Click <code>Execute</code>. The software may return "Fitting Completed" or an error message, but it does not matter as long as the LP file was created. Close RTIbuilder and return to ImageJ.</p>
-<p>At the prompt "Use RTI Builder to Create LP File" click <code>OK</code>. The processing will run for several minutes, depending on options selected.</p>
+<p>If the field “HSH Fitter Location” is not already filled, click <code>Find</code> and navigate to the file HSHfitter. Take note of the location, as you will need it later.
+<p>Click <code>Execute</code>. The software may return “Fitting Completed” or an error message, but it does not matter as long as the LP file was created. Close RTIbuilder and return to ImageJ.</p>
+<p>At the prompt “Use RTI Builder to Create LP File” click <code>OK</code>. The processing will run for several minutes, depending on options selected.</p>
 
 <h2 id="locatefitter">Locate Fitter</h2>
 <p class="prompt"><b>Locate Preferred RTI Fitter or cmd file for batch processing</b></p>
-<p class="note">Note: needs testing on MacOS</p>
-<p>The straightforward option is to direct the prompt to the path <code>RTIbuilder_v2_0_2\Fitters\HSHfitter\hshfitter.exe</code>.
-See "Use deferredbatch.cmd" under "Tips for frequent use" below for the advantages of deferring HSH fitting.
+<p>The straightforward option is to direct the prompt to the path <code>RTIbuilder_v2_0_2\Fitters\HSHfitter\hshfitter.exe</code> (or without the .exe extension on Mac or Linux).
+See “Use deferredbatch.cmd” under “Tips for frequent use” below for the advantages of deferring HSH fitting.
 The <code>deferredbatch.cmd</code> is also convenient for running on Mac and Linux.
 This option does not change frequently so is remembered and set to default the next time the Toolkit runs.
 
@@ -325,27 +307,22 @@ The location will be remembered on subsequent runs of the Toolkit.</p>
 the following prompt will appear after PCA was run on the files in <code>Captures-Narrowband-NoGamma</code> and <code>Captues-Fluorescence-NoGamma</code>.
 This is also the most RAM intensive part of the process.
 If there are too many files in those folders consider deleting some files or moving them to a new folder such as <code>Captures-Fluorescence-NoGamma-skip</code>.</p>
-<a href="staticimages/DeleteSlice.png" target="images"><img alt="Delete Slice" src="staticimages/DeleteSlice.png"></a>
-<p class="prompt"><b>Select area</b> Delete slices from the stack until two remain <br>(Hint: Image > Stacks > Delete Slice) <br>Enhance contrast as desired <br>Then press Ok</p>
-<!-- <p class="note">Change prompt heading from "Select area" to "Reduce stack." Also, enhance contrast should be mentioned before delete.</p>
-<p class="note">The other paths are more straightforward but should be documented nonetheless.</p>
-<p>The area of interest for PCA selected previously should be automatically selected. Feel free to modify the area.</p>-->
+<a href="staticimages/DeleteSlices.png" target="images"><img alt="Delete Slices" src="staticimages/DeleteSlices.png"></a>
+<p class="prompt"><b>Select area</b> Delete slices from the stack until two remain <br>Enhance contrast as desired <br>Then press Ok</p>
 <p>If the images are too dark are light (which is likely) it will be helpful to enhance contrast.
 Draw a rectangle around a region of interest (a region that should not be washed out in black or white).
-Then use <code>Process > Enhance Contrast</code> and check <code>Process all slices</code>.</p>
+Then use <code>Process &gt; Enhance Contrast</code> and check <code>Process all slices</code>.</p>
 <p>The number of slices in the stack is equal to the number of narrowband captures.
 The last few are typically all black.
 Delete those, then delete the least helpful slices until two remain.
-Hint: navigate through slices with the <code>,</code> and <code>.</code> keys, which could also be thought of as <code>&lt;</code> and <code>&gt;</code> without shift.</p>
 
 <h2 id="frequentuse">Tips for frequent use</h2>
-<!-- <h3>Include SpectralRTI_Toolkit.ijm in Startup Macros</h3>
-<p class="note">TBA, see documentation in Fiji and ImageJ</p>-->
 <h3>Use deferredbatch.cmd</h3>
 <p>Let HSHfitter and WebGLRtiMaker run in batches overnight.</p>
 <p>You can save waiting by deferring the time-consuming HSH fitting process.
 This could also be helpful if you need or want to use multiple computers or operating systems.
-First, create a file named <code>deferredbatch.cmd</code>. Run the Toolkit and clear the selection for preferred fitter.
+First, create a file named <code>deferredbatch.cmd</code> (or <code>deferredbatch.bash</code>). 
+Run the Toolkit and clear the selection for preferred fitter.
 When prompted to identify the fitter, point to the cmd file. Now the toolkit will add commands to the batch file rather than running the fitter.
 When you want to start the batch, execute the cmd file.
 If the HSH Fitter and WebGLRTIMaker (if desired) are not in your path you could add them in the operating system or as an initial command in the cmd file.</p>
@@ -368,12 +345,12 @@ webGLRTIMaker /media/thanneken/Jub-02/Projects/Ambrosiana_C73inf_115/KTK01RTI/Am
 $ cd wine/HSHfitter/
 $ wine cmd
 Microsoft Windows 5.2.3790 (2.4)
-Z:\home\thanneken\wine\HSHfitter>deferredbatch.cmd
+Z:\home\thanneken\wine\HSHfitter&gt;deferredbatch.cmd
 </pre>
 
 <h3>Reuse LP files</h3>
 <p>When using a handheld flash a new LP file must be generated for each object (but not each color process). The beauty of a fixed dome or stable arc is that the LP file can be created once from a calibration sequence and reused.
-<p>Edit the LP file created from the calibration sequence and replace the file path up to the position identifier with the word "canonical." For example, the first few lines of a reusable LP file might read:</p>
+<p>Edit the LP file created from the calibration sequence and replace the file path up to the position identifier with the word “canonical.” For example, the first few lines of a reusable LP file might read:</p>
 <p><code>56
 <br>canonical-A01_043.jpg 0.17889495 -0.9825294 0.05130836
 <br>canonical-A03_044.jpg 0.46035585 -0.8594868 0.22215976
@@ -396,9 +373,5 @@ Z:\home\thanneken\wine\HSHfitter>deferredbatch.cmd
 	<tr><td>all</td>	<td><code>s/--//g</code></td></tr>
 </table>
 <p>For any project directory with the same light positions, simply create a sub-directory <code>LightPositionData</code> and copy the canonical lp file into the directory. </p>
-<!-- <p class="note">The canonical (reusable) lp files must be created with external tools such as text editors with regular expression search and replace.
-This would be a simple feature to add to the SpectralRTI_Toolkit.
-The place to do it would be right after accepting that RTI Builder has run.
-Relying on metadata to store the needed rotation is too prone to error.</p>-->
 </body>
 </html>
